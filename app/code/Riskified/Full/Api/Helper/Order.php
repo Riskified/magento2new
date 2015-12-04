@@ -19,7 +19,7 @@ class Order
     {
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
-        $this->_apiConig = $apiConfig;
+        $this->_apiConfig = $apiConfig;
         $this->_apiLogger = $apiLogger;
     }
 
@@ -166,7 +166,7 @@ class Order
             return null;
         }
         if ($this->_apiConfig->isLoggingEnabled()) {
-            $this->logPaymentData();
+            $this->_apiLogger->payment();
         }
         $transactionId = $payment->getTransactionId();
         $gateway_name = $payment->getMethod();
@@ -299,7 +299,7 @@ class Order
     }
 
     public function getRemoteIp() {
-        Mage::helper('full/log')->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        $this->_apiLogger->debug("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $forwardeds = preg_split("/,/",$forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {

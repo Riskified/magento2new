@@ -3,7 +3,7 @@ namespace Riskified\Full\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 
-class OrderPlacedAfter implements ObserverInterface
+class OrderPlacedAfterObserver implements ObserverInterface
 {
     private $_logger;
     private $_orderApi;
@@ -18,7 +18,7 @@ class OrderPlacedAfter implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getOrder();
-exit;
+
         if(!$order) {
             return;
         }
@@ -31,8 +31,10 @@ exit;
             try {
                 $this->_orderApi->postOrder($order, \Riskified\Full\Api\Api::ACTION_UPDATE);
             } catch (\Exception $e) {
+                $this->_logger->critical($e);
             }
         } else {
+            $this->_logger->debug(__("No data found"));
         }
     }
 }
