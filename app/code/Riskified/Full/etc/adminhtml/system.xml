@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="riskified_tab" translate="label" sortOrder="200">
+            <label>Riskified</label>
+        </tab>
+        <section id="riskified" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Settings</label>
+            <tab>riskified_tab</tab>
+            <resource>Magento_Newsletter::newsletter</resource>
+            <group id="riskified" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>API settings</label>
+                <field id="env" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Riskified environment</label>
+                    <source_model>Riskified\Full\Config\Source\Env</source_model>
+                    <comment><![CDATA[Select Riskified's environment.<br> You can use sandbox for testing.
+                                          <br>If you don't have a sandbox account please contact support@riskified.com ]]></comment>
+                </field>
+                <field id="domain" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shop Domain</label>
+                    <comment><![CDATA[This is the shop domain used during signup. See <a href="http://www.riskified.com/documentation/magento.html" target="_blank">documentation</a> for more details.]]></comment>
+                </field>
+                <field id="key" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auth token</label>
+                    <comment><![CDATA[ Your <i>secret</i> auth token can be found in your <a href="https://app.riskified.com/main/settings/advanced" target="_blank">Riskified Settings page</a>. ]]></comment>
+                </field>
+                <field id="order_status_sync" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Order Status Sync</label>
+                    <comment><![CDATA[ Enable/Disable automatic changes to Order status by Riskified's review process.
+                          <br>Requires the <i>Order notification endpoint</i> to be configured correctly in your Riskified Settings page.
+                          <br>Using the following mapping:
+                          <br>'submit' => state: 'On Hold', status: 'On Hold (Riskified)'
+                          <br>'approve' => state: [defined below by 'Approved State' value], status: [defined below by 'Approved Status' value]
+                          <br>'decline' => state: [defined below by 'Declined State' value], status: [defined below by 'Declined Status' value]
+                          <br> in case of transfer error  => state: 'On Hold', status: 'On Hold (Riskified Transport Error)'
+                          <br><b>Important:</b> Might affect other extensions that are dependent on an Order's status.
+                           ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+                <field id="approved_state" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Approved State</label>
+                    <comment><![CDATA[The Magento state to move to when an order is approved]]></comment>
+                    <source_model>Riskified\Full\Config\Source\ApprovedState</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                    </depends>
+                </field>
+                <field id="approved_status_processing" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Approved Status</label>
+                    <comment><![CDATA[The Magento status to move to when an order is approved]]></comment>
+                    <source_model>Riskified\Full\Config\Source\ProcessingStateStatuses</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                        <field id="*/*/approved_state">processing</field>
+                    </depends>
+                </field>
+                <field id="approved_status_holded" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Approved Status</label>
+                    <comment><![CDATA[The Magento status to move to when an order is approved]]></comment>
+                    <source_model>Riskified\Full\Config\Source\HoldedStateStatuses</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                        <field id="*/*/approved_state">processing</field>
+                    </depends>
+                </field>
+                <field id="declined_state" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Declined State</label>
+                    <comment><![CDATA[The Magento state to move to when an order is declined]]></comment>
+                    <source_model>Riskified\Full\Config\Source\DeclinedState</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                    </depends>
+                </field>
+                <field id="declined_status_canceled" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Declined Status</label>
+                    <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
+                    <source_model>Riskified\Full\Config\Source\CanceledStateStatuses</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                        <field id="*/*/declined_state">canceled</field>
+                    </depends>
+                </field>
+                <field id="declined_status_holded" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Declined Status</label>
+                    <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
+                    <source_model>Riskified\Full\Config\Source\HoldedStateStatuses</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                        <field id="*/*/declined_state">canceled</field>
+                    </depends>
+                </field>
+                <field id="auto_invoice_enabled" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Auto-Invoice</label>
+                    <comment><![CDATA[Should an invoice automatically be created when Riskified approves this order?]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="auto_invoice_capture_case" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Auto-Invoice Case</label>
+                    <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
+                    <source_model>Riskified\Full\Config\Source\CaptureCase</source_model>
+                    <depends>
+                        <field id="*/*/order_status_sync">1</field>
+                    </depends>
+                </field>
+                <field id="debug_logs" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Debug logs</label>
+                    <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

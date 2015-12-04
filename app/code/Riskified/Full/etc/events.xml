@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <event name="controller_action_predispatch">
+        <observer name="riskified_full" instance="Riskified\Full\Observer\OrderPlacedAfter" />
+    </event>
+</config>
