@@ -10,6 +10,7 @@ class Order
     private $_orderHelper;
     private $_context;
     private $_eventManager;
+    private $_messageManager;
     private $_backendAuthSession;
 
     public function __construct(
@@ -17,7 +18,8 @@ class Order
         Helper\Order $orderHelper,
         Config $apiConfig,
         \Magento\Framework\App\Helper\Context $context,
-        \Magento\Backend\Model\Auth\Session $backendAuthSession
+        \Magento\Backend\Model\Auth\Session $backendAuthSession,
+        \Magento\Framework\Message\ManagerInterface $messageManager
     ) {
         $this->_api = $api;
         $this->_orderHelper = $orderHelper;
@@ -25,6 +27,7 @@ class Order
         $this->_context             = $context;
         $this->_eventManager        = $context->getEventManager();
         $this->_backendAuthSession  = $backendAuthSession;
+        $this->_messageManager      = $messageManager;
 
         $this->_api->initSdk();
     }
@@ -56,6 +59,8 @@ class Order
                     break;
             }
             $eventData['response'] = $response;
+
+            $this->_messageManager->addSuccess('Riskified extension: The order was sent');
             $this->_eventManager->dispatch(
                 'riskified_full_post_order_success',
                 $eventData
@@ -64,7 +69,7 @@ class Order
             $this->_raiseOrderUpdateEvent($order, 'error',null, 'Error transferring order data to Riskified');
             $this->scheduleSubmissionRetry($order, $action);
 
-            $this->_context->dispatch(
+            $this->_eventManager->dispatch(
                 'riskified_full_post_order_error',
                 $eventData
             );
@@ -123,7 +128,7 @@ class Order
             'taxes_included' => true,
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
-            'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->getCancelledAt($model)),
+            'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
@@ -136,6 +141,7 @@ class Order
         }
 
         $order = new Model\Order(array_filter($order_array, 'strlen'));
+
         $order->customer = $this->_orderHelper->getCustomer();
         $order->shipping_address = $this->_orderHelper->getShippingAddress();
         $order->billing_address = $this->_orderHelper->getBillingAddress();

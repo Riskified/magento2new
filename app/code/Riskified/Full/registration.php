@@ -4,3 +4,8 @@
     'Riskified_Full',
     __DIR__
 );
+\Magento\Framework\Component\ComponentRegistrar::register(
+    \Magento\Framework\Component\ComponentRegistrar::LIBRARY,
+    'Riskified_WebHook',
+    __DIR__
+);

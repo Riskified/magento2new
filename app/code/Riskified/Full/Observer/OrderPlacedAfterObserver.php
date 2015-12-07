@@ -2,6 +2,7 @@
 namespace Riskified\Full\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Riskified\Full\Api\Api;
 
 class OrderPlacedAfterObserver implements ObserverInterface
 {
@@ -24,12 +25,8 @@ class OrderPlacedAfterObserver implements ObserverInterface
         }
 
         if ($order->dataHasChangedFor('state')) {
-            if($order->riskifiedInSave) {
-                return;
-            }
-            $order->riskifiedInSave = true;
             try {
-                $this->_orderApi->postOrder($order, \Riskified\Full\Api\Api::ACTION_UPDATE);
+                $this->_orderApi->postOrder($order, Api::ACTION_UPDATE);
             } catch (\Exception $e) {
                 $this->_logger->critical($e);
             }

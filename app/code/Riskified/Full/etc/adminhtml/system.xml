@@ -7,7 +7,7 @@
         <section id="riskified" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Settings</label>
             <tab>riskified_tab</tab>
-            <resource>Magento_Newsletter::newsletter</resource>
+            <resource>Riskified_Full::config_settings</resource>
             <group id="riskified" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>API settings</label>
                 <field id="env" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">

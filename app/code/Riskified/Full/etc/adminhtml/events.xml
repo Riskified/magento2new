@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <event name="controller_action_predispatch">
-        <observer name="riskified_full" instance="Riskified\Full\Observer\OrderPlacedAfter" />
+    <event name="order_place_after">
+        <observer name="riskified_full_order_place_after_adminhtml" instance="Riskified\Full\Observer\OrderPlacedAfter" />
     </event>
 </config>

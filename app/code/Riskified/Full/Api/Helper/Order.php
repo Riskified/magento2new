@@ -9,18 +9,24 @@ class Order
     private $_logger;
     private $_apiConfig;
     private $_messageManager;
+    private $_customerFactory;
+    private $_orderFactory;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
         \Riskified\Full\Api\Config $apiConfig,
-        \Riskified\Full\Api\Log $apiLogger,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Riskified\Full\Logger\Order $apiLogger,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Customer\Model\Customer $customerFactory,
+        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory
     )
     {
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
         $this->_apiConfig = $apiConfig;
         $this->_apiLogger = $apiLogger;
+        $this->_customerFactory = $customerFactory;
+        $this->_orderFactory = $orderFactory;
     }
 
     public function setOrder($model)
@@ -65,8 +71,8 @@ class Order
 
     public function getClientDetails() {
         return new Model\ClientDetails(array_filter(array(
-            'accept_language' => Mage::app()->getLocale()->getLocaleCode(),
-            'user_agent' => Mage::helper('core/http')->getHttpUserAgent()
+//            'accept_language' => Mage::app()->getLocale()->getLocaleCode(),
+//            'user_agent' => Mage::helper('core/http')->getHttpUserAgent()
         ),'strlen'));
     }
 
@@ -82,11 +88,11 @@ class Order
             'group_name' => $this->getOrder()->getCustomerGroupId()
         );
         if ($customer_id) {
-            $customer_details = Mage::getModel('customer/customer')->load($customer_id);
+            $customer_details = $this->_customerFactory->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
             try {
-                $customer_orders = Mage::getModel('sales/order')->getCollection()->addFieldToFilter('customer_id', $customer_id);
+                $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
                 $customer_props['orders_count'] = $customer_orders_count;
                 if ($customer_orders_count) {
@@ -147,7 +153,7 @@ class Order
             'address2' => $address_2,
             'city' => $address->getCity(),
             'country_code' => $address->getCountryId(),
-            'country' => Mage::getModel('directory/country')->load($address->getCountryId())->getName(),
+//            'country' => Mage::getModel('directory/country')->load($address->getCountryId())->getName(),
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
@@ -186,10 +192,10 @@ class Order
                             }
                             if (isset($card_data['cc_avs_result_code'])) {
                                 $avs_result_code = $card_data['cc_avs_result_code'];
-                            }// getAvsResultCode
+                            }
                             if (isset($card_data['cc_response_code'])) {
                                 $cvv_result_code = $card_data['cc_response_code'];
-                            } // getCardCodeResponseCode
+                            }
                         }
                     }
                     break;
@@ -241,7 +247,6 @@ class Order
                         $cvv_result_code = $sage->getData('cv2result');
                         $credit_card_number = $sage->getData('last_four_digits');
                         $credit_card_company = $sage->getData('card_type');
-                        //Mage::helper('full/log')->log("sagepay payment (".$gateway_name.") additional info: ".PHP_EOL.var_export($sage->getAdditionalInformation(), 1));
                     } else {
                     }
                     break;

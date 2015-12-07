@@ -5,6 +5,7 @@ use Riskified\Common\Signature;
 use Riskified\Common\Validations;
 use Riskified\OrderWebhook\Model;
 use Riskified\OrderWebhook\Transport;
+use Riskified\OrderWebhook\Transport\CurlTransport;
 use Riskified\DecisionNotification\Model\Notification as DecisionNotification;
 
 class Api
@@ -31,7 +32,7 @@ class Api
     }
 
     public function getTransport() {
-        $transport = new Transport\CurlTransport(new Signature\HttpDataSignature());
+        $transport = new CurlTransport(new Signature\HttpDataSignature());
         $transport->timeout = 15;
         return $transport;
     }
