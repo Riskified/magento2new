@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <event name="order_place_after">
+        <observer name="riskified_decider_order_place_after_adminhtml" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
+    </event>
+</config>
