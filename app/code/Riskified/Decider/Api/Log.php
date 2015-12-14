@@ -52,4 +52,12 @@ class Log {
             $this->_logger->critical($e);
         }
     }
+
+    public function log($message) {
+        $this->_logger->addInfo($message);
+    }
+
+    public function logException($message) {
+        $this->_logger->addCritical($message);
+    }
 }

@@ -1,8 +1,8 @@
 <?php
-namespace Riskified\Decider\Api\Helper;
+namespace Riskified\Decider\Api\Order;
 use Riskified\OrderWebhook\Model;
 
-class Order
+class Helper
 {
     private $_order;
     private $_apiLogger;

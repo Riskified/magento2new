@@ -3,6 +3,7 @@ namespace Riskified\Decider\Api;
 use Riskified\Common\Signature;
 use Riskified\OrderWebhook\Model;
 use Riskified\OrderWebhook\Transport;
+use \Magento\Sales\Model\OrderFactory;
 
 class Order
 {
@@ -12,26 +13,34 @@ class Order
     private $_eventManager;
     private $_messageManager;
     private $_backendAuthSession;
+    private $_orderFactory;
+    private $logger;
 
     public function __construct(
         Api $api,
-        Helper\Order $orderHelper,
+        Order\Helper $orderHelper,
         Config $apiConfig,
+        Log $logger,
+        Log $logger,
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Backend\Model\Auth\Session $backendAuthSession,
-        \Magento\Framework\Message\ManagerInterface $messageManager
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        OrderFactory $salesOrderCollectionFactory
+
     ) {
-        $this->_api = $api;
-        $this->_orderHelper = $orderHelper;
+        $this->_api                 = $api;
+        $this->_orderHelper         = $orderHelper;
         $this->_apiConfig           = $apiConfig;
         $this->_context             = $context;
         $this->_eventManager        = $context->getEventManager();
         $this->_backendAuthSession  = $backendAuthSession;
         $this->_messageManager      = $messageManager;
+        $this->_orderFactory        = $salesOrderCollectionFactory;
+        $this->logger               = $logger;
 
         $this->_api->initSdk();
     }
-    public function postOrder($order, $action) {
+    public function post($order, $action) {
         $transport = $this->_api->getTransport();
         $this->_orderHelper->setOrder($order);
 
@@ -42,15 +51,15 @@ class Order
         try {
             switch ($action) {
                 case Api::ACTION_CREATE:
-                    $orderForTransport = $this->getOrder($order);
+                    $orderForTransport = $this->load($order);
                     $response = $transport->createOrder($orderForTransport);
                     break;
                 case Api::ACTION_UPDATE:
-                    $orderForTransport = $this->getOrder($order);
+                    $orderForTransport = $this->load($order);
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
-                    $orderForTransport = $this->getOrder($order);
+                    $orderForTransport = $this->load($order);
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
@@ -106,7 +115,7 @@ class Order
         return;
     }
 
-    private function getOrder($model) {
+    private function load($model) {
         $gateway = 'unavailable';
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
@@ -156,6 +165,43 @@ class Order
         return $order;
     }
 
+    public function update($order, $status, $oldStatus, $description) {
+        $this->logger->log('Dispatching event for order ' . $order->getId() . ' with status "' . $status .
+            '" old status "' . $oldStatus . '" and description "' . $description . '"');
+        $eventData = array(
+            'order' => $order,
+            'status' => $status,
+            'old_status' => $oldStatus,
+            'description' => $description
+        );
+        $this->_eventManager->dispatch(
+            'riskified_full_order_update',
+            $eventData
+        );
+        $eventIdentifier = preg_replace("/[^a-z]/", '_', strtolower($status));
+        $this->_eventManager->dispatch(
+            'riskified_full_order_update_' . $eventIdentifier,
+            $eventData
+        );
+        return;
+    }
+
+    public function loadOrderByOrigId($full_orig_id) {
+        if(!$full_orig_id) {
+            return null;
+        }
+        $magento_ids = explode("_",$full_orig_id);
+        $order_id = $magento_ids[0];
+        $increment_id = $magento_ids[1];
+        if ($order_id && $increment_id) {
+            return $this->_orderFactory->create()->getCollection()
+                ->addFieldToFilter('entity_id', $order_id)
+                ->addFieldToFilter('increment_id',$increment_id)
+                ->getFirstItem();
+        }
+        return $this->_orderFactory->create()->load($order_id);
+    }
+
     public function postHistoricalOrders($models) {
         $orders = array();
 
@@ -164,7 +210,7 @@ class Order
         }
 
         $msgs = $this->_api->getTransport()->sendHistoricalOrders($orders);
-        return "Successdecidery uploaded ".count($msgs)." orders.".PHP_EOL;
+        return "Success decidery uploaded ".count($msgs)." orders.".PHP_EOL;
     }
 
     public function scheduleSubmissionRetry(\Magento\Sales\Model\Order $order, $action)

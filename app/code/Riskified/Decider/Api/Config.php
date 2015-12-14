@@ -63,4 +63,18 @@ class Config
     public function isLoggingEnabled() {
         return (bool) $this->_scopeConfig->getValue('riskified/riskified/debug_logs');
     }
+
+    public function isAutoInvoiceEnabled()
+    {
+        return (bool) $this->_scopeConfig->getValue('fullsection/full/auto_invoice_enabled');
+    }
+
+    public function getInvoiceCaptureCase()
+    {
+        $case = $this->_scopeConfig->getValue('fullsection/full/auto_invoice_capture_case');
+        if (!in_array($case, array(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE, \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE))) {
+            $case = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
+        }
+        return $case;
+    }
 }

@@ -3,4 +3,7 @@
     <event name="sales_order_place_after">
         <observer name="riskified_decider_order_place_after_frontend" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
     </event>
+    <event name="riskified_full_order_update">
+        <observer name="riskified_full_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
+    </event>
 </config>
