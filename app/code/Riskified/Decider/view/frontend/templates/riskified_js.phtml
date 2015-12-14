@@ -1,0 +1,13 @@
+<script type="text/javascript">
+    (function() {
+        function riskifiedBeaconLoad() {
+            var session_id = "<?php echo $block->getSessionId(); ?>";
+            var store_domain="<?php echo $block->getShopDomain() ?>";
+            var statusControlActive = "<?php echo $block->getConfigStatusControlActive() ?>";
+            var version = "<?php echo $block->getExtensionVersion() ?>";
+            var url = ('https:' == document.location.protocol ? 'https://' : 'http://') + "<?php echo $block->getConfigBeaconUrl()?>?shop="+store_domain+"&sid="+session_id+"&v="+version;
+            var s = document.createElement('script');
+        }
+        window.attachEvent ? window.attachEvent('onload', riskifiedBeaconLoad) : window.addEventListener('load', riskifiedBeaconLoad, false);
+    })();
+</script>

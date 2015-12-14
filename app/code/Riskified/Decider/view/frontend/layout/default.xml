@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="before.body.end">
-            <block class="Riskified\Decider\Block\Js" name="riskified_decider_js" as="riskified_decider_js" template="Riskified\Decider::riskified_js.phtml"/>
+            <block class="Riskified\Decider\Block\Js" name="riskified_decider_js" as="riskified_decider_js" template="riskified_js.phtml"/>
         </referenceContainer>
     </body>
 </page>

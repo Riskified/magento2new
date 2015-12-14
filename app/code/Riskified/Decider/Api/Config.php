@@ -5,9 +5,17 @@ class Config
 {
     private $version;
     private $_scopeConfig;
+    private $cookieManager;
+    private $fullModuleList;
 
-    public function __construct(\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig) {
-        $this->_scopeConfig = $scopeConfig;
+    public function __construct(
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
+        \Magento\Framework\Module\FullModuleList $fullModuleList
+    ) {
+        $this->_scopeConfig     = $scopeConfig;
+        $this->cookieManager    = $cookieManager;
+        $this->fullModuleList   = $fullModuleList;
     }
 
     protected function getHeaders() {
@@ -24,6 +32,11 @@ class Config
 
     public function getConfigEnv(){
         return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue('riskified/riskified/env');
+    }
+
+    public function getSessionId(){
+
+        return $this->cookieManager->getCookie('rCookie');
     }
 
     public function getConfigEnableAutoInvoice(){
@@ -43,7 +56,8 @@ class Config
     }
 
     public function getExtensionVersion(){
-        return "1.1.1";
+        $moduleConfig = $this->fullModuleList->getOne('Riskified_Decider');
+        return $moduleConfig['setup_version'];
     }
 
     public function getDeclinedState() {
