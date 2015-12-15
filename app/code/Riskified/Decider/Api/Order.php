@@ -42,10 +42,14 @@ class Order
     }
     public function post($order, $action) {
         $transport = $this->_api->getTransport();
+        $orderModelFactory = $this->_orderFactory->create()->loadByIncrementId($order->getIncrementId());
+        if(!$orderModelFactory) {
+            throw new \Exception("Order doesn't not exists");
+        }
         $this->_orderHelper->setOrder($order);
 
         $eventData = array(
-            'order' => $order,
+            'order' => $orderModelFactory,
             'action' => $action
         );
         try {
@@ -198,6 +202,10 @@ class Order
                 ->addFieldToFilter('entity_id', $order_id)
                 ->addFieldToFilter('increment_id',$increment_id)
                 ->getFirstItem();
+        }
+
+        if(!$order_id && $increment_id) {
+            return $this->_orderFactory->create()->loadByIncrementId($increment_id);
         }
         return $this->_orderFactory->create()->load($order_id);
     }

@@ -4,7 +4,7 @@ namespace Riskified\Decider\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Riskified\Decider\Api\Api;
 
-class OrderPlacedAfterObserver implements ObserverInterface
+class OrderPlacedAfter implements ObserverInterface
 {
     private $_logger;
     private $_orderApi;
