@@ -118,6 +118,11 @@ class Helper
     public function getLineItems()
     {
         $line_items = array();
+        $id = $this->getOrder()->getId();
+        $s = clone $this->getOrder();
+//        $s->reset();
+        $s->load($id);
+        \Zend_Debug::dump($s->getItemsCollection()->count()); exit;
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $val) {
             $prod_type = null;
             if ($val->getProduct()) {
@@ -162,6 +167,7 @@ class Helper
         if (!$addrArray) {
             return null;
         }
+        \Zend_Debug::dump($addrArray); exit;
         return new Model\Address($addrArray);
     }
 

@@ -2,12 +2,14 @@
 namespace Riskified\Decider\Controller\Response;
 
 use \Riskified\DecisionNotification;
+use \Magento\Sales\Model\Order;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
     private $apiOrderLayer;
     private $api;
     private $apiLogger;
+
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Riskified\Decider\Api\Api $api,
@@ -20,13 +22,13 @@ class Get extends \Magento\Framework\App\Action\Action
         $this->apiOrderLayer    = $apiOrder;
     }
 
-
     public function execute()
     {
         $request = $this->getRequest();
         $response = $this->getResponse();
         $logger = $this->apiLogger;
         $statusCode = 200;
+
         $id = null;
         $msg = null;
         try {

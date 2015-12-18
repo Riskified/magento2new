@@ -2,7 +2,6 @@
 namespace Riskified\Decider\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
-use Riskified\Decider\Api\Api;
 
 class UpdateOrderState implements ObserverInterface
 {
@@ -36,6 +35,7 @@ class UpdateOrderState implements ObserverInterface
 
         $this->logger->log("Checking if should update order '" . $order->getId() . "' from state: '$currentState' and status: '$currentStatus'");
         $this->logger->log("Data received from riskified: status: " . $riskifiedStatus . ", old_status: " . $riskifiedOldStatus . ", description: " . $description);
+        $this->logger->log("On Hold Status Code : ".$this->apiOrderConfig->getOnHoldStatusCode()." and Transport Error Status Code : " . $this->apiOrderConfig->getTransportErrorStatusCode());
 
         switch ($riskifiedStatus) {
             case 'approved':
@@ -74,6 +74,10 @@ class UpdateOrderState implements ObserverInterface
                 }
         }
         $changed = false;
+        $this->logger->log("Old State : " . $currentState);
+        $this->logger->log("Old Status : " . $currentStatus);
+        $this->logger->log("New State : " . $newState);
+        $this->logger->log("New Status : " . $newStatus);
         if ($newState
             && ($newState != $currentState || $newStatus != $currentStatus)
             && $this->apiConfig->getConfigStatusControlActive()

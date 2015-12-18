@@ -34,5 +34,8 @@ class Js extends \Magento\Framework\View\Element\Template {
     public function getExtensionVersion() {
         return $this->apiConfig->getExtensionVersion();
     }
+    public function getConfigBeaconUrl() {
+        return $this->apiConfig->getConfigBeaconUrl();
+    }
 
 }

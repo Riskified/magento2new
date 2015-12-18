@@ -20,12 +20,11 @@ class Order
         Api $api,
         Order\Helper $orderHelper,
         Config $apiConfig,
-        Log $logger,
-        Log $logger,
+        Order\Log $logger,
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Backend\Model\Auth\Session $backendAuthSession,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        OrderFactory $salesOrderCollectionFactory
+        \Magento\Sales\Model\Order $orderFactory
 
     ) {
         $this->_api                 = $api;
@@ -35,21 +34,21 @@ class Order
         $this->_eventManager        = $context->getEventManager();
         $this->_backendAuthSession  = $backendAuthSession;
         $this->_messageManager      = $messageManager;
-        $this->_orderFactory        = $salesOrderCollectionFactory;
+        $this->_orderFactory        = $orderFactory;
         $this->logger               = $logger;
 
         $this->_api->initSdk();
     }
     public function post($order, $action) {
         $transport = $this->_api->getTransport();
-        $orderModelFactory = $this->_orderFactory->create()->loadByIncrementId($order->getIncrementId());
-        if(!$orderModelFactory) {
+
+        if(!$order) {
             throw new \Exception("Order doesn't not exists");
         }
-        $this->_orderHelper->setOrder($order);
 
+        $this->_orderHelper->setOrder($order);
         $eventData = array(
-            'order' => $orderModelFactory,
+            'order' => $order,
             'action' => $action
         );
         try {
@@ -73,7 +72,8 @@ class Order
             }
             $eventData['response'] = $response;
 
-            $this->_messageManager->addSuccess('Riskified extension: The order was sent');
+            $order->addStatusHistoryComment(__("Riskified : Order was sent to Riskified"));
+            $order->save();
             $this->_eventManager->dispatch(
                 'riskified_decider_post_order_success',
                 $eventData
@@ -152,9 +152,7 @@ class Order
             unset($order_array['browser_ip']);
             unset($order_array['cart_token']);
         }
-
         $order = new Model\Order(array_filter($order_array, 'strlen'));
-
         $order->customer = $this->_orderHelper->getCustomer();
         $order->shipping_address = $this->_orderHelper->getShippingAddress();
         $order->billing_address = $this->_orderHelper->getBillingAddress();
@@ -165,7 +163,6 @@ class Order
         if (!$this->_backendAuthSession->isLoggedIn()) {
             $order->client_details = $this->_orderHelper->getClientDetails();
         }
-
         return $order;
     }
 
@@ -179,12 +176,12 @@ class Order
             'description' => $description
         );
         $this->_eventManager->dispatch(
-            'riskified_full_order_update',
+            'riskified_decider_order_update',
             $eventData
         );
         $eventIdentifier = preg_replace("/[^a-z]/", '_', strtolower($status));
         $this->_eventManager->dispatch(
-            'riskified_full_order_update_' . $eventIdentifier,
+            'riskified_decider_order_update_' . $eventIdentifier,
             $eventData
         );
         return;

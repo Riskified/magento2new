@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <event name="sales_order_place_after">
-        <observer name="riskified_decider_order_place_after_adminhtml" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
+    <event name="sales_order_save_after">
+        <observer name="riskified_decider_sales_order_save_after" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
     </event>
     <event name="riskified_full_order_update">
         <observer name="riskified_full_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
+    </event>
+    <event name="riskified_full_order_update_approved">
+        <observer name="riskified_full_order_update_approved" instance="Riskified\Decider\Observer\AutoInvoice" />
+    </event>
+    <event name="riskified_full_order_update_captured">
+        <observer name="riskified_full_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice" />
+    </event>
+    <event name="riskified_full_post_order_success">
+        <observer name="riskified_decider_riskified_full_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
     </event>
 </config>

@@ -60,10 +60,10 @@
                     <source_model>Riskified\Decider\Config\Source\HoldedStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
-                        <field id="*/*/approved_state">processing</field>
+                        <field id="*/*/approved_state">holded</field>
                     </depends>
                 </field>
-                <field id="declined_state" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="declined_state" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Declined State</label>
                     <comment><![CDATA[The Magento state to move to when an order is declined]]></comment>
                     <source_model>Riskified\Decider\Config\Source\DeclinedState</source_model>
@@ -71,7 +71,7 @@
                         <field id="*/*/order_status_sync">1</field>
                     </depends>
                 </field>
-                <field id="declined_status_canceled" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="declined_status_canceled" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Declined Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
                     <source_model>Riskified\Decider\Config\Source\CanceledStateStatuses</source_model>
@@ -80,21 +80,21 @@
                         <field id="*/*/declined_state">canceled</field>
                     </depends>
                 </field>
-                <field id="declined_status_holded" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="declined_status_holded" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Declined Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
                     <source_model>Riskified\Decider\Config\Source\HoldedStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
-                        <field id="*/*/declined_state">canceled</field>
+                        <field id="*/*/declined_state">holded</field>
                     </depends>
                 </field>
-                <field id="auto_invoice_enabled" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="auto_invoice_enabled" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Auto-Invoice</label>
                     <comment><![CDATA[Should an invoice automatically be created when Riskified approves this order?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="auto_invoice_capture_case" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="auto_invoice_capture_case" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Auto-Invoice Case</label>
                     <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Riskified\Decider\Config\Source\CaptureCase</source_model>
@@ -102,7 +102,7 @@
                         <field id="*/*/order_status_sync">1</field>
                     </depends>
                 </field>
-                <field id="debug_logs" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="debug_logs" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
                     <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
