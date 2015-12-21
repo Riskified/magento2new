@@ -3,7 +3,6 @@ namespace Riskified\Decider\Api;
 use Riskified\Common\Signature;
 use Riskified\OrderWebhook\Model;
 use Riskified\OrderWebhook\Transport;
-use \Magento\Sales\Model\OrderFactory;
 
 class Order
 {
@@ -45,7 +44,6 @@ class Order
         if(!$order) {
             throw new \Exception("Order doesn't not exists");
         }
-
         $this->_orderHelper->setOrder($order);
         $eventData = array(
             'order' => $order,
@@ -71,9 +69,6 @@ class Order
                     break;
             }
             $eventData['response'] = $response;
-
-            $order->addStatusHistoryComment(__("Riskified : Order was sent to Riskified"));
-            $order->save();
             $this->_eventManager->dispatch(
                 'riskified_decider_post_order_success',
                 $eventData
@@ -175,6 +170,7 @@ class Order
             'old_status' => $oldStatus,
             'description' => $description
         );
+        
         $this->_eventManager->dispatch(
             'riskified_decider_order_update',
             $eventData
@@ -195,16 +191,16 @@ class Order
         $order_id = $magento_ids[0];
         $increment_id = $magento_ids[1];
         if ($order_id && $increment_id) {
-            return $this->_orderFactory->create()->getCollection()
+            return $this->_orderFactory->getCollection()
                 ->addFieldToFilter('entity_id', $order_id)
                 ->addFieldToFilter('increment_id',$increment_id)
                 ->getFirstItem();
         }
 
         if(!$order_id && $increment_id) {
-            return $this->_orderFactory->create()->loadByIncrementId($increment_id);
+            return $this->_orderFactory->loadByIncrementId($increment_id);
         }
-        return $this->_orderFactory->create()->load($order_id);
+        return $this->_orderFactory->load($order_id);
     }
 
     public function postHistoricalOrders($models) {
@@ -220,5 +216,15 @@ class Order
 
     public function scheduleSubmissionRetry(\Magento\Sales\Model\Order $order, $action)
     {
+    }
+
+    public function sendOrders($order_ids) {
+        foreach ($order_ids as $order_id) {
+            $order = $this->_orderFactory->load($order_id);
+            try {
+                $this->post($order, \Riskified\Decider\Api\Api::ACTION_SUBMIT);
+            } catch (\Exception $e) {
+            }
+        }
     }
 }

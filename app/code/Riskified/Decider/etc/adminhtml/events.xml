@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <event name="checkout_submit_all_after">
-        <observer name="riskified_decider_checkout_submit_all_after" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
+        <observer name="riskified_decider_checkout_submit_all_after" instance="\Riskified\Decider\Observer\OrderPlacedAfter" />
     </event>
     <event name="admin_system_config_changed_section_riskified">
-        <observer name="riskified_decider_admin_system_config_changed_section_riskified" instance="Riskified\Decider\Observer\SaveRiskifiedConfig" />
+        <observer name="riskified_decider_admin_system_config_changed_section_riskified" instance="\Riskified\Decider\Observer\SaveRiskifiedConfig" />
     </event>
-    <event name="riskified_full_post_order_success">
+    <event name="riskified_decider_post_order_success">
         <observer name="riskified_decider_riskified_full_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
     </event>
 </config>

@@ -21,4 +21,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Backend\Block\Widget\Context">
+        <plugin name="riskified_decider_sales_order_view_toolbar_send_button" type="Riskified\Decider\Plugin\Widget\Context" sortOrder="1"/>
+    </type>
 </config>

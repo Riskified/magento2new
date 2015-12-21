@@ -73,11 +73,13 @@ class UpdateOrderState implements ObserverInterface
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
-        $changed = false;
+        
         $this->logger->log("Old State : " . $currentState);
         $this->logger->log("Old Status : " . $currentStatus);
         $this->logger->log("New State : " . $newState);
         $this->logger->log("New Status : " . $newStatus);
+        
+        $changed = false;
         if ($newState
             && ($newState != $currentState || $newStatus != $currentStatus)
             && $this->apiConfig->getConfigStatusControlActive()
@@ -87,6 +89,9 @@ class UpdateOrderState implements ObserverInterface
                 $order->cancel();
             }
             $order->setState($newState, $newStatus, $description);
+            $order->setStatus($newStatus);
+
+			$order->addStatusHistoryComment($description);
             $this->logger->log("Updated order '" . $order->getId() . "' to: state:  '$newState', status: '$newStatus', description: '$description'");
             $changed = true;
         } elseif ($description && $riskifiedStatus != $riskifiedOldStatus) {
