@@ -219,12 +219,17 @@ class Order
     }
 
     public function sendOrders($order_ids) {
+        $i = 0;
         foreach ($order_ids as $order_id) {
             $order = $this->_orderFactory->load($order_id);
             try {
                 $this->post($order, \Riskified\Decider\Api\Api::ACTION_SUBMIT);
+                $i++;
             } catch (\Exception $e) {
+
             }
         }
+
+        return $i;
     }
 }

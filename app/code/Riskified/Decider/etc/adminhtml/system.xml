@@ -92,14 +92,14 @@
                 <field id="auto_invoice_enabled" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Auto-Invoice</label>
                     <comment><![CDATA[Should an invoice automatically be created when Riskified approves this order?]]></comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
                 <field id="auto_invoice_capture_case" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Auto-Invoice Case</label>
                     <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Riskified\Decider\Config\Source\CaptureCase</source_model>
                     <depends>
-                        <field id="*/*/order_status_sync">1</field>
+                        <field id="*/*/auto_invoice_enabled">1</field>
                     </depends>
                 </field>
                 <field id="debug_logs" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">

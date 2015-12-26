@@ -313,7 +313,15 @@ class Helper
         $remoteIp = $this->getOrder()->getRemoteIp();
         $remotes = preg_split("/,/",$remoteIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($remotes)) {
-            return trim($remotes[0]);
+            if(is_array($remotes) && count($remotes) > 1) {
+                return trim($remotes[0]);
+            } else {
+                foreach($remotes AS $k => $val) {
+                    $remotes[$k] = trim($val);
+                }
+
+                return $remotes;
+            }
         }
         return $remoteIp;
     }
