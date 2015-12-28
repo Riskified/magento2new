@@ -30,4 +30,7 @@
     <event name="sales_order_payment_void">
         <observer name="riskified_sales_sales_order_payment_refund" instance="Riskified\Decider\Observer\OrderPaymentVoid" />
     </event>
+    <event name="admin_sales_order_address_update">
+        <observer name="riskified_admin_sales_order_address_update" instance="Riskified\Decider\Observer\SalesOrderAddressUpdate" />
+    </event>
 </config>
