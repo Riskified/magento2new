@@ -13,25 +13,26 @@ class Get extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Riskified\Decider\Api\Api $api,
         \Riskified\Decider\Api\Order $apiOrder,
-        \Riskified\Decider\Api\Log $apiLogger,
-        \Magento\Sales\Model\Order $order
+        \Riskified\Decider\Api\Log $apiLogger
     ) {
         parent::__construct($context);
         $this->api              = $api;
         $this->apiLogger        = $apiLogger;
         $this->apiOrderLayer    = $apiOrder;
-        $this->order    = $order;
     }
 
 
     public function execute()
     {
+
         $request = $this->getRequest();
         $response = $this->getResponse();
         $logger = $this->apiLogger;
-        $statusCode = 200;
+        $logger->log("Start execute");
+                $statusCode = 200;
         $id = null;
         $msg = null;
+        $logger->log("Start Try");
         try {
             $notification = $this->api->parseRequest($request);
             $id = $notification->id;
@@ -67,7 +68,7 @@ class Get extends \Magento\Framework\App\Action\Action
             $statusCode = 500;
             $msg = "Internal Error";
         }
-
+                    $logger->log($msg);
         $response->setHttpResponseCode($statusCode);
         $response->setHeader('Content-Type', 'application/json');
         $response->setBody('{ "order" : { "id" : "' . $id . '", "description" : "' . $msg .'" } }');

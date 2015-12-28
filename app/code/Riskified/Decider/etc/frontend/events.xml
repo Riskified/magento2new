@@ -7,15 +7,15 @@
         <observer name="riskified_decider_sales_model_service_quote_submit_success" instance="\Riskified\Decider\Observer\OrderPlacedAfter" />
     </event>
     <event name="riskified_decider_order_update">
-        <observer name="riskified_full_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
+        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
     </event>
     <event name="riskified_decider_order_update_approved">
-        <observer name="riskified_full_order_update_approved" instance="Riskified\Decider\Observer\AutoInvoice" />
+        <observer name="riskified_decider_order_update_approved" instance="Riskified\Decider\Observer\AutoInvoice" />
     </event>
     <event name="riskified_decider_order_update_captured">
-        <observer name="riskified_full_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice" />
+        <observer name="riskified_decider_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice" />
     </event>
     <event name="riskified_decider_post_order_success">
-        <observer name="riskified_decider_riskified_full_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
+        <observer name="riskified_decider_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
     </event>
 </config>

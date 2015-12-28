@@ -320,7 +320,7 @@ class Helper
                     $remotes[$k] = trim($val);
                 }
 
-                return $remotes;
+                return join(',', $remotes);
             }
         }
         return $remoteIp;
