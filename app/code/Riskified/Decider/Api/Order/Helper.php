@@ -70,9 +70,13 @@ class Helper
     }
 
     public function getClientDetails() {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $resolver = $om->get('Magento\Framework\Locale\Resolver');
+        $httpHeader = $om->get('Magento\Framework\HTTP\Header');
+
         return new Model\ClientDetails(array_filter(array(
-//            'accept_language' => Mage::app()->getLocale()->getLocaleCode(),
-//            'user_agent' => Mage::helper('core/http')->getHttpUserAgent()
+            'accept_language' => $resolver->getLocale(),
+            'user_agent' => $httpHeader->getHttpUserAgent()
         ),'strlen'));
     }
 
