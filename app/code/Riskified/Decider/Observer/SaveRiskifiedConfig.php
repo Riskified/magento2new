@@ -11,13 +11,15 @@ class SaveRiskifiedConfig implements ObserverInterface
     private $apiConfig;
     protected $_paymentConfig;
     protected $storeManager;
+    protected $storeConfig;
 
     public function __construct(
         \Riskified\Decider\Logger\Merchant $logger,
         \Riskified\Decider\Api\Config $config,
         \Magento\Payment\Model\Config $paymentConfig,
         \Riskified\Decider\Api\Merchant $merchantApi,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Framework\App\Config\ScopeConfigInterface $storeConfig
     )
     {
         $this->logger = $logger;
@@ -25,14 +27,14 @@ class SaveRiskifiedConfig implements ObserverInterface
         $this->_paymentConfig = $paymentConfig;
         $this->apiMerchantLayer = $merchantApi;
         $this->storeManager = $storeManager;
+        $this->storeConfig = $storeConfig;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $this->logger->addInfo("saveRiskifiedConfig");
-
         $helper = $this->apiConfig;
         $allActiveMethods = $this->_paymentConfig->getActiveMethods();
+        $settings = $this->storeConfig->getValue('riskified/riskified');
 
         $gateWays = '';
 
@@ -45,12 +47,9 @@ class SaveRiskifiedConfig implements ObserverInterface
         $shopHostUrl = $this->storeManager->getStore()
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_WEB);
 
-        $settings = array(
-            'gws' => $gateWays,
-            'host_url' => $shopHostUrl,
-            'extension_version' => $extensionVersion,
-        );
-
+        $settings['gws'] = $gateWays;
+        $settings['host_url'] = $shopHostUrl;
+        $settings['extension_version'] = $extensionVersion;
         unset($settings['key']);
         unset($settings['domain']);
 
