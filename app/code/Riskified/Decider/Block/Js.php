@@ -18,7 +18,7 @@ class Js extends \Magento\Framework\View\Element\Template {
         $this->templateContext = $this;
         $this->pageConfig = $context->getPageConfig();
         $this->apiConfig = $apiConfig;
-        $this->apiConfig = $apiConfig;
+
         parent::__construct($context, $data);
     }
 

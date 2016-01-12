@@ -19,6 +19,7 @@ class CollectPaymentInfo implements ObserverInterface
     }
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+return;
         $payment = $observer->getQuote()->getPayment();
         $cc_bin = substr($payment->getCcNumber(),0,6);
         if ($cc_bin) {

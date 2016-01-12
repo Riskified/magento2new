@@ -181,15 +181,17 @@ class Helper
         $transactionId = $payment->getTransactionId();
         $gateway_name = $payment->getMethod();
         try {
+            $credit_card_bin = '';
+
             switch ($gateway_name) {
-                case 'authorizenet':
+                case 'authorizenet_directpost':
                     $authorize_data = $payment->getAdditionalInformation('authorize_cards');
                     if ($authorize_data && is_array($authorize_data)) {
                         $cards_data = array_values($authorize_data);
                         if ($cards_data && $cards_data[0]) {
                             $card_data = $cards_data[0];
                             if (isset($card_data['cc_last4'])) {
-                                $credit_card_number = $card_data['cc_last4'];
+								$credit_card_number = $payment->decrypt($card_data['cc_last4']);
                             }
                             if (isset($card_data['cc_type'])) {
                                 $credit_card_company = $card_data['cc_type'];
@@ -202,6 +204,8 @@ class Helper
                             }
                         }
                     }
+                    
+					$credit_card_number = $payment->decrypt($payment->getCcLast4());
                     break;
                 case 'authnetcim':
                     $avs_result_code = $payment->getAdditionalInformation('avs_result_code');
@@ -275,10 +279,23 @@ class Helper
         if (!isset($avs_result_code)) {
             $avs_result_code = $payment->getCcAvsStatus();
         }
+
+		if (!isset($credit_card_bin) || !$credit_card_bin) {
+            $om = \Magento\Framework\App\ObjectManager::getInstance();
+            $session = $om->get('Magento\Customer\Model\Session');
+            $credit_card_bin = $session->getRiskifiedBin();
+            $this->_logger->notice('$credit_card_bin : ' . $credit_card_bin);
+            $this->_logger->notice('$getRiskifiedBinDump : ' . $session->getRiskifiedBinDump());
+			$session->unsRiskifiedBin();
+        }
+        if (!isset($credit_card_bin) || !$credit_card_bin) {
+			$coreRegistry = $om->get('Magento\Framework\Registry');			
+           	$credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
+		}
         if (isset($credit_card_number)) {
             $credit_card_number = "XXXX-XXXX-XXXX-" . $credit_card_number;
         }
-        $credit_card_bin = $payment->getAdditionalInformation('riskified_cc_bin');
+
         return new Model\PaymentDetails(array_filter(array(
             'authorization_id' => $transactionId,
             'avs_result_code' => $avs_result_code,

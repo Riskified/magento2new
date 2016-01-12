@@ -69,6 +69,7 @@ class Order
                     break;
             }
             $eventData['response'] = $response;
+
             $this->_eventManager->dispatch(
                 'riskified_decider_post_order_success',
                 $eventData
@@ -113,7 +114,12 @@ class Order
         );
         return;
     }
-
+    
+    private function getCustomerSession() {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        return $objectManager->get('Magento\Customer\Model\Session');
+    }
+    
     private function load($model) {
         $gateway = 'unavailable';
         if ($model->getPayment()) {

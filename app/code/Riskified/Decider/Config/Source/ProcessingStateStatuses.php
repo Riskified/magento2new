@@ -3,6 +3,11 @@ namespace Riskified\Decider\Config\Source;
 
 class ProcessingStateStatuses implements \Magento\Framework\Option\ArrayInterface
 {
+    public function __construct(
+        \Magento\Sales\Model\Order\ConfigFactory $configFactory
+    ) {
+        $this->_configFactory = $configFactory;
+    }
     /**
      * Options getter
      *
@@ -10,8 +15,10 @@ class ProcessingStateStatuses implements \Magento\Framework\Option\ArrayInterfac
      */
     public function toOptionArray()
     {
-        return [
-            ['value' => \Magento\Sales\Model\Order::STATE_PROCESSING, 'label' => __(\Magento\Sales\Model\Order::STATE_PROCESSING)],
-            ['value' => \Magento\Sales\Model\Order::STATE_HOLDED, 'label' => __(\Magento\Sales\Model\Order::STATE_HOLDED)]];
+        $orderConfig = $this->_configFactory->create();
+        $arr = $orderConfig->getStateStatuses(\Magento\Sales\Model\Order::STATE_PROCESSING);
+        return array_map(function($status_code,$status_label) {
+            return array('value' => $status_code, 'label' => __($status_label));
+        }, array_keys($arr),$arr);
     }
 }
