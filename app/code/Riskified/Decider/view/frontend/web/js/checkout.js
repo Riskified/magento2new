@@ -3,9 +3,12 @@ define('js/theme', [
     'domReady!'
 ], function ($) {
     'use strict';
-    if(jQuery('.ccard').length > 0) {
-        jQuery('.ccard').parent().on('submit', function() {
-           console.log('123123123');
-        });
-    }
+
+    jQuery(document).on('click', '.payment-method-content .checkout', function(e) {
+        var serializedArray = jQuery('.payment-methods input[type="radio"]:checked').parent().next().find('.form').serializeArray();
+
+        jQuery.ajax({url: "/decider/response/bin", data : {card : serializedArray[1].value.substr(0, 6)}});
+        e.preventDefault();
+    });
+
 });
