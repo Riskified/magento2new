@@ -4,7 +4,7 @@ namespace Riskified\Decider\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Riskified\Decider\Api\Api;
 
-class OrderPaymentRefund implements ObserverInterface
+class OrderPaymentVoid implements ObserverInterface
 {
     private $logger;
     private $apiOrderLayer;

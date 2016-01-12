@@ -324,6 +324,15 @@ class Helper
         return null;
     }
 
+    public function getOrderCancellation() {
+        $orderCancellation = new Model\OrderCancellation(array_filter(array(
+            'id' => $this->getOrderOrigId(),
+            'cancelled_at' => $this->formatDateAsIso8601($this->getCancelledAt()),
+            'cancel_reason' => 'Cancelled by merchant'
+        )));
+        return $orderCancellation;
+    }
+
     public function getRemoteIp() {
         $this->_apiLogger->debug("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
         $forwardedIp = $this->getOrder()->getXForwardedFor();
