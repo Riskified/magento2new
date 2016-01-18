@@ -8,21 +8,37 @@
             <label>Settings</label>
             <tab>riskified_tab</tab>
             <resource>Riskified_Decider::config_settings</resource>
-            <group id="riskified" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="riskified_general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General settings</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Module Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="riskified" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>API settings</label>
                 <field id="env" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Riskified environment</label>
                     <source_model>Riskified\Decider\Config\Source\Env</source_model>
                     <comment><![CDATA[Select Riskified's environment.<br> You can use sandbox for testing.
                                           <br>If you don't have a sandbox account please contact support@riskified.com ]]></comment>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="domain" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Shop Domain</label>
                     <comment><![CDATA[This is the shop domain used during signup. See <a href="http://www.riskified.com/documentation/magento.html" target="_blank">documentation</a> for more details.]]></comment>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="key" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Auth token</label>
                     <comment><![CDATA[ Your <i>secret</i> auth token can be found in your <a href="https://app.riskified.com/main/settings/advanced" target="_blank">Riskified Settings page</a>. ]]></comment>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="order_status_sync" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Order Status Sync</label>
@@ -36,6 +52,9 @@
                           <br><b>Important:</b> Might affect other extensions that are dependent on an Order's status.
                            ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="approved_state" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Approved State</label>
@@ -43,6 +62,7 @@
                     <source_model>Riskified\Decider\Config\Source\ApprovedState</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="approved_status_processing" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -52,6 +72,7 @@
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/approved_state">processing</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="approved_status_holded" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -61,6 +82,7 @@
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/approved_state">holded</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="declined_state" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -69,6 +91,7 @@
                     <source_model>Riskified\Decider\Config\Source\DeclinedState</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="declined_status_canceled" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -78,6 +101,7 @@
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/declined_state">canceled</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="declined_status_holded" translate="label" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -87,12 +111,16 @@
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/declined_state">holded</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="auto_invoice_enabled" translate="label" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Auto-Invoice</label>
                     <comment><![CDATA[Should an invoice automatically be created when Riskified approves this order?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="auto_invoice_capture_case" translate="label" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Auto-Invoice Case</label>
@@ -100,12 +128,16 @@
                     <source_model>Riskified\Decider\Config\Source\CaptureCase</source_model>
                     <depends>
                         <field id="*/*/auto_invoice_enabled">1</field>
+                        <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
                 <field id="debug_logs" translate="label" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
                     <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>

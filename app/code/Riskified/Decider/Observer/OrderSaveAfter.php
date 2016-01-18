@@ -25,7 +25,7 @@ class OrderSaveAfter implements ObserverInterface
             return;
         }
         	
-//         if ($order->dataHasChangedFor('state') && $order->getState() == 'processing') {
+         if ($order->dataHasChangedFor('state')) {
             if($order->getPayment()->getMethod() == 'authorizenet_directpost') {
                 try {
                     $this->_orderApi->post($order, Api::ACTION_UPDATE);
@@ -33,9 +33,8 @@ class OrderSaveAfter implements ObserverInterface
                     $this->_logger->critical($e);
                 }
             }
-//         } else {
-        
-//             $this->_logger->debug(__("No data found"));
-//         }
+         } else {
+             $this->_logger->debug(__("No data found"));
+         }
     }
 }

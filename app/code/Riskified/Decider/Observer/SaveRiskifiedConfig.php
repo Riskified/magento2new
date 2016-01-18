@@ -32,6 +32,10 @@ class SaveRiskifiedConfig implements ObserverInterface
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if(!$this->apiConfig->isEnabled()) {
+            return;
+        }
+
         $helper = $this->apiConfig;
         $allActiveMethods = $this->_paymentConfig->getActiveMethods();
         $settings = $this->storeConfig->getValue('riskified/riskified');

@@ -20,6 +20,10 @@ class Config
         $this->fullModuleList   = $fullModuleList;
     }
 
+    public function isEnabled() {
+        return $this->_scopeConfig->getValue('riskified/riskified_general/enabled');
+    }
+
     protected function getHeaders() {
         return array('headers' => array('X_RISKIFIED_VERSION:'.$this->version));
     }

@@ -71,7 +71,8 @@ $order_details = array(
             'title' => 'ACME Spring',
             'product_id' => '202',
             'sku' => 'EFGH',
-            'category' => 'ACME Spring Category'
+            'category' => 'ACME Spring Category',
+            'sub_category' => 'ACME Spring Sub Category'
         ))
     ),
     'discount_codes' =>  new Model\DiscountCode(array(
@@ -127,6 +128,10 @@ $order_details = array(
         'province' => 'New York',
         'province_code' => 'NY',
         'zip' => '64155'
+    )),
+    'charge_free_payment_details' => new Model\ChargeFreePaymentDetails(array(
+        'gateway' => 'giftcard',
+        'amount' => '50',
     ))
 );
 

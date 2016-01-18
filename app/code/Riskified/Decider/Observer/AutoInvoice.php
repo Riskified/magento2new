@@ -37,6 +37,9 @@ class AutoInvoice implements ObserverInterface
         if (!$this->apiConfig->isAutoInvoiceEnabled()) {
             return;
         }
+        if (!$this->apiConfig->isEnabled()) {
+            return;
+        }
         $order = $observer->getOrder();
 
         if (!$order || !$order->getId()) {

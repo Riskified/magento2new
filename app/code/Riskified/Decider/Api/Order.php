@@ -39,6 +39,10 @@ class Order
         $this->_api->initSdk();
     }
     public function post($order, $action) {
+        if(!$this->_apiConfig->isEnabled()) {
+            return;
+        }
+
         $transport = $this->_api->getTransport();
 
         if(!$order) {
@@ -168,6 +172,10 @@ class Order
     }
 
     public function update($order, $status, $oldStatus, $description) {
+        if(!$this->_apiConfig->isEnabled()) {
+            return;
+        }
+
         $this->logger->log('Dispatching event for order ' . $order->getId() . ' with status "' . $status .
             '" old status "' . $oldStatus . '" and description "' . $description . '"');
         $eventData = array(
@@ -210,6 +218,9 @@ class Order
     }
 
     public function postHistoricalOrders($models) {
+        if(!$this->_apiConfig->isEnabled()) {
+            return;
+        }
         $orders = array();
 
         foreach ($models as $model) {
@@ -225,6 +236,9 @@ class Order
     }
 
     public function sendOrders($order_ids) {
+        if(!$this->_apiConfig->isEnabled()) {
+            return;
+        }
         $i = 0;
         foreach ($order_ids as $order_id) {
             $order = $this->_orderFactory->load($order_id);

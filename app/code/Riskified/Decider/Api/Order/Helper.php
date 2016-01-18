@@ -11,6 +11,7 @@ class Helper
     private $_messageManager;
     private $_customerFactory;
     private $_orderFactory;
+    private $_categoryFactory;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
@@ -18,24 +19,24 @@ class Helper
         \Riskified\Decider\Logger\Order $apiLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Customer $customerFactory,
+        \Magento\Catalog\Model\Category $categoryFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory
     )
     {
-        $this->_logger = $logger;
-        $this->_messageManager = $messageManager;
-        $this->_apiConfig = $apiConfig;
-        $this->_apiLogger = $apiLogger;
+        $this->_logger          = $logger;
+        $this->_messageManager  = $messageManager;
+        $this->_apiConfig       = $apiConfig;
+        $this->_apiLogger       = $apiLogger;
         $this->_customerFactory = $customerFactory;
-        $this->_orderFactory = $orderFactory;
+        $this->_orderFactory    = $orderFactory;
+        $this->_categoryFactory = $categoryFactory;
     }
 
-    public function setOrder($model)
-    {
+    public function setOrder($model) {
         $this->_order = $model;
     }
 
-    public function getOrder()
-    {
+    public function getOrder() {
         return $this->_order;
     }
 
@@ -119,23 +120,44 @@ class Helper
         return $objectManager->get('Magento\Customer\Model\Session');
     }
 
-    public function getLineItems()
-    {
+    public function getLineItems($model) {
         $line_items = array();
-        foreach ($this->getOrder()->getAllVisibleItems() as $key => $val) {
+
+        foreach ($model->getAllVisibleItems() as $key => $item) {
             $prod_type = null;
-            if ($val->getProduct()) {
-                $prod_type = $val->getProduct()->getTypeId();
+            $category = null;
+            $sub_categories = null;
+            $product = $item->getProduct();
+            if($product) {
+                $prod_type = $item->getProduct()->getTypeId();
+                $category_ids = $product->getCategoryIds();
+                foreach ($category_ids as $categoryId) {
+                    $cat = $this->_categoryFactory->load($categoryId);
+                    $catName = $cat->getName();
+                    if (!empty($catName)) {
+                        if(empty($category)) {
+                            $category = $catName;
+                        }
+                        else if(empty($sub_categories)) {
+                            $sub_categories = $catName;
+                        }
+                        else {
+                            $sub_categories = $sub_categories . '|' . $catName;
+                        }
+                    }
+                }
             }
             $line_items[] = new Model\LineItem(array_filter(array(
-                'price' => $val->getPrice(),
-                'quantity' => intval($val->getQtyOrdered()),
-                'title' => $val->getName(),
-                'sku' => $val->getSku(),
-                'product_id' => $val->getItemId(),
-                'grams' => $val->getWeight(),
-                'product_type' => $prod_type
-            ), 'strlen'));
+                'price' => $item->getPrice(),
+                'quantity' => intval($item->getQtyOrdered()),
+                'title' => $item->getName(),
+                'sku' => $item->getSku(),
+                'product_id' => $item->getItemId(),
+                'grams' => $item->getWeight(),
+                'product_type' => $prod_type,
+                'category' => $category,
+                'sub_category' => $sub_categories
+            ),'strlen'));
         }
         return $line_items;
     }
@@ -280,12 +302,10 @@ class Helper
             $avs_result_code = $payment->getCcAvsStatus();
         }
 
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
 		if (!isset($credit_card_bin) || !$credit_card_bin) {
-            $om = \Magento\Framework\App\ObjectManager::getInstance();
             $session = $om->get('Magento\Customer\Model\Session');
             $credit_card_bin = $session->getRiskifiedBin();
-            $this->_logger->notice('$credit_card_bin : ' . $credit_card_bin);
-            $this->_logger->notice('$getRiskifiedBinDump : ' . $session->getRiskifiedBinDump());
 			$session->unsRiskifiedBin();
         }
         if (!isset($credit_card_bin) || !$credit_card_bin) {

@@ -5,9 +5,14 @@ class Context
 {
     public function afterGetButtonList(
         \Magento\Backend\Block\Widget\Context $subject,
-        $buttonList
+        $buttonList,
+        \Riskified\Decider\Api\Config $config
     )
     {
+        if(!$config->isEnabled()) {
+            return;
+        }
+
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $request = $objectManager->get('Magento\Framework\App\Action\Context')->getRequest();
         if($request->getFullActionName() == 'sales_order_view'){

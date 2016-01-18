@@ -25,13 +25,11 @@ class OrderPlacedAfter implements ObserverInterface
         }
 
         if ($order->dataHasChangedFor('state')) {
-//         	if($order->getPayment()->getMethod() != 'authorizenet_directpost') {
-            	try {
-                	$this->_orderApi->post($order, Api::ACTION_UPDATE);
-	            } catch (\Exception $e) {
-    	            $this->_logger->critical($e);
-        	    }
-//             }
+            try {
+                $this->_orderApi->post($order, Api::ACTION_UPDATE);
+            } catch (\Exception $e) {
+                $this->_logger->critical($e);
+            }
         } else {
             $this->_logger->debug(__("No data found"));
         }
