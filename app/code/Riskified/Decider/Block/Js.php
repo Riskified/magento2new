@@ -26,8 +26,7 @@ class Js extends \Magento\Framework\View\Element\Template {
     public function getSessionId() {
         return $this->apiConfig->getSessionId();
     }
-
-    public function isModuleEnabled() {
+    public function isEnabled() {
         return $this->apiConfig->isEnabled();
     }
     public function getShopDomain() {
