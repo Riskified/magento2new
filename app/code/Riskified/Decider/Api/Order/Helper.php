@@ -13,18 +13,16 @@ class Helper
     private $_orderFactory;
     private $_categoryFactory;
     private $_storeManager;
-    private $_apiOrderLog;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
         \Riskified\Decider\Api\Config $apiConfig,
         \Riskified\Decider\Logger\Order $apiLogger,
-        \Riskified\Decider\Logger\Order $apiOrderLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Customer $customerFactory,
         \Magento\Catalog\Model\Category $categoryFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+		\Magento\Store\Model\StoreManagerInterface $storeManager
     )
     {
         $this->_logger          = $logger;
@@ -35,7 +33,6 @@ class Helper
         $this->_orderFactory    = $orderFactory;
         $this->_categoryFactory = $categoryFactory;
         $this->_storeManager 	= $storeManager;
-        $this->_apiOrderLog 	= $apiOrderLogger;
     }
 
     public function setOrder($model) {
@@ -131,32 +128,33 @@ class Helper
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
             $prod_type = null;
-
-            $prod_type = null;
-            $category = null;
-            $sub_categories = null;
+            
             $product = $item->getProduct();
+			$prod_type = null;
+			$category = null;
+			$sub_categories = null;
+			$product = $item->getProduct();
+			
+			if($product) {
+				$categories = [];
+				$sub_categories = [];
+				$category_ids = $product->getCategoryIds();
 
-            if($product) {
-                $categories = [];
-                $sub_categories = [];
-                $category_ids = $product->getCategoryIds();
-
-                foreach ($category_ids as $categoryId) {
-                    $cat = $this->_categoryFactory->load($categoryId);
-                    if ($cat->getLevel() == 2) {
-                        $categories[] = $cat->getName();
-                    } elseif($cat->getLevel() >= 3) {
-                        $sub_categories[] = $cat->getName();
-                    }
-                }
-
-                if(count($category_ids) == 0) {
-                    $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                    $root_category = $this->_categoryFactory->load($store_root_category_id);
-                    $categories[] = $root_category->getName();
-                }
-            }
+			                foreach ($category_ids as $categoryId) {
+			                    $cat = $this->_categoryFactory->load($categoryId);
+			                    if ($cat->getLevel() == 2) {
+									$categories[] = $cat->getName();
+			                    } elseif($cat->getLevel() >= 3) {
+			                    	$sub_categories[] = $cat->getName();
+			                    }
+			                }
+							
+							if(count($category_ids) == 0) {
+								$store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
+								$root_category = $this->_categoryFactory->load($store_root_category_id);
+								$categories[] = $root_category->getName();
+							}
+			            }
 
             $line_items[] = new Model\LineItem(array_filter(array(
                 'price' => $item->getPrice(),
@@ -209,7 +207,7 @@ class Helper
             return null;
         }
         if ($this->_apiConfig->isLoggingEnabled()) {
-            $this->_apiOrderLog->payment($this->getOrder());
+           // $this->_apiLogger->payment();
         }
         $transactionId = $payment->getTransactionId();
         $gateway_name = $payment->getMethod();
@@ -224,7 +222,7 @@ class Helper
                         if ($cards_data && $cards_data[0]) {
                             $card_data = $cards_data[0];
                             if (isset($card_data['cc_last4'])) {
-                                $credit_card_number = $payment->decrypt($card_data['cc_last4']);
+								$credit_card_number = $payment->decrypt($card_data['cc_last4']);
                             }
                             if (isset($card_data['cc_type'])) {
                                 $credit_card_company = $card_data['cc_type'];
@@ -237,8 +235,8 @@ class Helper
                             }
                         }
                     }
-
-                    $credit_card_number = $payment->decrypt($payment->getCcLast4());
+                    
+					$credit_card_number = $payment->decrypt($payment->getCcLast4());
                     break;
                 case 'authnetcim':
                     $avs_result_code = $payment->getAdditionalInformation('avs_result_code');
@@ -314,15 +312,15 @@ class Helper
         }
 
         $om = \Magento\Framework\App\ObjectManager::getInstance();
-        if (!isset($credit_card_bin) || !$credit_card_bin) {
+		if (!isset($credit_card_bin) || !$credit_card_bin) {
             $session = $om->get('Magento\Customer\Model\Session');
             $credit_card_bin = $session->getRiskifiedBin();
-            $session->unsRiskifiedBin();
+			$session->unsRiskifiedBin();
         }
         if (!isset($credit_card_bin) || !$credit_card_bin) {
-            $coreRegistry = $om->get('Magento\Framework\Registry');
-            $credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
-        }
+			$coreRegistry = $om->get('Magento\Framework\Registry');			
+           	$credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
+		}
         if (isset($credit_card_number)) {
             $credit_card_number = "XXXX-XXXX-XXXX-" . $credit_card_number;
         }
