@@ -13,11 +13,13 @@ class Helper
     private $_orderFactory;
     private $_categoryFactory;
     private $_storeManager;
+    private $_apiOrderLog;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
         \Riskified\Decider\Api\Config $apiConfig,
         \Riskified\Decider\Logger\Order $apiLogger,
+        \Riskified\Decider\Logger\Order $apiOrderLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Customer $customerFactory,
         \Magento\Catalog\Model\Category $categoryFactory,
@@ -33,6 +35,7 @@ class Helper
         $this->_orderFactory    = $orderFactory;
         $this->_categoryFactory = $categoryFactory;
         $this->_storeManager 	= $storeManager;
+        $this->_apiOrderLog 	= $apiOrderLogger;
     }
 
     public function setOrder($model) {
@@ -206,7 +209,7 @@ class Helper
             return null;
         }
         if ($this->_apiConfig->isLoggingEnabled()) {
-            $this->_apiLogger->payment();
+            $this->_apiOrderLog->payment($this->getOrder());
         }
         $transactionId = $payment->getTransactionId();
         $gateway_name = $payment->getMethod();

@@ -7,7 +7,7 @@ class Log {
     public function __construct(\Riskified\Decider\Logger\Order $logger) {
         $this->_logger = $logger;
     }
-    private function logPayment($model) {
+    private function payment($model) {
         $this->_logger->debug("Payment info debug Logs:");
         try {
             $payment = $model->getPayment();
