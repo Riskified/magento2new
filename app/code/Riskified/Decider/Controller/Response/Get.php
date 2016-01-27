@@ -9,16 +9,18 @@ class Get extends \Magento\Framework\App\Action\Action
     private $api;
     private $apiLogger;
     private $order;
+
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Riskified\Decider\Api\Api $api,
         \Riskified\Decider\Api\Order $apiOrder,
         \Riskified\Decider\Api\Log $apiLogger
-    ) {
+    )
+    {
         parent::__construct($context);
-        $this->api              = $api;
-        $this->apiLogger        = $apiLogger;
-        $this->apiOrderLayer    = $apiOrder;
+        $this->api = $api;
+        $this->apiLogger = $apiLogger;
+        $this->apiOrderLayer = $apiOrder;
     }
 
 
@@ -29,7 +31,7 @@ class Get extends \Magento\Framework\App\Action\Action
         $response = $this->getResponse();
         $logger = $this->apiLogger;
         $logger->log("Start execute");
-                $statusCode = 200;
+        $statusCode = 200;
         $id = null;
         $msg = null;
         $logger->log("Start Try");
@@ -40,8 +42,7 @@ class Get extends \Magento\Framework\App\Action\Action
                 $statusCode = 200;
                 $msg = 'Test notification received successfully';
                 $logger->log("Test Notification received: ", serialize($notification));
-            }
-            else {
+            } else {
                 $logger->log("Notification received: ", serialize($notification));
                 $order = $this->apiOrderLayer->loadOrderByOrigId($id);
                 if (!$order || !$order->getId()) {
@@ -68,10 +69,10 @@ class Get extends \Magento\Framework\App\Action\Action
             $statusCode = 500;
             $msg = "Internal Error";
         }
-                    $logger->log($msg);
+        $logger->log($msg);
         $response->setHttpResponseCode($statusCode);
         $response->setHeader('Content-Type', 'application/json');
-        $response->setBody('{ "order" : { "id" : "' . $id . '", "description" : "' . $msg .'" } }');
+        $response->setBody('{ "order" : { "id" : "' . $id . '", "description" : "' . $msg . '" } }');
         $response->sendResponse();
         exit;
     }

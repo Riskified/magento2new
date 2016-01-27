@@ -17,10 +17,10 @@ class UpdateOrderState implements ObserverInterface
         \Riskified\Decider\Api\Order $orderApi
     )
     {
-        $this->logger           = $logger;
-        $this->apiOrderConfig   = $apiOrderConfig;
-        $this->apiOrderLayer    = $orderApi;
-        $this->apiConfig        = $config;
+        $this->logger = $logger;
+        $this->apiOrderConfig = $apiOrderConfig;
+        $this->apiOrderLayer = $orderApi;
+        $this->apiConfig = $config;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -35,7 +35,7 @@ class UpdateOrderState implements ObserverInterface
 
         $this->logger->log("Checking if should update order '" . $order->getId() . "' from state: '$currentState' and status: '$currentStatus'");
         $this->logger->log("Data received from riskified: status: " . $riskifiedStatus . ", old_status: " . $riskifiedOldStatus . ", description: " . $description);
-        $this->logger->log("On Hold Status Code : ".$this->apiOrderConfig->getOnHoldStatusCode()." and Transport Error Status Code : " . $this->apiOrderConfig->getTransportErrorStatusCode());
+        $this->logger->log("On Hold Status Code : " . $this->apiOrderConfig->getOnHoldStatusCode() . " and Transport Error Status Code : " . $this->apiOrderConfig->getTransportErrorStatusCode());
 
         switch ($riskifiedStatus) {
             case 'approved':
@@ -73,12 +73,7 @@ class UpdateOrderState implements ObserverInterface
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
-        
-        $this->logger->log("Old State : " . $currentState);
-        $this->logger->log("Old Status : " . $currentStatus);
-        $this->logger->log("New State : " . $newState);
-        $this->logger->log("New Status : " . $newStatus);
-        
+
         $changed = false;
         if ($newState
             && ($newState != $currentState || $newStatus != $currentStatus)
@@ -91,7 +86,7 @@ class UpdateOrderState implements ObserverInterface
             $order->setState($newState, $newStatus, $description);
             $order->setStatus($newStatus);
 
-			$order->addStatusHistoryComment($description);
+            $order->addStatusHistoryComment($description);
             $this->logger->log("Updated order '" . $order->getId() . "' to: state:  '$newState', status: '$newStatus', description: '$description'");
             $changed = true;
         } elseif ($description && $riskifiedStatus != $riskifiedOldStatus) {

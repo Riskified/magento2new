@@ -23,15 +23,17 @@ class AutoInvoice implements ObserverInterface
         InvoiceService $invoiceService,
         \Magento\Framework\Model\Context $context,
         ObjectManagerFactory $objectManagerFactory
-    ){
-        $this->logger           = $logger;
-        $this->context          = $context;
-        $this->apiOrder         = $orderApi;
-        $this->apiConfig        = $apiConfig;
-        $this->apiOrderLogger   = $apiOrderLogger;
-        $this->invoiceService   = $invoiceService;
-        $this->objectManager    = $objectManagerFactory;
+    )
+    {
+        $this->logger = $logger;
+        $this->context = $context;
+        $this->apiOrder = $orderApi;
+        $this->apiConfig = $apiConfig;
+        $this->apiOrderLogger = $apiOrderLogger;
+        $this->invoiceService = $invoiceService;
+        $this->objectManager = $objectManagerFactory;
     }
+
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         if (!$this->apiConfig->isAutoInvoiceEnabled()) {
@@ -49,7 +51,7 @@ class AutoInvoice implements ObserverInterface
 
         if (!$order->canInvoice() || $order->getState() != \Magento\Sales\Model\Order::STATE_PROCESSING) {
             $this->logger->addInfo("Order cannot be invoiced");
-            if($this->apiConfig->isLoggingEnabled()) {
+            if ($this->apiConfig->isLoggingEnabled()) {
                 $this->apiOrderLogger->logInvoice($order);
             }
             return;

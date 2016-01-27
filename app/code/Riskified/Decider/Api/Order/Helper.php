@@ -17,7 +17,7 @@ class Helper
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
         \Riskified\Decider\Api\Config $apiConfig,
-        \Riskified\Decider\Logger\Order $apiLogger,
+        Log $apiLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Customer $customerFactory,
         \Magento\Catalog\Model\Category $categoryFactory,
@@ -61,14 +61,12 @@ class Helper
         return null;
     }
 
-    public function getShippingAddress()
-    {
+    public function getShippingAddress(){
         $mageAddr = $this->getOrder()->getShippingAddress();
         return $this->getAddress($mageAddr);
     }
 
-    public function getBillingAddress()
-    {
+    public function getBillingAddress(){
         $mageAddr = $this->getOrder()->getBillingAddress();
         return $this->getAddress($mageAddr);
     }
@@ -84,8 +82,7 @@ class Helper
         ),'strlen'));
     }
 
-    public function getCustomer()
-    {
+    public function getCustomer(){
         $customer_id = $this->getOrder()->getCustomerId();
         $customer_props = array(
             'id' => $customer_id,
@@ -171,8 +168,7 @@ class Helper
         return $line_items;
     }
 
-    public function getAddress($address)
-    {
+    public function getAddress($address){
         if (!$address) {
             return null;
         }
@@ -200,14 +196,14 @@ class Helper
         return new Model\Address($addrArray);
     }
 
-    public function getPaymentDetails()
-    {
+    public function getPaymentDetails(){
         $payment = $this->getOrder()->getPayment();
         if (!$payment) {
             return null;
         }
+		
         if ($this->_apiConfig->isLoggingEnabled()) {
-           // $this->_apiLogger->payment();
+            $this->_apiLogger->payment($this->getOrder());
         }
         $transactionId = $payment->getTransactionId();
         $gateway_name = $payment->getMethod();
@@ -363,7 +359,7 @@ class Helper
     }
 
     public function getRemoteIp() {
-        $this->_apiLogger->debug("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $forwardeds = preg_split("/,/",$forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {

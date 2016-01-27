@@ -12,9 +12,10 @@ class OrderPaymentCancel implements ObserverInterface
     public function __construct(
         \Riskified\Decider\Api\Log $logger,
         \Riskified\Decider\Api\Order $orderApi
-    ){
-        $this->logger           = $logger;
-        $this->apiOrderLayer    = $orderApi;
+    )
+    {
+        $this->logger = $logger;
+        $this->apiOrderLayer = $orderApi;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)

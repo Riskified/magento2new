@@ -32,7 +32,7 @@ class SaveRiskifiedConfig implements ObserverInterface
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        if(!$this->apiConfig->isEnabled()) {
+        if (!$this->apiConfig->isEnabled()) {
             return;
         }
 

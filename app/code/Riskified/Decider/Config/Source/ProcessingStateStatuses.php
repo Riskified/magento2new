@@ -5,9 +5,11 @@ class ProcessingStateStatuses implements \Magento\Framework\Option\ArrayInterfac
 {
     public function __construct(
         \Magento\Sales\Model\Order\ConfigFactory $configFactory
-    ) {
+    )
+    {
         $this->_configFactory = $configFactory;
     }
+
     /**
      * Options getter
      *
@@ -17,8 +19,8 @@ class ProcessingStateStatuses implements \Magento\Framework\Option\ArrayInterfac
     {
         $orderConfig = $this->_configFactory->create();
         $arr = $orderConfig->getStateStatuses(\Magento\Sales\Model\Order::STATE_PROCESSING);
-        return array_map(function($status_code,$status_label) {
+        return array_map(function ($status_code, $status_label) {
             return array('value' => $status_code, 'label' => __($status_label));
-        }, array_keys($arr),$arr);
+        }, array_keys($arr), $arr);
     }
 }

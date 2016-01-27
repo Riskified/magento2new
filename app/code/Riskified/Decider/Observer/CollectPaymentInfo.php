@@ -13,15 +13,17 @@ class CollectPaymentInfo implements ObserverInterface
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
-    ){
+    )
+    {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
     }
+
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-return;
+        return;
         $payment = $observer->getQuote()->getPayment();
-        $cc_bin = substr($payment->getCcNumber(),0,6);
+        $cc_bin = substr($payment->getCcNumber(), 0, 6);
         if ($cc_bin) {
             $payment->setAdditionalInformation('riskified_cc_bin', $cc_bin);
         }

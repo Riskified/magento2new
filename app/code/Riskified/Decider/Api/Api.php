@@ -1,5 +1,6 @@
 <?php
 namespace Riskified\Decider\Api;
+
 use Riskified\Common\Riskified;
 use Riskified\Common\Signature;
 use Riskified\Common\Validations;
@@ -18,11 +19,13 @@ class Api
     private $version;
     private $_apiConfig;
 
-    public function __construct(Config $apiConfig) {
-        $this->_apiConfig           = $apiConfig;
+    public function __construct(Config $apiConfig)
+    {
+        $this->_apiConfig = $apiConfig;
     }
 
-    public function initSdk() {
+    public function initSdk()
+    {
         $authToken = $this->_apiConfig->getAuthToken();
         $env = constant($this->_apiConfig->getConfigEnv());
         $shopDomain = $this->_apiConfig->getShopDomain();
@@ -31,17 +34,20 @@ class Api
         Riskified::init($shopDomain, $authToken, $env, Validations::SKIP);
     }
 
-    public function getTransport() {
+    public function getTransport()
+    {
         $transport = new CurlTransport(new Signature\HttpDataSignature());
         $transport->timeout = 15;
         return $transport;
     }
 
-    protected function getHeaders() {
+    protected function getHeaders()
+    {
         return array('headers' => array('X_RISKIFIED_VERSION:' . $this->version));
     }
 
-    public function parseRequest($request) {
+    public function parseRequest($request)
+    {
         $header_name = Signature\HttpDataSignature::HMAC_HEADER_NAME;
         $headers = array($header_name => $request->getHeader($header_name));
         $body = $request->getContent();

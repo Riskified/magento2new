@@ -1,5 +1,6 @@
 <?php
 namespace Riskified\Decider\Api;
+
 use Riskified\Common\Signature;
 use Riskified\OrderWebhook\Model;
 use Riskified\OrderWebhook\Transport;
@@ -25,27 +26,30 @@ class Order
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Sales\Model\Order $orderFactory
 
-    ) {
-        $this->_api                 = $api;
-        $this->_orderHelper         = $orderHelper;
-        $this->_apiConfig           = $apiConfig;
-        $this->_context             = $context;
-        $this->_eventManager        = $context->getEventManager();
-        $this->_backendAuthSession  = $backendAuthSession;
-        $this->_messageManager      = $messageManager;
-        $this->_orderFactory        = $orderFactory;
-        $this->logger               = $logger;
+    )
+    {
+        $this->_api = $api;
+        $this->_orderHelper = $orderHelper;
+        $this->_apiConfig = $apiConfig;
+        $this->_context = $context;
+        $this->_eventManager = $context->getEventManager();
+        $this->_backendAuthSession = $backendAuthSession;
+        $this->_messageManager = $messageManager;
+        $this->_orderFactory = $orderFactory;
+        $this->logger = $logger;
 
         $this->_api->initSdk();
     }
-    public function post($order, $action) {
-        if(!$this->_apiConfig->isEnabled()) {
+
+    public function post($order, $action)
+    {
+        if (!$this->_apiConfig->isEnabled()) {
             return;
         }
 
         $transport = $this->_api->getTransport();
 
-        if(!$order) {
+        if (!$order) {
             throw new \Exception("Order doesn't not exists");
         }
         $this->_orderHelper->setOrder($order);
@@ -78,8 +82,8 @@ class Order
                 'riskified_decider_post_order_success',
                 $eventData
             );
-        } catch(\Riskified\OrderWebhook\Exception\CurlException $curlException) {
-            $this->_raiseOrderUpdateEvent($order, 'error',null, 'Error transferring order data to Riskified');
+        } catch (\Riskified\OrderWebhook\Exception\CurlException $curlException) {
+            $this->_raiseOrderUpdateEvent($order, 'error', null, 'Error transferring order data to Riskified');
             $this->scheduleSubmissionRetry($order, $action);
 
             $this->_eventManager->dispatch(
@@ -87,8 +91,7 @@ class Order
                 $eventData
             );
             throw $curlException;
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->_eventManager->dispatch(
                 'riskified_decider_post_order_error',
                 $eventData
@@ -98,7 +101,8 @@ class Order
         return $response;
     }
 
-    private function _raiseOrderUpdateEvent($order, $status, $oldStatus, $description) {
+    private function _raiseOrderUpdateEvent($order, $status, $oldStatus, $description)
+    {
         $eventData = array(
             'order' => $order,
             'status' => $status,
@@ -118,13 +122,15 @@ class Order
         );
         return;
     }
-    
-    private function getCustomerSession() {
+
+    private function getCustomerSession()
+    {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         return $objectManager->get('Magento\Customer\Model\Session');
     }
-    
-    private function load($model) {
+
+    private function load($model)
+    {
         $gateway = 'unavailable';
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
@@ -142,7 +148,7 @@ class Order
             'total_price' => $model->getGrandTotal(),
             'total_discounts' => $model->getDiscountAmount(),
             'subtotal_price' => $model->getBaseSubtotalInclTax(),
-            'discount_codes' =>$this->_orderHelper->getDiscountCodes($model),
+            'discount_codes' => $this->_orderHelper->getDiscountCodes($model),
             'taxes_included' => true,
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
@@ -171,8 +177,9 @@ class Order
         return $order;
     }
 
-    public function update($order, $status, $oldStatus, $description) {
-        if(!$this->_apiConfig->isEnabled()) {
+    public function update($order, $status, $oldStatus, $description)
+    {
+        if (!$this->_apiConfig->isEnabled()) {
             return;
         }
 
@@ -184,7 +191,7 @@ class Order
             'old_status' => $oldStatus,
             'description' => $description
         );
-        
+
         $this->_eventManager->dispatch(
             'riskified_decider_order_update',
             $eventData
@@ -197,28 +204,30 @@ class Order
         return;
     }
 
-    public function loadOrderByOrigId($full_orig_id) {
-        if(!$full_orig_id) {
+    public function loadOrderByOrigId($full_orig_id)
+    {
+        if (!$full_orig_id) {
             return null;
         }
-        $magento_ids = explode("_",$full_orig_id);
+        $magento_ids = explode("_", $full_orig_id);
         $order_id = $magento_ids[0];
         $increment_id = $magento_ids[1];
         if ($order_id && $increment_id) {
             return $this->_orderFactory->getCollection()
                 ->addFieldToFilter('entity_id', $order_id)
-                ->addFieldToFilter('increment_id',$increment_id)
+                ->addFieldToFilter('increment_id', $increment_id)
                 ->getFirstItem();
         }
 
-        if(!$order_id && $increment_id) {
+        if (!$order_id && $increment_id) {
             return $this->_orderFactory->loadByIncrementId($increment_id);
         }
         return $this->_orderFactory->load($order_id);
     }
 
-    public function postHistoricalOrders($models) {
-        if(!$this->_apiConfig->isEnabled()) {
+    public function postHistoricalOrders($models)
+    {
+        if (!$this->_apiConfig->isEnabled()) {
             return;
         }
         $orders = array();
@@ -228,15 +237,16 @@ class Order
         }
 
         $msgs = $this->_api->getTransport()->sendHistoricalOrders($orders);
-        return "Success decidery uploaded ".count($msgs)." orders.".PHP_EOL;
+        return "Success decidery uploaded " . count($msgs) . " orders." . PHP_EOL;
     }
 
     public function scheduleSubmissionRetry(\Magento\Sales\Model\Order $order, $action)
     {
     }
 
-    public function sendOrders($order_ids) {
-        if(!$this->_apiConfig->isEnabled()) {
+    public function sendOrders($order_ids)
+    {
+        if (!$this->_apiConfig->isEnabled()) {
             return;
         }
         $i = 0;

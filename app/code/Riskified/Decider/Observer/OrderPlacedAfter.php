@@ -12,15 +12,17 @@ class OrderPlacedAfter implements ObserverInterface
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
-    ){
+    )
+    {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
     }
+
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getOrder();
 
-        if(!$order) {
+        if (!$order) {
             return;
         }
 

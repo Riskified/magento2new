@@ -17,18 +17,20 @@ class SalesOrderAddressUpdate implements ObserverInterface
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi,
         \Magento\Sales\Model\Order $orderFactory
-    ){
-        $this->logger           = $logger;
-        $this->apiOrder         = $orderApi;
-        $this->_orderFactory    = $orderFactory;
+    )
+    {
+        $this->logger = $logger;
+        $this->apiOrder = $orderApi;
+        $this->_orderFactory = $orderFactory;
     }
+
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         try {
             $order_id = $observer->getOrderId();
             $order = $this->_orderFactory->load($order_id);
 
-            if(!$order) {
+            if (!$order) {
                 return;
             }
 
