@@ -12,20 +12,20 @@ class Context
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $request = $objectManager->get('Magento\Framework\App\Action\Context')->getRequest();
 
-        if($request->getFullActionName() == 'sales_order_view'){
-			$registry = $objectManager->get('Magento\Framework\Registry');
-			$scopeConfig = $objectManager->get('\Magento\Framework\App\Config\ScopeConfigInterface');
-			
-			if($registry->registry('current_order')->getState() != 'canceled' && $scopeConfig->getValue('riskified/riskified_general/enabled')) {
-            	$buttonList->add(
-                	'send_to_riskified',
-					[
-                    	'label' => __('Submit to Riskified'),
-						'onclick' => 'setLocation(\'' . $this->getCustomUrl() . '\')',
-						'sort_order' => 100
-					]
-				);
-			}
+        if ($request->getFullActionName() == 'sales_order_view') {
+            $registry = $objectManager->get('Magento\Framework\Registry');
+            $scopeConfig = $objectManager->get('\Magento\Framework\App\Config\ScopeConfigInterface');
+
+            if ($registry->registry('current_order')->getState() != 'canceled' && $scopeConfig->getValue('riskified/riskified_general/enabled')) {
+                $buttonList->add(
+                    'send_to_riskified',
+                    [
+                        'label' => __('Submit to Riskified'),
+                        'onclick' => 'setLocation(\'' . $this->getCustomUrl() . '\')',
+                        'sort_order' => 100
+                    ]
+                );
+            }
         }
 
         return $buttonList;

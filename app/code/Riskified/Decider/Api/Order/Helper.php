@@ -163,11 +163,10 @@ class Helper
                     $categories[] = $root_category->getName();
                 }
 
-                if($product->getManufacturer()) {
-                    $brand = $product->getManufacturer();
+                if ($product->getManufacturer()) {
+                    $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
                 }
             }
-
             $line_items[] = new Model\LineItem(array_filter(array(
                 'price' => $item->getPrice(),
                 'quantity' => intval($item->getQtyOrdered()),
@@ -176,6 +175,7 @@ class Helper
                 'product_id' => $item->getItemId(),
                 'grams' => $item->getWeight(),
                 'product_type' => $prod_type,
+                'brand' => $brand,
                 'category' => (count($categories) > 0) ? implode('|', $categories) : '',
                 'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
             ), 'strlen'));

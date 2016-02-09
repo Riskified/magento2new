@@ -1,36 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <event name="checkout_submit_all_after">
-        <observer name="riskified_decider_checkout_submit_all_after" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
+        <observer name="riskified_decider_checkout_submit_all_after"
+                  instance="Riskified\Decider\Observer\OrderPlacedAfter"/>
     </event>
     <event name="sales_model_service_quote_submit_success">
-	    <observer name="riskified_decider_sales_model_service_quote_submit_success" instance="Riskified\Decider\Observer\OrderPlacedAfter" />
+        <observer name="riskified_decider_sales_model_service_quote_submit_success"
+                  instance="Riskified\Decider\Observer\OrderPlacedAfter"/>
     </event>
     <event name="admin_system_config_changed_section_riskified">
-        <observer name="riskified_decider_admin_system_config_changed_section_riskified" instance="Riskified\Decider\Observer\SaveRiskifiedConfig" />
+        <observer name="riskified_decider_admin_system_config_changed_section_riskified"
+                  instance="Riskified\Decider\Observer\SaveRiskifiedConfig"/>
     </event>
     <event name="riskified_decider_post_order_success">
-        <observer name="riskified_decider_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
+        <observer name="riskified_decider_post_order_success"
+                  instance="Riskified\Decider\Observer\ProcessSuccessfulPost"/>
     </event>
-	<event name="riskified_decider_order_update">
-        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
+    <event name="riskified_decider_order_update">
+        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState"/>
     </event>
     <event name="riskified_decider_order_update_approved">
-        <observer name="riskified_decider_order_update_approved" instance="Riskified\Decider\Observer\AutoInvoice" />
+        <observer name="riskified_decider_order_update_approved" instance="Riskified\Decider\Observer\AutoInvoice"/>
     </event>
     <event name="riskified_decider_order_update_captured">
-        <observer name="riskified_decider_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice" />
+        <observer name="riskified_decider_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice"/>
     </event>
     <event name="sales_order_payment_cancel">
-        <observer name="riskified_sales_order_payment_cancel" instance="Riskified\Decider\Observer\OrderPaymentCancel" />
+        <observer name="riskified_sales_order_payment_cancel" instance="Riskified\Decider\Observer\OrderPaymentCancel"/>
     </event>
     <event name="sales_order_payment_refund">
-        <observer name="riskified_sales_sales_order_payment_refund" instance="Riskified\Decider\Observer\OrderPaymentRefund" />
+        <observer name="riskified_sales_sales_order_payment_refund"
+                  instance="Riskified\Decider\Observer\OrderPaymentRefund"/>
     </event>
     <event name="sales_order_payment_void">
-        <observer name="riskified_sales_sales_order_payment_refund" instance="Riskified\Decider\Observer\OrderPaymentVoid" />
+        <observer name="riskified_sales_sales_order_payment_refund"
+                  instance="Riskified\Decider\Observer\OrderPaymentVoid"/>
     </event>
     <event name="admin_sales_order_address_update">
-        <observer name="riskified_admin_sales_order_address_update" instance="Riskified\Decider\Observer\SalesOrderAddressUpdate" />
+        <observer name="riskified_admin_sales_order_address_update"
+                  instance="Riskified\Decider\Observer\SalesOrderAddressUpdate"/>
+    </event>
+    <event name="backend_block_widget_grid_prepare_grid_before">
+        <observer name="riskified_backend_block_widget_grid_prepare_grid_before"
+                  instance="Riskified\Decider\Observer\OrderGridMassAction"/>
     </event>
 </config>

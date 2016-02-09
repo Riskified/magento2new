@@ -1,7 +1,8 @@
 <?php
 namespace Riskified\Decider\Block;
 
-class Js extends \Magento\Framework\View\Element\Template {
+class Js extends \Magento\Framework\View\Element\Template
+{
     private $apiConfig;
     private $session;
 
@@ -12,37 +13,47 @@ class Js extends \Magento\Framework\View\Element\Template {
 
         array $data = [])
     {
-        $this->validator            = $context->getValidator();
-        $this->resolver             = $context->getResolver();
-        $this->_filesystem          = $context->getFilesystem();
-        $this->templateEnginePool   = $context->getEnginePool();
-        $this->_storeManager        = $context->getStoreManager();
-        $this->_appState            = $context->getAppState();
-        $this->templateContext      = $this;
-        $this->pageConfig           = $context->getPageConfig();
-        $this->apiConfig            = $apiConfig;
-        $this->session				= $session;
+        $this->validator = $context->getValidator();
+        $this->resolver = $context->getResolver();
+        $this->_filesystem = $context->getFilesystem();
+        $this->templateEnginePool = $context->getEnginePool();
+        $this->_storeManager = $context->getStoreManager();
+        $this->_appState = $context->getAppState();
+        $this->templateContext = $this;
+        $this->pageConfig = $context->getPageConfig();
+        $this->apiConfig = $apiConfig;
+        $this->session = $session;
 
         parent::__construct($context, $data);
     }
 
-    public function getSessionId() {
+    public function getSessionId()
+    {
         return $this->session->getSessionId();
     }
 
-    public function isEnabled() {
+    public function isEnabled()
+    {
         return $this->apiConfig->isEnabled();
     }
-    public function getShopDomain() {
+
+    public function getShopDomain()
+    {
         return $this->apiConfig->getShopDomain();
     }
-    public function getConfigStatusControlActive() {
+
+    public function getConfigStatusControlActive()
+    {
         return $this->apiConfig->getConfigStatusControlActive();
     }
-    public function getExtensionVersion() {
+
+    public function getExtensionVersion()
+    {
         return $this->apiConfig->getExtensionVersion();
     }
-    public function getConfigBeaconUrl() {
+
+    public function getConfigBeaconUrl()
+    {
         return $this->apiConfig->getConfigBeaconUrl();
     }
 

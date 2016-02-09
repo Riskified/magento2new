@@ -1,18 +1,26 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="sales_model_service_quote_submit_success">
-        <observer name="riskified_sales_model_service_quote_submit_success" instance="\Riskified\Decider\Observer\OrderPlacedAfter" />
+        <observer name="riskified_sales_model_service_quote_submit_success"
+                  instance="\Riskified\Decider\Observer\OrderPlacedAfter"/>
     </event>
     <event name="sales_model_service_quote_submit_before">
-        <observer name="riskified_sales_model_service_quote_submit_before" instance="\Riskified\Decider\Observer\CollectPaymentInfo" />
+        <observer name="riskified_sales_model_service_quote_submit_before"
+                  instance="\Riskified\Decider\Observer\CollectPaymentInfo"/>
     </event>
     <event name="riskified_decider_post_order_success">
-        <observer name="riskified_decider_post_order_success" instance="Riskified\Decider\Observer\ProcessSuccessfulPost" />
+        <observer name="riskified_decider_post_order_success"
+                  instance="Riskified\Decider\Observer\ProcessSuccessfulPost"/>
     </event>
     <event name="riskified_decider_order_update">
-        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState" />
+        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState"/>
     </event>
     <event name="sales_order_save_after">
-        <observer name="riskified_decider_sales_order_save_after" instance="Riskified\Decider\Observer\OrderSaveAfter" />
+        <observer name="riskified_decider_sales_order_save_after" instance="Riskified\Decider\Observer\OrderSaveAfter"/>
+    </event>
+    <event name="backend_block_widget_grid_prepare_grid_before">
+        <observer name="riskified_backend_block_widget_grid_prepare_grid_before"
+                  instance="Riskified\Decider\Observer\OrderGridMassAction"/>
     </event>
 </config>

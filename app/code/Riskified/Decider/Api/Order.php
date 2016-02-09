@@ -140,6 +140,7 @@ class Order
         }
         $order_array = array(
             'id' => $this->_orderHelper->getOrderOrigId(),
+            // 'cart' => $model->getQuoteId(),
             'name' => $model->getIncrementId(),
             'email' => $model->getCustomerEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
