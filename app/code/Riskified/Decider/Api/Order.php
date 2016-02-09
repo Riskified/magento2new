@@ -15,6 +15,7 @@ class Order
     private $_backendAuthSession;
     private $_orderFactory;
     private $logger;
+    private $session;
 
     public function __construct(
         Api $api,
@@ -24,7 +25,8 @@ class Order
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Backend\Model\Auth\Session $backendAuthSession,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Sales\Model\Order $orderFactory
+        \Magento\Sales\Model\Order $orderFactory,
+        \Magento\Framework\Session\SessionManagerInterface $session
 
     )
     {
@@ -37,6 +39,7 @@ class Order
         $this->_messageManager = $messageManager;
         $this->_orderFactory = $orderFactory;
         $this->logger = $logger;
+        $this->session = $session;
 
         $this->_api->initSdk();
     }
@@ -137,7 +140,6 @@ class Order
         }
         $order_array = array(
             'id' => $this->_orderHelper->getOrderOrigId(),
-            'cart_token' => $model->getQuoteId(),
             'name' => $model->getIncrementId(),
             'email' => $model->getCustomerEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
@@ -157,7 +159,8 @@ class Order
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
-            'vendor_name' => $model->getStoreName()
+            'vendor_name' => $model->getStoreName(),
+            'cart_token' => $this->session->getSessionId()
         );
 
         if ($this->_orderHelper->getCustomerSession()->isLoggedIn()) {

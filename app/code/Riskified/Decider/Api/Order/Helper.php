@@ -1,5 +1,6 @@
 <?php
 namespace Riskified\Decider\Api\Order;
+
 use Riskified\OrderWebhook\Model;
 
 class Helper
@@ -22,35 +23,39 @@ class Helper
         \Magento\Customer\Model\Customer $customerFactory,
         \Magento\Catalog\Model\Category $categoryFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory,
-		\Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager
     )
     {
-        $this->_logger          = $logger;
-        $this->_messageManager  = $messageManager;
-        $this->_apiConfig       = $apiConfig;
-        $this->_apiLogger       = $apiLogger;
+        $this->_logger = $logger;
+        $this->_messageManager = $messageManager;
+        $this->_apiConfig = $apiConfig;
+        $this->_apiLogger = $apiLogger;
         $this->_customerFactory = $customerFactory;
-        $this->_orderFactory    = $orderFactory;
+        $this->_orderFactory = $orderFactory;
         $this->_categoryFactory = $categoryFactory;
-        $this->_storeManager 	= $storeManager;
+        $this->_storeManager = $storeManager;
     }
 
-    public function setOrder($model) {
+    public function setOrder($model)
+    {
         $this->_order = $model;
     }
 
-    public function getOrder() {
+    public function getOrder()
+    {
         return $this->_order;
     }
 
-    public function getOrderOrigId() {
-        if(!$this->getOrder()) {
+    public function getOrderOrigId()
+    {
+        if (!$this->getOrder()) {
             return null;
         }
         return $this->getOrder()->getId() . '_' . $this->getOrder()->getIncrementId();
     }
 
-    public function getDiscountCodes() {
+    public function getDiscountCodes()
+    {
         $code = $this->getOrder()->getDiscountDescription();
         $amount = $this->getOrder()->getDiscountAmount();
         if ($amount && $code)
@@ -61,17 +66,20 @@ class Helper
         return null;
     }
 
-    public function getShippingAddress(){
+    public function getShippingAddress()
+    {
         $mageAddr = $this->getOrder()->getShippingAddress();
         return $this->getAddress($mageAddr);
     }
 
-    public function getBillingAddress(){
+    public function getBillingAddress()
+    {
         $mageAddr = $this->getOrder()->getBillingAddress();
         return $this->getAddress($mageAddr);
     }
 
-    public function getClientDetails() {
+    public function getClientDetails()
+    {
         $om = \Magento\Framework\App\ObjectManager::getInstance();
         $resolver = $om->get('Magento\Framework\Locale\Resolver');
         $httpHeader = $om->get('Magento\Framework\HTTP\Header');
@@ -79,10 +87,11 @@ class Helper
         return new Model\ClientDetails(array_filter(array(
             'accept_language' => $resolver->getLocale(),
             'user_agent' => $httpHeader->getHttpUserAgent()
-        ),'strlen'));
+        ), 'strlen'));
     }
 
-    public function getCustomer(){
+    public function getCustomer()
+    {
         $customer_id = $this->getOrder()->getCustomerId();
         $customer_props = array(
             'id' => $customer_id,
@@ -115,43 +124,49 @@ class Helper
         return new Model\Customer(array_filter($customer_props, 'strlen'));
     }
 
-    public function getCustomerSession() {
+    public function getCustomerSession()
+    {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         return $objectManager->get('Magento\Customer\Model\Session');
     }
 
-    public function getLineItems() {
+    public function getLineItems()
+    {
         $line_items = array();
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
             $prod_type = null;
-            
-            $product = $item->getProduct();
-			$prod_type = null;
-			$category = null;
-			$sub_categories = null;
-			$product = $item->getProduct();
-			
-			if($product) {
-				$categories = [];
-				$sub_categories = [];
-				$category_ids = $product->getCategoryIds();
 
-			                foreach ($category_ids as $categoryId) {
-			                    $cat = $this->_categoryFactory->load($categoryId);
-			                    if ($cat->getLevel() == 2) {
-									$categories[] = $cat->getName();
-			                    } elseif($cat->getLevel() >= 3) {
-			                    	$sub_categories[] = $cat->getName();
-			                    }
-			                }
-							
-							if(count($category_ids) == 0) {
-								$store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-								$root_category = $this->_categoryFactory->load($store_root_category_id);
-								$categories[] = $root_category->getName();
-							}
-			            }
+            $prod_type = null;
+            $category = null;
+            $sub_categories = null;
+            $brand = null;
+            $product = $item->getProduct();
+
+            if ($product) {
+                $categories = [];
+                $sub_categories = [];
+                $category_ids = $product->getCategoryIds();
+
+                foreach ($category_ids as $categoryId) {
+                    $cat = $this->_categoryFactory->load($categoryId);
+                    if ($cat->getLevel() == 2) {
+                        $categories[] = $cat->getName();
+                    } elseif ($cat->getLevel() >= 3) {
+                        $sub_categories[] = $cat->getName();
+                    }
+                }
+
+                if (count($category_ids) == 0) {
+                    $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
+                    $root_category = $this->_categoryFactory->load($store_root_category_id);
+                    $categories[] = $root_category->getName();
+                }
+
+                if($product->getManufacturer()) {
+                    $brand = $product->getManufacturer();
+                }
+            }
 
             $line_items[] = new Model\LineItem(array_filter(array(
                 'price' => $item->getPrice(),
@@ -163,12 +178,13 @@ class Helper
                 'product_type' => $prod_type,
                 'category' => (count($categories) > 0) ? implode('|', $categories) : '',
                 'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
-            ),'strlen'));
+            ), 'strlen'));
         }
         return $line_items;
     }
 
-    public function getAddress($address){
+    public function getAddress($address)
+    {
         if (!$address) {
             return null;
         }
@@ -196,12 +212,13 @@ class Helper
         return new Model\Address($addrArray);
     }
 
-    public function getPaymentDetails(){
+    public function getPaymentDetails()
+    {
         $payment = $this->getOrder()->getPayment();
         if (!$payment) {
             return null;
         }
-		
+
         if ($this->_apiConfig->isLoggingEnabled()) {
             $this->_apiLogger->payment($this->getOrder());
         }
@@ -218,7 +235,7 @@ class Helper
                         if ($cards_data && $cards_data[0]) {
                             $card_data = $cards_data[0];
                             if (isset($card_data['cc_last4'])) {
-								$credit_card_number = $payment->decrypt($card_data['cc_last4']);
+                                $credit_card_number = $payment->decrypt($card_data['cc_last4']);
                             }
                             if (isset($card_data['cc_type'])) {
                                 $credit_card_company = $card_data['cc_type'];
@@ -231,8 +248,8 @@ class Helper
                             }
                         }
                     }
-                    
-					$credit_card_number = $payment->decrypt($payment->getCcLast4());
+
+                    $credit_card_number = $payment->decrypt($payment->getCcLast4());
                     break;
                 case 'authnetcim':
                     $avs_result_code = $payment->getAdditionalInformation('avs_result_code');
@@ -308,15 +325,15 @@ class Helper
         }
 
         $om = \Magento\Framework\App\ObjectManager::getInstance();
-		if (!isset($credit_card_bin) || !$credit_card_bin) {
+        if (!isset($credit_card_bin) || !$credit_card_bin) {
             $session = $om->get('Magento\Customer\Model\Session');
             $credit_card_bin = $session->getRiskifiedBin();
-			$session->unsRiskifiedBin();
+            $session->unsRiskifiedBin();
         }
         if (!isset($credit_card_bin) || !$credit_card_bin) {
-			$coreRegistry = $om->get('Magento\Framework\Registry');			
-           	$credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
-		}
+            $coreRegistry = $om->get('Magento\Framework\Registry');
+            $credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
+        }
         if (isset($credit_card_number)) {
             $credit_card_number = "XXXX-XXXX-XXXX-" . $credit_card_number;
         }
@@ -331,15 +348,17 @@ class Helper
         ), 'strlen'));
     }
 
-    public function getShippingLines() {
+    public function getShippingLines()
+    {
         return new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
             'title' => $this->getOrder()->getShippingDescription(),
             'code' => $this->getOrder()->getShippingMethod()
-        ),'strlen'));
+        ), 'strlen'));
     }
 
-    public function getCancelledAt() {
+    public function getCancelledAt()
+    {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
         foreach ($commentCollection as $comment) {
             if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
@@ -349,7 +368,8 @@ class Helper
         return null;
     }
 
-    public function getOrderCancellation() {
+    public function getOrderCancellation()
+    {
         $orderCancellation = new Model\OrderCancellation(array_filter(array(
             'id' => $this->getOrderOrigId(),
             'cancelled_at' => $this->formatDateAsIso8601($this->getCancelledAt()),
@@ -358,20 +378,21 @@ class Helper
         return $orderCancellation;
     }
 
-    public function getRemoteIp() {
+    public function getRemoteIp()
+    {
         $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
         $forwardedIp = $this->getOrder()->getXForwardedFor();
-        $forwardeds = preg_split("/,/",$forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
+        $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
             return trim($forwardeds[0]);
         }
         $remoteIp = $this->getOrder()->getRemoteIp();
-        $remotes = preg_split("/,/",$remoteIp, -1, PREG_SPLIT_NO_EMPTY);
+        $remotes = preg_split("/,/", $remoteIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($remotes)) {
-            if(is_array($remotes) && count($remotes) > 1) {
+            if (is_array($remotes) && count($remotes) > 1) {
                 return trim($remotes[0]);
             } else {
-                foreach($remotes AS $k => $val) {
+                foreach ($remotes AS $k => $val) {
                     $remotes[$k] = trim($val);
                 }
 
