@@ -6,7 +6,7 @@
                 var store_domain = "<?php echo $block->getShopDomain() ?>";
                 var statusControlActive = "<?php echo $block->getConfigStatusControlActive() ?>";
                 var version = "<?php echo $block->getExtensionVersion() ?>";
-                var url = ('https:' == document.location.protocol ? 'https://' : 'http://') + "<?php echo $block->getConfigBeaconUrl()?>?shop=" + store_domain + "&cart_id=" + session_id + "&v=" + version;
+                var url = ('https:' == document.location.protocol ? 'https://' : 'http://') + "<?php echo $block->getConfigBeaconUrl()?>?shop=" + store_domain + "&sid=" + session_id + "&v=" + version;
                 var s = document.createElement('script');
                 s.type = 'text/javascript';
                 s.async = true;
