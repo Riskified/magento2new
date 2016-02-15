@@ -65,11 +65,15 @@ class AutoInvoice implements ObserverInterface
             $invoice
                 ->setRequestedCaptureCase($this->apiConfig->getCaptureCase())
                 ->addComment(
-                    'Invoice automatically created by Riskified when order was approved',
+                    __('Invoice automatically created by Riskified when order was approved'),
                     false,
                     false
                 )
                 ->register();
+
+            $order->setStatus('riskified_approved');
+            $order->addStatusHistoryComment(__("Reviewed and approved by Riskified"), 'riskified_approved');
+            $order->save();
         } catch (\Exception $e) {
             $this->logger->addInfo("Error creating invoice: " . $e->getMessage());
             return;

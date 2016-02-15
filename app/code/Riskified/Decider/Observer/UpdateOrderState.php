@@ -83,16 +83,21 @@ class UpdateOrderState implements ObserverInterface
                 $this->logger->log("Order '" . $order->getId() . "' should be canceled - calling cancel method");
                 $order->cancel();
             }
-            $order->setState($newState, $newStatus, $description);
-            $order->setStatus($newStatus);
 
-            $order->addStatusHistoryComment($description);
-            $this->logger->log("Updated order '" . $order->getId() . "' to: state:  '$newState', status: '$newStatus', description: '$description'");
-            $changed = true;
+            if($riskifiedStatus != 'approved' || !$this->apiConfig->isAutoInvoiceEnabled()) {
+                $order->setState($newState, $newStatus, $description);
+                $order->setStatus($newStatus);
+
+                $order->addStatusHistoryComment($description);
+                $this->logger->log("Updated order '" . $order->getId() . "' to: state:  '$newState', status: '$newStatus', description: '$description'");
+                $changed = true;
+            }
         } elseif ($description && $riskifiedStatus != $riskifiedOldStatus) {
-            $this->logger->log("Updated order " . $order->getId() . " history comment to: " . $description);
-            $order->addStatusHistoryComment($description);
-            $changed = true;
+            if($riskifiedStatus != 'approved' || !$this->apiConfig->isAutoInvoiceEnabled()) {
+                $this->logger->log("Updated order " . $order->getId() . " history comment to: " . $description);
+                $order->addStatusHistoryComment($description);
+                $changed = true;
+            }
         } else {
             $this->logger->log("No update to state,status,comments is required for " . $order->getId());
         }
