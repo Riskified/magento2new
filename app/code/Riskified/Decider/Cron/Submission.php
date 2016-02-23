@@ -78,7 +78,7 @@ class Submission
                 $mapperOrder[$order->getId()]
                     ->setLastError("Exception Message: " . $e->getMessage())
                     ->setAttempts($mapperOrder[$order->getId()]->getAttempts() + 1)
-                    ->setUpdatedAt(Mage::getSingleton('core/date')->gmtDate())
+                    ->setUpdatedAt($this->date->gmtDate())
                     ->save();
             }
         }
