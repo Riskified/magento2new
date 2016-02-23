@@ -16,6 +16,8 @@ class Order
     private $_orderFactory;
     private $logger;
     private $session;
+    private $date;
+    private $queueFactory;
 
     public function __construct(
         Api $api,
@@ -26,6 +28,8 @@ class Order
         \Magento\Backend\Model\Auth\Session $backendAuthSession,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Sales\Model\Order $orderFactory,
+        \Magento\Framework\Stdlib\DateTime\DateTime $date,
+        \Riskified\Decider\Model\QueueFactory $queueFactory,
         \Magento\Framework\Session\SessionManagerInterface $session
 
     )
@@ -40,6 +44,8 @@ class Order
         $this->_orderFactory = $orderFactory;
         $this->logger = $logger;
         $this->session = $session;
+        $this->date = $date;
+        $this->queueFactory = $queueFactory;
 
         $this->_api->initSdk();
     }
@@ -246,6 +252,26 @@ class Order
 
     public function scheduleSubmissionRetry(\Magento\Sales\Model\Order $order, $action)
     {
+        $this->logger->log("Scheduling submission retry for order " . $order->getId());
+
+        try {
+            $existingRetries = $this->queueFactory->create()->getCollection()
+                ->addFieldToFilter('order_id', $order->getId())
+                ->addFieldToFilter('action', $action);
+
+            if ($existingRetries->getSize() == 0) {
+                $queue = $this->queueFactory->create();
+                $queue->addData(array(
+                        'order_id' => $order->getId(),
+                        'action' => $action,
+                        'updated_at' => $this->date->gmtDate()
+                ))->save();
+
+                $this->logger->log("New retry scheduled successfully");
+            }
+        } catch (\Exception $e) {
+            $this->logger->logException($e);
+        }
     }
 
     public function sendOrders($order_ids)
