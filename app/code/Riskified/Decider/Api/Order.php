@@ -100,6 +100,16 @@ class Order
                 $eventData
             );
             throw $curlException;
+        } catch (\Riskified\OrderWebhook\Exception\MalformedJsonException $e) {
+            if(strstr($e->getMessage(), "504") && strstr($e->getMessage(), "Status Code:")) {
+                $this->_raiseOrderUpdateEvent($order, 'error', null, 'Error transferring order data to Riskified');
+                $this->scheduleSubmissionRetry($order, $action);
+            }
+            $this->_eventManager->dispatch(
+                'riskified_decider_post_order_error',
+                $eventData
+            );
+            throw $e;
         } catch (\Exception $e) {
             $this->_eventManager->dispatch(
                 'riskified_decider_post_order_error',

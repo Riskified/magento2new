@@ -5,6 +5,7 @@ class Js extends \Magento\Framework\View\Element\Template
 {
     private $apiConfig;
     private $session;
+    protected $_isScopePrivate = false;
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
