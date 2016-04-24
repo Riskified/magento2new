@@ -40,8 +40,4 @@
         <observer name="riskified_admin_sales_order_address_update"
                   instance="Riskified\Decider\Observer\SalesOrderAddressUpdate"/>
     </event>
-    <event name="backend_block_widget_grid_prepare_grid_before">
-        <observer name="riskified_backend_block_widget_grid_prepare_grid_before"
-                  instance="Riskified\Decider\Observer\OrderGridMassAction"/>
-    </event>
 </config>
