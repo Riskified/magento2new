@@ -306,6 +306,13 @@ class Helper
                     $avs_result_code = $payment->getAdditionalInformation('avs_response');
                     $cvv_result_code = $payment->getAdditionalInformation('cvv2_response');
                     break;
+                case 'braintree':
+                    $cvv_result_code = $payment->getAdditionalInformation('cvvResponseCode');
+                    $credit_card_bin = $payment->getAdditionalInformation('bin');
+                    $houseVerification = $payment->getAdditionalInformation('avsStreetAddressResponseCode');
+                    $zipVerification = $payment->getAdditionalInformation('avsPostalCodeResponseCode');
+                    $avs_result_code = $houseVerification . ',' . $zipVerification;
+                    break;
                 default:
                     break;
             }
