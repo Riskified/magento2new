@@ -81,6 +81,11 @@ class UploadHistoricalOrders extends Command
                 $this->_postOrders();
                 $this->_totalUploaded += count($this->_orders);
                 $this->_currentPage++;
+                $output->writeln("Uploaded " .
+                    $this->_totalUploaded .
+                    " of " .
+                    $total_count
+                    ." orders\n");
 
                 $this->_getCollection();
             } catch (\Exception $e) {
