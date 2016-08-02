@@ -380,7 +380,9 @@ class Helper
 
     public function getRemoteIp()
     {
-        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
+            ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
@@ -405,5 +407,12 @@ class Helper
     public function formatDateAsIso8601($dateStr)
     {
         return ($dateStr == NULL) ? NULL : date('c', strtotime($dateStr));
+    }
+
+    public function isAdmin() {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $state =  $om->get('Magento\Framework\App\State');
+
+        return $state->getAreaCode() === 'adminhtml';
     }
 }
