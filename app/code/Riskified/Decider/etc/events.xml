@@ -14,13 +14,12 @@
                   instance="Riskified\Decider\Observer\ProcessSuccessfulPost"/>
     </event>
     <event name="riskified_decider_order_update">
-        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Observer\UpdateOrderState"/>
+        <observer name="riskified_decider_handle_order_update"
+                  instance="Riskified\Decider\Observer\UpdateOrderState"/>
     </event>
     <event name="sales_order_save_after">
-        <observer name="riskified_decider_sales_order_save_after" instance="Riskified\Decider\Observer\OrderSaveAfter"/>
+        <observer name="riskified_decider_sales_order_save_after"
+                  instance="Riskified\Decider\Observer\OrderSaveAfter"/>
     </event>
-    <event name="backend_block_widget_grid_prepare_grid_before">
-        <observer name="riskified_backend_block_widget_grid_prepare_grid_before"
-                  instance="Riskified\Decider\Observer\OrderGridMassAction"/>
     </event>
 </config>
