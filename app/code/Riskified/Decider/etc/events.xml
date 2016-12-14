@@ -21,5 +21,4 @@
         <observer name="riskified_decider_sales_order_save_after"
                   instance="Riskified\Decider\Observer\OrderSaveAfter"/>
     </event>
-    </event>
 </config>
