@@ -313,6 +313,15 @@ class Helper
                     $zipVerification = $payment->getAdditionalInformation('avsPostalCodeResponseCode');
                     $avs_result_code = $houseVerification . ',' . $zipVerification;
                     break;
+                case 'payflowpro':
+                    $cc_details = $payment->getAdditionalInformation('cc_details');
+                    $credit_card_number =  $cc_details['cc_last_4'];
+                    $credit_card_company = $cc_details['cc_type'];
+                    $cvv_result_code = $payment->getAdditionalInformation('cvv2match');
+                    $houseVerification = $payment->getAdditionalInformation('avsaddr');
+                    $zipVerification = $payment->getAdditionalInformation('avszip');
+                    $avs_result_code = $houseVerification . ',' . $zipVerification;
+                    break;
                 default:
                     break;
             }
