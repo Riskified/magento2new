@@ -48,6 +48,10 @@ class UploadHistoricalOrders extends Command
 
         parent::__construct();
     }
+
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this->setName('riskified:sync:historical-orders');
@@ -56,6 +60,9 @@ class UploadHistoricalOrders extends Command
         parent::configure();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
@@ -95,6 +102,11 @@ class UploadHistoricalOrders extends Command
         }
     }
 
+    /**
+     * Retrieve prepared order collection for counting values
+     *
+     * @return \Magento\Sales\Api\Data\OrderSearchResultInterface
+     */
     protected function getEntireCollection() {
         $orderResult = $this
             ->_orderRepository
@@ -102,6 +114,11 @@ class UploadHistoricalOrders extends Command
         return $orderResult;
     }
 
+    /**
+     * Retrieve paginated collection
+     *
+     * @return void
+     */
     protected function getCollection() {
         $this->_searchCriteriaBuilder
             ->setPageSize(self::BATCH_SIZE)
@@ -110,6 +127,11 @@ class UploadHistoricalOrders extends Command
         $this->_orders = $orderResult->getItems();
     }
 
+    /**
+     * Sends orders to endpoint
+     *
+     * @return void
+     */
     protected function postOrders() {
         if (!$this->_scopeConfig->getValue('riskified/riskified_general/enabled')) {
             return;
@@ -122,6 +144,11 @@ class UploadHistoricalOrders extends Command
         $this->_transport->sendHistoricalOrders($orders);
     }
 
+    /**
+     * @param Model\Order $model
+     *
+     * @return Model\Order
+     */
     protected function prepareOrder($model) {
         $gateway = 'unavailable';
         if ($model->getPayment()) {
