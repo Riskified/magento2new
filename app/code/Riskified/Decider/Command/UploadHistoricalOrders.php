@@ -79,7 +79,7 @@ class UploadHistoricalOrders extends Command
         Riskified::init($domain, $authToken, $env, Validations::SKIP);
 
         $fullOrderRepository = $this->getEntireCollection();
-        $total_count = $fullOrderRepository->count();
+        $total_count = $fullOrderRepository->getSize();
 
         $output->writeln("Starting to upload orders, total_count: $total_count \n");
         $this->getCollection();
