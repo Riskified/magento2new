@@ -71,14 +71,14 @@ class UploadHistoricalOrders extends Command
 
         Riskified::init($domain, $authToken, $env, Validations::SKIP);
 
-        $orders = $this->_getEntireCollection();
-        $total_count = count($orders);
+        $fullOrderRepository = $this->getEntireCollection();
+        $total_count = $fullOrderRepository->count();
 
         $output->writeln("Starting to upload orders, total_count: $total_count \n");
-        $this->_getCollection();
+        $this->getCollection();
         while ($this->_totalUploaded < $total_count) {
             try {
-                $this->_postOrders();
+                $this->postOrders();
                 $this->_totalUploaded += count($this->_orders);
                 $this->_currentPage++;
                 $output->writeln("Uploaded " .
@@ -87,7 +87,7 @@ class UploadHistoricalOrders extends Command
                     $total_count
                     ." orders\n");
 
-                $this->_getCollection();
+                $this->getCollection();
             } catch (\Exception $e) {
                 $output->writeln("<error>".$e->getMessage()."</error> \n");
                 exit(1);
@@ -95,12 +95,14 @@ class UploadHistoricalOrders extends Command
         }
     }
 
-    protected function _getEntireCollection() {
-        $orderResult = $this->_orderRepository->getList($this->_searchCriteriaBuilder);
-        return $orderResult->getItems();
+    protected function getEntireCollection() {
+        $orderResult = $this
+            ->_orderRepository
+            ->getList($this->_searchCriteriaBuilder);
+        return $orderResult;
     }
 
-    protected function _getCollection() {
+    protected function getCollection() {
         $this->_searchCriteriaBuilder
             ->setPageSize(self::BATCH_SIZE)
             ->setCurrentPage($this->_currentPage);
@@ -108,19 +110,19 @@ class UploadHistoricalOrders extends Command
         $this->_orders = $orderResult->getItems();
     }
 
-    protected function _postOrders() {
+    protected function postOrders() {
         if (!$this->_scopeConfig->getValue('riskified/riskified_general/enabled')) {
             return;
         }
         $orders = array();
 
         foreach ($this->_orders as $model) {
-            $orders[] = $this->_prepareOrder($model);
+            $orders[] = $this->prepareOrder($model);
         }
         $this->_transport->sendHistoricalOrders($orders);
     }
 
-    protected function _prepareOrder($model) {
+    protected function prepareOrder($model) {
         $gateway = 'unavailable';
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
