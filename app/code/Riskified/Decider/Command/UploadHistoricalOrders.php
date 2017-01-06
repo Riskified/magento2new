@@ -48,6 +48,10 @@ class UploadHistoricalOrders extends Command
 
         parent::__construct();
     }
+
+    /**
+     * @inheritdoc
+     */
     protected function configure()
     {
         $this->setName('riskified:sync:historical-orders');
@@ -56,6 +60,9 @@ class UploadHistoricalOrders extends Command
         parent::configure();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
@@ -71,14 +78,14 @@ class UploadHistoricalOrders extends Command
 
         Riskified::init($domain, $authToken, $env, Validations::SKIP);
 
-        $orders = $this->_getEntireCollection();
-        $total_count = count($orders);
+        $fullOrderRepository = $this->getEntireCollection();
+        $total_count = $fullOrderRepository->getSize();
 
         $output->writeln("Starting to upload orders, total_count: $total_count \n");
-        $this->_getCollection();
+        $this->getCollection();
         while ($this->_totalUploaded < $total_count) {
             try {
-                $this->_postOrders();
+                $this->postOrders();
                 $this->_totalUploaded += count($this->_orders);
                 $this->_currentPage++;
                 $output->writeln("Uploaded " .
@@ -87,7 +94,7 @@ class UploadHistoricalOrders extends Command
                     $total_count
                     ." orders\n");
 
-                $this->_getCollection();
+                $this->getCollection();
             } catch (\Exception $e) {
                 $output->writeln("<error>".$e->getMessage()."</error> \n");
                 exit(1);
@@ -95,12 +102,24 @@ class UploadHistoricalOrders extends Command
         }
     }
 
-    protected function _getEntireCollection() {
-        $orderResult = $this->_orderRepository->getList($this->_searchCriteriaBuilder);
-        return $orderResult->getItems();
+    /**
+     * Retrieve prepared order collection for counting values
+     *
+     * @return \Magento\Sales\Api\Data\OrderSearchResultInterface
+     */
+    protected function getEntireCollection() {
+        $orderResult = $this
+            ->_orderRepository
+            ->getList($this->_searchCriteriaBuilder);
+        return $orderResult;
     }
 
-    protected function _getCollection() {
+    /**
+     * Retrieve paginated collection
+     *
+     * @return void
+     */
+    protected function getCollection() {
         $this->_searchCriteriaBuilder
             ->setPageSize(self::BATCH_SIZE)
             ->setCurrentPage($this->_currentPage);
@@ -108,19 +127,29 @@ class UploadHistoricalOrders extends Command
         $this->_orders = $orderResult->getItems();
     }
 
-    protected function _postOrders() {
+    /**
+     * Sends orders to endpoint
+     *
+     * @return void
+     */
+    protected function postOrders() {
         if (!$this->_scopeConfig->getValue('riskified/riskified_general/enabled')) {
             return;
         }
         $orders = array();
 
         foreach ($this->_orders as $model) {
-            $orders[] = $this->_prepareOrder($model);
+            $orders[] = $this->prepareOrder($model);
         }
         $this->_transport->sendHistoricalOrders($orders);
     }
 
-    protected function _prepareOrder($model) {
+    /**
+     * @param Model\Order $model
+     *
+     * @return Model\Order
+     */
+    protected function prepareOrder($model) {
         $gateway = 'unavailable';
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
