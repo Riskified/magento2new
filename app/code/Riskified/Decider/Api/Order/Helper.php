@@ -135,52 +135,70 @@ class Helper
         $line_items = array();
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
-            $prod_type = null;
+            $line_items[] = $this->getPreparedLineItem($item);
 
-            $prod_type = null;
-            $category = null;
-            $sub_categories = null;
-            $brand = null;
-            $product = $item->getProduct();
-
-            if ($product) {
-                $categories = [];
-                $sub_categories = [];
-                $category_ids = $product->getCategoryIds();
-
-                foreach ($category_ids as $categoryId) {
-                    $cat = $this->_categoryFactory->load($categoryId);
-                    if ($cat->getLevel() == 2) {
-                        $categories[] = $cat->getName();
-                    } elseif ($cat->getLevel() >= 3) {
-                        $sub_categories[] = $cat->getName();
-                    }
-                }
-
-                if (count($category_ids) == 0) {
-                    $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                    $root_category = $this->_categoryFactory->load($store_root_category_id);
-                    $categories[] = $root_category->getName();
-                }
-
-                if ($product->getManufacturer()) {
-                    $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
-                }
-            }
-            $line_items[] = new Model\LineItem(array_filter(array(
-                'price' => $item->getPrice(),
-                'quantity' => intval($item->getQtyOrdered()),
-                'title' => $item->getName(),
-                'sku' => $item->getSku(),
-                'product_id' => $item->getItemId(),
-                'grams' => $item->getWeight(),
-                'product_type' => $prod_type,
-                'brand' => $brand,
-                'category' => (count($categories) > 0) ? implode('|', $categories) : '',
-                'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
-            ), 'strlen'));
         }
         return $line_items;
+    }
+
+    public function getAllLineItems()
+    {
+        $line_items = array();
+
+        foreach ($this->getOrder()->getAllItems() as $key => $item) {
+            $line_items[] = $this->getPreparedLineItem($item);
+        }
+
+        return $line_items;
+    }
+
+    protected function getPreparedLineItem($item) {
+        $prod_type = null;
+
+        $prod_type = null;
+        $category = null;
+        $sub_categories = null;
+        $brand = null;
+        $product = $item->getProduct();
+
+        if ($product) {
+            $categories = [];
+            $sub_categories = [];
+            $category_ids = $product->getCategoryIds();
+
+            foreach ($category_ids as $categoryId) {
+                $cat = $this->_categoryFactory->load($categoryId);
+                if ($cat->getLevel() == 2) {
+                    $categories[] = $cat->getName();
+                } elseif ($cat->getLevel() >= 3) {
+                    $sub_categories[] = $cat->getName();
+                }
+            }
+
+            if (count($category_ids) == 0) {
+                $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
+                $root_category = $this->_categoryFactory->load($store_root_category_id);
+                $categories[] = $root_category->getName();
+            }
+
+            if ($product->getManufacturer()) {
+                $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
+            }
+        }
+        $line_item = new Model\LineItem(array_filter(array(
+            'price' => $item->getPrice(),
+            'quantity' => intval($item->getQtyOrdered()),
+            'title' => $item->getName(),
+            'sku' => $item->getSku(),
+            'product_id' => $item->getItemId(),
+            'grams' => $item->getWeight(),
+            'product_type' => $prod_type,
+            'brand' => $brand,
+            'category' => (count($categories) > 0) ? implode('|', $categories) : '',
+            'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
+        ), 'strlen'));
+
+        return $line_item;
     }
 
     public function getAddress($address)
@@ -200,7 +218,6 @@ class Helper
             'address2' => $address_2,
             'city' => $address->getCity(),
             'country_code' => $address->getCountryId(),
-//            'country' => Mage::getModel('directory/country')->load($address->getCountryId())->getName(),
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
@@ -392,6 +409,35 @@ class Helper
             'cancel_reason' => 'Cancelled by merchant'
         )));
         return $orderCancellation;
+    }
+
+    public function getOrderFulfillments()
+    {
+        $fulfillments = array();
+
+        foreach ($this->getOrder()->getShipmentsCollection() as $shipment) {
+            $tracking = $shipment->getTracksCollection()->getFirstItem();
+            $comment = $shipment->getCommentsCollection()->getFirstItem();
+            $payload = array(
+                "fulfillment_id" => $shipment->getIncrementId(),
+                "created_at" => $this->formatDateAsIso8601($shipment->getCreatedAt()),
+                "status" => "success",
+                "tracking_company" => $tracking->getTitle(),
+                "tracking_numbers" => $tracking->getTrackNumber(),
+                "message" => $comment->getComment(),
+                "line_items" => $this->getAllLineItems($shipment)
+            );
+
+            $fulfillments[] = new Model\FulfillmentDetails(array_filter($payload));
+        }
+
+
+        $orderFulfillments = new Model\Fulfillment(array_filter(array(
+            'id' => $this->getOrderOrigId(),
+            'fulfillments' => $fulfillments,
+        )));
+
+        return $orderFulfillments;
     }
 
     public function getRemoteIp()

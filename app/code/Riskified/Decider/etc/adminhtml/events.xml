@@ -40,4 +40,8 @@
         <observer name="riskified_admin_sales_order_address_update"
                   instance="Riskified\Decider\Observer\SalesOrderAddressUpdate"/>
     </event>
+    <event name="sales_order_shipment_save_after">
+        <observer name="riskified_sales_order_shipment_save_after"
+              instance="Riskified\Decider\Observer\SalesOrderShipmentSaveAfter"/>
+    </event>
 </config>
