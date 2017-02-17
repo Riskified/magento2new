@@ -10,8 +10,6 @@ class Js extends \Magento\Framework\View\Element\Template
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Riskified\Decider\Api\Config $apiConfig,
-        \Magento\Framework\Session\SessionManagerInterface $session,
-
         array $data = [])
     {
         $this->validator = $context->getValidator();
@@ -23,7 +21,7 @@ class Js extends \Magento\Framework\View\Element\Template
         $this->templateContext = $this;
         $this->pageConfig = $context->getPageConfig();
         $this->apiConfig = $apiConfig;
-        $this->session = $session;
+        $this->session = $context->getSession();
 
         parent::__construct($context, $data);
     }

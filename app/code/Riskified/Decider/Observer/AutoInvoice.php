@@ -96,8 +96,7 @@ class AutoInvoice implements ObserverInterface {
         OrderApi $orderApi,
         InvoiceService $invoiceService,
         Context $context,
-        ObjectManagerFactory $objectManagerFactory,
-        State $state
+        ObjectManagerFactory $objectManagerFactory
     ) {
         $this->logger         = $logger;
         $this->context        = $context;
@@ -106,7 +105,7 @@ class AutoInvoice implements ObserverInterface {
         $this->apiOrderLogger = $apiOrderLogger;
         $this->invoiceService = $invoiceService;
         $this->objectManager  = $objectManagerFactory;
-        $this->state  = $state;
+        $this->state  = $context->getAppState();
     }
 
     /**
