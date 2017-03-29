@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Riskified Decider admin di config.
+ *
+ * @category Riskified
+ * @package  Riskified_Decider
+ * @author   Piotr Pierzak <piotrek.pierzak@gmail.com>
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Framework\View\Layout\File\Collector\Aggregated">
+        <plugin name="riskifiedDeciderSalesOrderGridLayoutUpdateGetKey"
+                type="\Riskified\Decider\Plugin\View\Layout\File\Collector\Aggregated\Plugin"
+                sortOrder="10"/>
+    </type>
+    <type name="Magento\Framework\View\Element\UiComponent\Config\FileCollector\AggregatedFileCollector">
+        <plugin name="riskifiedDeciderSalesOrderGridLayoutUpdateReplace"
+                type="\Riskified\Decider\Plugin\View\Element\UiComponent\Config\FileCollector\AggregatedFileCollector\Plugin"
+                sortOrder="10"/>
+    </type>
+</config>
