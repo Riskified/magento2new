@@ -64,7 +64,6 @@ class Queue extends \Magento\Framework\Model\AbstractModel
         return $this->getData('updated_at');
     }
 
-
     /**
      * Set ID
      *

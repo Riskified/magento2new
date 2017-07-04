@@ -43,13 +43,19 @@ class Api
 
     protected function getHeaders()
     {
-        return array('headers' => array('X_RISKIFIED_VERSION:' . $this->version));
+        return [
+            'headers' => [
+                'X_RISKIFIED_VERSION:' . $this->version
+            ]
+        ];
     }
 
     public function parseRequest($request)
     {
         $header_name = Signature\HttpDataSignature::HMAC_HEADER_NAME;
-        $headers = array($header_name => $request->getHeader($header_name));
+        $headers = [
+            $header_name => $request->getHeader($header_name)
+        ];
         $body = $request->getContent();
         return new DecisionNotification(new Signature\HttpDataSignature(), $headers, $body);
     }

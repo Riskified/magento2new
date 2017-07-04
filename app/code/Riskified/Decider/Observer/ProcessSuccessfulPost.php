@@ -6,16 +6,15 @@ use Riskified\Decider\Api\Api;
 
 class ProcessSuccessfulPost implements ObserverInterface
 {
-    private $_logger;
-    private $_orderApi;
+    private $logger;
+    private $orderApi;
 
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
-    )
-    {
-        $this->_logger = $logger;
-        $this->_orderApi = $orderApi;
+    ) {
+        $this->logger = $logger;
+        $this->orderApi = $orderApi;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -33,7 +32,7 @@ class ProcessSuccessfulPost implements ObserverInterface
             }
 
             if ($orderId && $status) {
-                $this->_orderApi->update($order, $status, $oldStatus, $description);
+                $this->orderApi->update($order, $status, $oldStatus, $description);
             }
         }
     }

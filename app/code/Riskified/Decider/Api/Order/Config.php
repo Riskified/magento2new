@@ -13,8 +13,7 @@ class Config
         \Riskified\Decider\Api\Config $apiConfig,
         \Riskified\Decider\Api\Log $apiLogger,
         \Magento\Sales\Model\Order\ConfigFactory $configFactory
-    )
-    {
+    ) {
         $this->apiConfig = $apiConfig;
         $this->apiLogger = $apiLogger;
         $this->configFactory = $configFactory;
@@ -85,7 +84,7 @@ class Config
     public function getSelectedDeclinedState()
     {
         $state = $this->apiConfig->getDeclinedState();
-        if (!in_array($state, array(\Magento\Sales\Model\Order::STATE_CANCELED, \Magento\Sales\Model\Order::STATE_HOLDED))) {
+        if (!in_array($state, [\Magento\Sales\Model\Order::STATE_CANCELED, \Magento\Sales\Model\Order::STATE_HOLDED])) {
             $state = \Magento\Sales\Model\Order::STATE_CANCELED;
         }
         return $state;

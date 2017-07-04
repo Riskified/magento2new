@@ -1,4 +1,5 @@
 <?php
+
 namespace Riskified\Decider\Config\Source;
 
 class ApprovedState implements \Magento\Framework\Option\ArrayInterface
@@ -11,7 +12,14 @@ class ApprovedState implements \Magento\Framework\Option\ArrayInterface
     public function toOptionArray()
     {
         return [
-            ['value' => \Magento\Sales\Model\Order::STATE_PROCESSING, 'label' => __(\Magento\Sales\Model\Order::STATE_PROCESSING)],
-            ['value' => \Magento\Sales\Model\Order::STATE_HOLDED, 'label' => __(\Magento\Sales\Model\Order::STATE_HOLDED)]];
+            [
+                'value' => \Magento\Sales\Model\Order::STATE_PROCESSING,
+                'label' => __(\Magento\Sales\Model\Order::STATE_PROCESSING)
+            ],
+            [
+                'value' => \Magento\Sales\Model\Order::STATE_HOLDED,
+                'label' => __(\Magento\Sales\Model\Order::STATE_HOLDED)
+            ]
+        ];
     }
 }

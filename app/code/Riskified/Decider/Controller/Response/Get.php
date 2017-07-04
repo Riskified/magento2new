@@ -15,14 +15,12 @@ class Get extends \Magento\Framework\App\Action\Action
         \Riskified\Decider\Api\Api $api,
         \Riskified\Decider\Api\Order $apiOrder,
         \Riskified\Decider\Api\Log $apiLogger
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->api = $api;
         $this->apiLogger = $apiLogger;
         $this->apiOrderLayer = $apiOrder;
     }
-
 
     public function execute()
     {
@@ -50,7 +48,12 @@ class Get extends \Magento\Framework\App\Action\Action
                     $statusCode = 400;
                     $msg = 'Could not find order to update.';
                 } else {
-                    $this->apiOrderLayer->update($order, $notification->status, $notification->oldStatus, $notification->description);
+                    $this->apiOrderLayer->update(
+                        $order,
+                        $notification->status,
+                        $notification->oldStatus,
+                        $notification->description
+                    );
                     $statusCode = 200;
                     $msg = 'Order-Update event triggered.';
                 }

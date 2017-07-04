@@ -9,9 +9,9 @@ class SaveRiskifiedConfig implements ObserverInterface
     private $logger;
     private $apiMerchantLayer;
     private $apiConfig;
-    protected $_paymentConfig;
-    protected $storeManager;
-    protected $storeConfig;
+    private $_paymentConfig;
+    private $storeManager;
+    private $storeConfig;
 
     public function __construct(
         \Riskified\Decider\Logger\Merchant $logger,
@@ -20,8 +20,7 @@ class SaveRiskifiedConfig implements ObserverInterface
         \Riskified\Decider\Api\Merchant $merchantApi,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\App\Config\ScopeConfigInterface $storeConfig
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->apiConfig = $config;
         $this->_paymentConfig = $paymentConfig;
