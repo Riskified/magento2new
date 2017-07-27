@@ -91,6 +91,7 @@ class UpdateOrderState implements ObserverInterface {
         ) {
             if ( $newState == Order::STATE_CANCELED ) {
                 $this->logger->log( "Order '" . $order->getId() . "' should be canceled - calling cancel method" );
+                $order->unhold();
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
