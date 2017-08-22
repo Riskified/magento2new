@@ -9,6 +9,8 @@ class UpdateOrderState implements ObserverInterface {
     private $apiOrderLayer;
     private $apiConfig;
     private $apiOrderConfig;
+    private $resource;
+
 
     /**
      * UpdateOrderState constructor.
@@ -22,12 +24,14 @@ class UpdateOrderState implements ObserverInterface {
         \Riskified\Decider\Api\Log $logger,
         \Riskified\Decider\Api\Config $config,
         \Riskified\Decider\Api\Order\Config $apiOrderConfig,
-        \Riskified\Decider\Api\Order $orderApi
+        \Riskified\Decider\Api\Order $orderApi,
+        \Magento\Framework\App\ResourceConnection $resource
     ) {
         $this->logger         = $logger;
         $this->apiOrderConfig = $apiOrderConfig;
         $this->apiOrderLayer  = $orderApi;
         $this->apiConfig      = $config;
+        $this->resource      = $resource;
     }
 
     /**
@@ -171,8 +175,38 @@ class UpdateOrderState implements ObserverInterface {
     private function saveStatusBeforeHold($newState, $order)
     {
         if ($newState == Order::STATE_HOLDED) {
-            $order->setHoldBeforeState($order->getState());
-            $order->setHoldBeforeStatus($order->getStatus());
+            if($order->getState() != Order::STATE_HOLDED) {
+                $order->setHoldBeforeState($order->getState());
+                $order->setHoldBeforeStatus($order->getStatus());
+            } else {
+                $historyCollection = $order->getStatusHistoryCollection();
+                $avoidStatuses = [
+                    $this->apiOrderConfig->getSelectedApprovedStatus(),
+                    $this->apiOrderConfig->getTransportErrorStatusCode(),
+                    $this->apiOrderConfig->getSelectedDeclinedStatus(),
+                    "holded",
+                ];
+
+                $status = false;
+                foreach ($historyCollection as $historyRow) {
+                    if (!in_array($historyRow->getStatus(), $avoidStatuses)) {
+                        $status = $historyRow->getStatus();
+                        break;
+                    }
+                }
+
+                if ($status !== false) {
+                    $connection = $this->resource->getConnection(
+                        \Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION
+                    );
+                    $tableOrderStatuses = $connection->getTableName('sales_order_status');
+                    $result = $connection->fetchRow('SELECT state FROM `'.$tableOrderStatuses.'` WHERE status=' . $status);
+                    $state = $result['state'];
+
+                    $order->setHoldBeforeState($state);
+                    $order->setHoldBeforeStatus($status);
+                }
+            }
         }
 
         return $this;
