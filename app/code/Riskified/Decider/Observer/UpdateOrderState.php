@@ -120,7 +120,12 @@ class UpdateOrderState implements ObserverInterface {
             $this->saveStatusBeforeHold($newState, $order);
 
             if ( $newState == Order::STATE_CANCELED ) {
-                $this->logger->log( "Order '" . $order->getId() . "' should be canceled - calling cancel method" );
+                $this->logger->log( 
+                	sprintf(
+                		"Order '%s' should be canceled - calling cancel method",
+                		 $order->getId()
+            		 )
+            	);
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
@@ -185,6 +190,10 @@ class UpdateOrderState implements ObserverInterface {
                     $this->apiOrderConfig->getTransportErrorStatusCode(),
                     $this->apiOrderConfig->getSelectedDeclinedStatus(),
                     "holded",
+                    "riskified_holded",
+                    "riskified_approved",
+                    "riskified_declined",
+                    "riskified_approved",
                 ];
 
                 $status = false;
@@ -194,13 +203,12 @@ class UpdateOrderState implements ObserverInterface {
                         break;
                     }
                 }
-
                 if ($status !== false) {
                     $connection = $this->resource->getConnection(
                         \Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION
                     );
-                    $tableOrderStatuses = $connection->getTableName('sales_order_status');
-                    $result = $connection->fetchRow('SELECT state FROM `'.$tableOrderStatuses.'` WHERE status=' . $status);
+                    $tableOrderStatuses = $connection->getTableName('sales_order_status_state');
+                    $result = $connection->fetchRow('SELECT state FROM `'.$tableOrderStatuses.'` WHERE status="' . $status.'"');
                     $state = $result['state'];
 
                     $order->setHoldBeforeState($state);
