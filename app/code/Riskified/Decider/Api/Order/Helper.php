@@ -374,7 +374,7 @@ class Helper
     {
         return new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
-            'title' => $this->getOrder()->getShippingDescription(),
+            'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
         ), 'strlen'));
     }
