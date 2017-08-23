@@ -191,8 +191,15 @@ class Helper
         $street = $address->getStreet();
         $address_1 = (!is_null($street) && array_key_exists('0', $street)) ? $street['0'] : null;
         $address_2 = (!is_null($street) && array_key_exists('1', $street)) ? $street['1'] : null;
+
+        $firstName = $address->getFirstname();
+
+        if(is_object($firstName)) {
+            $firstName = $firstName->getText();
+        }
+
         $addrArray = array_filter(array(
-            'first_name' => $address->getFirstname(),
+            'first_name' => $firstName,
             'last_name' => $address->getLastname(),
             'name' => $address->getFirstname() . " " . $address->getLastname(),
             'company' => $address->getCompany(),
@@ -200,7 +207,6 @@ class Helper
             'address2' => $address_2,
             'city' => $address->getCity(),
             'country_code' => $address->getCountryId(),
-//            'country' => Mage::getModel('directory/country')->load($address->getCountryId())->getName(),
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
