@@ -163,7 +163,7 @@ class Helper
                     $categories[] = $root_category->getName();
                 }
 
-                if ($product->getManufacturer()) {
+                if($product->getManufacturer()) {
                     $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
                 }
             }
@@ -175,9 +175,9 @@ class Helper
                 'product_id' => $item->getItemId(),
                 'grams' => $item->getWeight(),
                 'product_type' => $prod_type,
-                'brand' => $brand,
-                'category' => (count($categories) > 0) ? implode('|', $categories) : '',
-                'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
+                'brand'	=> $brand,
+                'category' => (isset($categories) && count($categories) > 0) ? implode('|', $categories) : '',
+                'sub_category' => (isset($sub_categories) && count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
             ), 'strlen'));
         }
         return $line_items;
