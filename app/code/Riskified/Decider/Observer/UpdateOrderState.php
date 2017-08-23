@@ -126,6 +126,8 @@ class UpdateOrderState implements ObserverInterface {
                 		 $order->getId()
             		 )
             	);
+
+                $order->unhold();
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
