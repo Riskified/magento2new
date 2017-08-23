@@ -1,6 +1,6 @@
 <?php
 
-namespace Riskified\DEcider\Model\Resource\Queue;
+namespace Riskified\Decider\Model\Resource\Queue;
 use \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
 class Collection extends AbstractCollection
