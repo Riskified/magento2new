@@ -162,11 +162,14 @@ class AutoInvoice implements ObserverInterface
                     ),
                     false,
                     false
-                )
-                ->register();
+                );
+            
+            $this->state->emulateAreaCode(
+                'adminhtml',
+                [$invoice, 'register']
+            );
         } catch (\Exception $e) {
             $this->logger->addInfo("Error creating invoice: " . $e->getMessage());
-
             return false;
         }
         try {
