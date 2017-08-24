@@ -128,6 +128,11 @@ class UpdateOrderState implements ObserverInterface {
             	);
 
                 $order->unhold();
+
+                $order->addStatusHistoryComment(
+                    __("Order was unholded manually")
+                );
+
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
