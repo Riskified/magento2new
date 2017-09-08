@@ -232,8 +232,21 @@ class Order
             return null;
         }
         $magento_ids = explode("_", $full_orig_id);
-        $order_id = $magento_ids[0];
-        $increment_id = $magento_ids[1];
+
+        /**
+         * validate if provided is is matching
+        */
+        $order_id = false;
+        $increment_id = false;
+
+        if (isset($magento_ids[0])) {
+            $order_id = $magento_ids[0];
+        }
+
+        if (isset($magento_ids[1])) {
+            $increment_id = $magento_ids[1];
+        }
+
         if ($order_id && $increment_id) {
             return $this->_orderFactory->getCollection()
                 ->addFieldToFilter('entity_id', $order_id)
@@ -244,7 +257,12 @@ class Order
         if (!$order_id && $increment_id) {
             return $this->_orderFactory->loadByIncrementId($increment_id);
         }
-        return $this->_orderFactory->load($order_id);
+
+        if ($order_id) {
+            return $this->_orderFactory->load($order_id);
+        }
+
+        return null;
     }
 
     public function postHistoricalOrders($models)
