@@ -239,11 +239,11 @@ class Order
         $order_id = false;
         $increment_id = false;
 
-        if (!isset($magento_ids[0])) {
+        if (isset($magento_ids[0])) {
             $order_id = $magento_ids[0];
         }
 
-        if (!isset($magento_ids[1])) {
+        if (isset($magento_ids[1])) {
             $increment_id = $magento_ids[1];
         }
 
