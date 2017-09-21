@@ -17,6 +17,9 @@
     <event name="riskified_decider_order_update_captured">
         <observer name="riskified_decider_order_update_captured" instance="Riskified\Decider\Observer\AutoInvoice"/>
     </event>
+    <event name="riskified_decider_order_update_declined">
+        <observer name="riskified_decider_order_update_declined" instance="Riskified\Decider\Observer\Order\Declined"/>
+    </event>
     <event name="riskified_decider_post_order_success">
         <observer name="riskified_decider_post_order_success"
                   instance="Riskified\Decider\Observer\ProcessSuccessfulPost"/>

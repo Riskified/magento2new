@@ -129,4 +129,29 @@ class Config
         }
         return $case;
     }
+
+    public function isDeclineNotificationEnabled()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+    }
+
+    public function getDeclineNotificationSenderEmail()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+    }
+
+    public function getDeclineNotificationSenderName()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+    }
+
+    public function getDeclineNotificationSubject()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+    }
+
+    public function getDeclineNotificationContent()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+    }
 }

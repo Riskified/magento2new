@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template
+            id="riskified_order_declined"
+            label="Notification sent to customer when order was declined"
+            file="order/declined.html"
+            type="html"
+            module="Riskified_Decider"
+            area="frontend"
+    />
+</config>
