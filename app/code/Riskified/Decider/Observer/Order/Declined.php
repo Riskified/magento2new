@@ -2,11 +2,15 @@
 
 namespace Riskified\Decider\Observer\Order;
 
-use Magento\Framework\App\ObjectManagerFactory;
 use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\Translate\Inline\StateInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Escaper;
 use Magento\Sales\Model\Service\InvoiceService;
 use Riskified\Decider\Api\Config;
 use Riskified\Decider\Api\Order as OrderApi;
@@ -59,13 +63,6 @@ class Declined implements ObserverInterface {
     protected $context;
 
     /**
-     * Object Manager class.
-     *
-     * @var ObjectManagerFactory
-     */
-    protected $objectManager;
-
-    /**
      * State class used to emulate admin scope during invoice creation.
      *
      * @var State
@@ -101,7 +98,6 @@ class Declined implements ObserverInterface {
      * @param OrderApi             $orderApi
      * @param InvoiceService       $invoiceService
      * @param Context              $context
-     * @param ObjectManagerFactory $objectManagerFactory
      */
     public function __construct(
         Log $apiOrderLogger,
@@ -110,12 +106,11 @@ class Declined implements ObserverInterface {
         OrderApi $orderApi,
         InvoiceService $invoiceService,
         Context $context,
-        ObjectManagerFactory $objectManagerFactory,
-        \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
-        \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Escaper $escaper
+        TransportBuilder $transportBuilder,
+        StateInterface $inlineTranslation,
+        ScopeConfigInterface $scopeConfig,
+        StoreManagerInterface $storeManager,
+        Escaper $escaper
     ) {
         $this->logger = $logger;
         $this->context = $context;
@@ -123,7 +118,6 @@ class Declined implements ObserverInterface {
         $this->apiConfig = $apiConfig;
         $this->apiOrderLogger = $apiOrderLogger;
         $this->invoiceService = $invoiceService;
-        $this->objectManager = $objectManagerFactory;
         $this->state = $context->getAppState();
         $this->transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
@@ -242,6 +236,8 @@ class Declined implements ObserverInterface {
             $order->getCustomerFirstname(),
             $order->getIncrementId(),
             join(', ', $products),
+            $this->storeManager->getStore()->getName()
+
         ];
 
         return $data;
