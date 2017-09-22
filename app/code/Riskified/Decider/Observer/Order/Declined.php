@@ -7,7 +7,6 @@ use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
-use Magento\Sales\Model\Order as OrderEntity;
 use Magento\Sales\Model\Service\InvoiceService;
 use Riskified\Decider\Api\Config;
 use Riskified\Decider\Api\Order as OrderApi;
@@ -72,10 +71,26 @@ class Declined implements ObserverInterface {
      * @var State
      */
     protected $state;
-    private $_transportBuilder;
+
+    /**
+     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     */
+    private $transportBuilder;
+
+    /**
+     * @var \Magento\Framework\Translate\Inline\StateInterface
+     */
     private $inlineTranslation;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
     private $storeManager;
-    private $_escaper;
+
+    /**
+     * @var \Magento\Framework\Escaper
+     */
+    private $escaper;
 
     /**
      * AutoInvoice constructor.
@@ -110,14 +125,18 @@ class Declined implements ObserverInterface {
         $this->invoiceService = $invoiceService;
         $this->objectManager = $objectManagerFactory;
         $this->state = $context->getAppState();
-
-
-        $this->_transportBuilder = $transportBuilder;
+        $this->transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
         $this->storeManager = $storeManager;
-        $this->_escaper = $escaper;
+        $this->escaper = $escaper;
     }
 
+    /**
+     * Observer execute
+     * 
+     * @param Observer $observer
+     * @return $this
+     */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getOrder();
@@ -126,22 +145,6 @@ class Declined implements ObserverInterface {
         if (!$this->apiConfig->isDeclineNotificationEnabled()) {
             return $this;
         }
-        if (Mage::registry("decline-email-sent")) {
-            return $this;
-        }
-
-        Mage::register("decline-email-sent", true);
-
-        $emailTemplate  = Mage::getModel('core/email_template')
-            ->loadDefault('riskified_order_declined');
-
-        $emailTemplate->setSenderEmail(
-
-        );
-
-        $emailTemplate->setSenderName(
-            $this->apiConfig->getDeclineNotificationSenderName()
-        );
 
         $subject = $this->apiConfig->getDeclineNotificationSubject();
         $content = $this->apiConfig->getDeclineNotificationContent();
@@ -172,7 +175,7 @@ class Declined implements ObserverInterface {
 
             $this->inlineTranslation->suspend();
 
-            $transport = $this->_transportBuilder
+            $transport = $this->transportBuilder
                 ->setTemplateIdentifier('send_email_email_template') // this code we have mentioned in the email_templates.xml
                 ->setTemplateOptions(
                     [
@@ -180,42 +183,36 @@ class Declined implements ObserverInterface {
                         'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
                     ]
                 )
-                ->setTemplateVars()
-                ->setFrom($this->apiConfig->getDeclineNotificationSenderEmail())
-                ->addTo()
+                ->setTemplateVars(
+                    [
+                        "content" => $content,
+                        "subject" => $subject,
+                    ]
+                )
+                ->setFrom(
+                    [
+                        "email" => $this->apiConfig->getDeclineNotificationSenderEmail(),
+                        "name" => $this->apiConfig->getDeclineNotificationSenderName(),
+                    ]
+                )
+                ->addTo($order->getCustomerEmail(), $order->getCustomerName())
                 ->getTransport();
 
-            $transport->sendMessage(); ;
+            $transport->sendMessage();
             $this->inlineTranslation->resume();
 
-//            if ($wasSent === true) {
-//                $fileLog = sprintf(
-//                    __("Declination email was sent to customer %s (%s) for order #%s"),
-//                    $order->getCustomerName(),
-//                    $order->getCustomerEmail(),
-//                    $order->getIncrementId()
-//                );
-//
-//                $orderComment = sprintf(
-//                    __("Declination email was sent to customer %s (%s)"),
-//                    $order->getCustomerName(),
-//                    $order->getCustomerEmail()
-//                );
-//            } else {
-//                $fileLog = sprintf(
-//                    __("Declination email was not sent to customer %s (%s) for order #%s - server internal error"),
-//                    $order->getCustomerName(),
-//                    $order->getCustomerEmail(),
-//                    $order->getIncrementId()
-//                );
-//                $orderComment = sprintf(
-//                    __(
-//                        "Declination email was not sent to customer %s (%s) - server internal error"
-//                    ),
-//                    $order->getCustomerName(),
-//                    $order->getCustomerEmail()
-//                );
-//            }
+            $fileLog = sprintf(
+                __("Declination email was sent to customer %s (%s) for order #%s"),
+                $order->getCustomerName(),
+                $order->getCustomerEmail(),
+                $order->getIncrementId()
+            );
+
+            $orderComment = sprintf(
+                __("Declination email was sent to customer %s (%s)"),
+                $order->getCustomerName(),
+                $order->getCustomerEmail()
+            );
 
             $this->logger->info($fileLog);
 
@@ -228,6 +225,10 @@ class Declined implements ObserverInterface {
         }
     }
 
+    /**
+     * @param $order
+     * @return array
+     */
     private function getFormattedData($order)
     {
         $products = [];
