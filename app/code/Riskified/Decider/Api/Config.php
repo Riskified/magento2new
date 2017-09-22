@@ -132,26 +132,31 @@ class Config
 
     public function isDeclineNotificationEnabled()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return (bool)$this->_scopeConfig->getValue('riskified/decline_notification/enabled');
+    }
+
+    public function getDeclineNotificationSender()
+    {
+        return $this->_scopeConfig->getValue('trans_email/decline_notification/email_identity');
     }
 
     public function getDeclineNotificationSenderEmail()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return $this->_scopeConfig->getValue('trans_email/ident_' . $this->getDeclineNotificationSender() . '/email');
     }
 
     public function getDeclineNotificationSenderName()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return $this->_scopeConfig->getValue('riskified/ident_' . $this->getDeclineNotificationSender() . '/name');
     }
 
     public function getDeclineNotificationSubject()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return $this->_scopeConfig->getValue('riskified/decline_notification/title');
     }
 
     public function getDeclineNotificationContent()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return $this->_scopeConfig->getValue('riskified/decline_notification/content');
     }
 }
