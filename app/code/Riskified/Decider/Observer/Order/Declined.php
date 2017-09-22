@@ -134,7 +134,6 @@ class Declined implements ObserverInterface {
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getOrder();
-        $this->order = $order;
 
         if (!$this->apiConfig->isDeclineNotificationEnabled()) {
             return $this;
@@ -170,11 +169,11 @@ class Declined implements ObserverInterface {
             $this->inlineTranslation->suspend();
 
             $transport = $this->transportBuilder
-                ->setTemplateIdentifier('send_email_email_template') // this code we have mentioned in the email_templates.xml
+                ->setTemplateIdentifier('riskified_order_declined') // this code we have mentioned in the email_templates.xml
                 ->setTemplateOptions(
                     [
                         'area' => \Magento\Framework\App\Area::AREA_FRONTEND, // this is using frontend area to get the template file
-                        'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
+                        'store' => $order->getStoreId(),
                     ]
                 )
                 ->setTemplateVars(
@@ -235,9 +234,15 @@ class Declined implements ObserverInterface {
             $order->getCustomerName(),
             $order->getCustomerFirstname(),
             $order->getIncrementId(),
+            $this->storeManager->getStore()->getUrl(
+                "sales/order/view",
+                [
+                    "order_id" => $order->getId(),
+                    "_secure" => true
+                ]
+            ),
             join(', ', $products),
             $this->storeManager->getStore()->getName()
-
         ];
 
         return $data;

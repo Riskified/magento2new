@@ -137,7 +137,7 @@ class Config
 
     public function getDeclineNotificationSender()
     {
-        return $this->_scopeConfig->getValue('trans_email/decline_notification/email_identity');
+        return $this->_scopeConfig->getValue('riskified/decline_notification/email_identity');
     }
 
     public function getDeclineNotificationSenderEmail()
@@ -147,7 +147,7 @@ class Config
 
     public function getDeclineNotificationSenderName()
     {
-        return $this->_scopeConfig->getValue('riskified/ident_' . $this->getDeclineNotificationSender() . '/name');
+        return $this->_scopeConfig->getValue('trans_email/ident_' . $this->getDeclineNotificationSender() . '/name');
     }
 
     public function getDeclineNotificationSubject()
