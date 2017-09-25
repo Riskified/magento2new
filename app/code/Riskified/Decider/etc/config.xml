@@ -9,7 +9,7 @@
             <decline_notification>
                 <email_identity>general</email_identity>
                 <title>{{store_name}}: Order # {{order_increment_id}} has been declined by Riskified</title>
-                <content><![CDATA[<p>We regret to inform you that your recent order #{{order_increment_id}} for {{products}}  has been declined by Riskified service.</p>]]></content>
+                <content><![CDATA[We regret to inform you that your recent order #{{order_increment_id}} for {{products}}  has been declined by Riskified service.]]></content>
             </decline_notification>
         </riskified>
     </default>
