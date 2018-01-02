@@ -129,4 +129,34 @@ class Config
         }
         return $case;
     }
+
+    public function isDeclineNotificationEnabled()
+    {
+        return (bool)$this->_scopeConfig->getValue('riskified/decline_notification/enabled');
+    }
+
+    public function getDeclineNotificationSender()
+    {
+        return $this->_scopeConfig->getValue('riskified/decline_notification/email_identity');
+    }
+
+    public function getDeclineNotificationSenderEmail()
+    {
+        return $this->_scopeConfig->getValue('trans_email/ident_' . $this->getDeclineNotificationSender() . '/email');
+    }
+
+    public function getDeclineNotificationSenderName()
+    {
+        return $this->_scopeConfig->getValue('trans_email/ident_' . $this->getDeclineNotificationSender() . '/name');
+    }
+
+    public function getDeclineNotificationSubject()
+    {
+        return $this->_scopeConfig->getValue('riskified/decline_notification/title');
+    }
+
+    public function getDeclineNotificationContent()
+    {
+        return $this->_scopeConfig->getValue('riskified/decline_notification/content');
+    }
 }

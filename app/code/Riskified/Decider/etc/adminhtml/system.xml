@@ -161,6 +161,59 @@
                     </depends>
                 </field>
             </group>
+            <group id="decline_notification" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Decline notification settings</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Module Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="email_identity" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Email sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Email title</label>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                    <comment>
+                        <![CDATA[
+                                Available shortcodes: <br />
+                                {{products}} - Product names comma separated <br />
+                                {{customer_name}} - Customer full name <br />
+                                {{customer_firstname}} - Customer first name <br />
+                                {{order_increment_id}} - Order Number <br />
+                                {{order_view_url}} - Order url to order detail page in customer dashboard <br />
+                                {{store_name}} - Store name <br />
+                            ]]>
+                    </comment>
+                </field>
+                <field id="content" translate="label" type="textarea" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Email content</label>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                    <comment>
+                        <![CDATA[
+                                Available shortcodes: <br />
+                                {{products}} - Product names comma separated <br />
+                                {{customer_name}} - Customer full name <br />
+                                {{customer_firstname}} - Customer first name <br />
+                                {{order_increment_id}} - Order Number <br />
+                                {{order_view_url}} - Order url to order detail page in customer dashboard <br />
+                                {{store_name}} - Store name <br />
+                            ]]>
+                    </comment>
+                </field>
+            </group>
         </section>
     </system>
 </config>
