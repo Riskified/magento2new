@@ -190,4 +190,52 @@ class Config
 
         return $captureCase;
     }
+
+    public function isDeclineNotificationEnabled()
+    {
+        return (bool)$this->_scopeConfig->getValue(
+            'riskified/decline_notification/enabled',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSender()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/email_identity',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSenderEmail()
+    {
+        return $this->_scopeConfig->getValue(
+            'trans_email/ident_' . $this->getDeclineNotificationSender() . '/email',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSenderName()
+    {
+        return $this->_scopeConfig->getValue(
+            'trans_email/ident_' . $this->getDeclineNotificationSender() . '/name',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSubject()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/title',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationContent()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/content',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
 }

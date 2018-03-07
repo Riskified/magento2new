@@ -161,18 +161,14 @@ class AutoInvoice implements ObserverInterface
                     ),
                     false,
                     false
-                )
-                ->register();
-
-            $order->setStatus('riskified_approved');
-            $order->addStatusHistoryComment(
-                __('Reviewed and approved by Riskified'),
-                'riskified_approved'
+                );
+            
+            $this->state->emulateAreaCode(
+                'adminhtml',
+                [$invoice, 'register']
             );
-            $order->save();
         } catch (\Exception $e) {
             $this->logger->addInfo("Error creating invoice: " . $e->getMessage());
-
             return false;
         }
         try {

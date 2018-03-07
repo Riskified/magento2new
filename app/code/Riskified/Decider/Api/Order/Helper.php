@@ -163,7 +163,7 @@ class Helper
                     $categories[] = $root_category->getName();
                 }
 
-                if ($product->getManufacturer()) {
+                if($product->getManufacturer()) {
                     $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
                 }
             }
@@ -175,9 +175,9 @@ class Helper
                 'product_id' => $item->getItemId(),
                 'grams' => $item->getWeight(),
                 'product_type' => $prod_type,
-                'brand' => $brand,
-                'category' => (count($categories) > 0) ? implode('|', $categories) : '',
-                'sub_category' => (count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
+                'brand'	=> $brand,
+                'category' => (isset($categories) && count($categories) > 0) ? implode('|', $categories) : '',
+                'sub_category' => (isset($sub_categories) && count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
             ), 'strlen'));
         }
         return $line_items;
@@ -191,8 +191,15 @@ class Helper
         $street = $address->getStreet();
         $address_1 = (!is_null($street) && array_key_exists('0', $street)) ? $street['0'] : null;
         $address_2 = (!is_null($street) && array_key_exists('1', $street)) ? $street['1'] : null;
+
+        $firstName = $address->getFirstname();
+
+        if(is_object($firstName)) {
+            $firstName = $firstName->getText();
+        }
+
         $addrArray = array_filter(array(
-            'first_name' => $address->getFirstname(),
+            'first_name' => $firstName,
             'last_name' => $address->getLastname(),
             'name' => $address->getFirstname() . " " . $address->getLastname(),
             'company' => $address->getCompany(),
@@ -200,7 +207,6 @@ class Helper
             'address2' => $address_2,
             'city' => $address->getCity(),
             'country_code' => $address->getCountryId(),
-//            'country' => Mage::getModel('directory/country')->load($address->getCountryId())->getName(),
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
@@ -368,7 +374,7 @@ class Helper
     {
         return new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
-            'title' => $this->getOrder()->getShippingDescription(),
+            'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
         ), 'strlen'));
     }
@@ -396,7 +402,9 @@ class Helper
 
     public function getRemoteIp()
     {
-        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
+            ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
@@ -421,5 +429,12 @@ class Helper
     public function formatDateAsIso8601($dateStr)
     {
         return ($dateStr == NULL) ? NULL : date('c', strtotime($dateStr));
+    }
+
+    public function isAdmin() {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $state =  $om->get('Magento\Framework\App\State');
+
+        return $state->getAreaCode() === 'adminhtml';
     }
 }

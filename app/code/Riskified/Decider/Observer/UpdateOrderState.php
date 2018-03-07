@@ -11,6 +11,8 @@ class UpdateOrderState implements ObserverInterface
     private $apiOrderLayer;
     private $apiConfig;
     private $apiOrderConfig;
+    private $resource;
+
 
     /**
      * UpdateOrderState constructor.
@@ -24,12 +26,14 @@ class UpdateOrderState implements ObserverInterface
         \Riskified\Decider\Api\Log $logger,
         \Riskified\Decider\Api\Config $config,
         \Riskified\Decider\Api\Order\Config $apiOrderConfig,
-        \Riskified\Decider\Api\Order $orderApi
+        \Riskified\Decider\Api\Order $orderApi,
+        \Magento\Framework\App\ResourceConnection $resource
     ) {
         $this->logger = $logger;
         $this->apiOrderConfig = $apiOrderConfig;
         $this->apiOrderLayer = $orderApi;
         $this->apiConfig = $config;
+        $this->resource = $resource;
     }
 
     /**
@@ -46,9 +50,31 @@ class UpdateOrderState implements ObserverInterface
         $currentState = $order->getState();
         $currentStatus = $order->getStatus();
 
-        $this->logger->log("Checking if should update order '" . $order->getId() . "' from state: '$currentState' and status: '$currentStatus'");
-        $this->logger->log("Data received from riskified: status: " . $riskifiedStatus . ", old_status: " . $riskifiedOldStatus . ", description: " . $description);
-        $this->logger->log("On Hold Status Code : " . $this->apiOrderConfig->getOnHoldStatusCode() . " and Transport Error Status Code : " . $this->apiOrderConfig->getTransportErrorStatusCode());
+        $this->logger->log(
+            sprintf(
+                "Checking if should update order '%s' from state: '%s' and status: '%s'",
+                $order->getId(),
+                $currentState,
+                $currentStatus
+                )
+        );
+
+        $this->logger->log(
+            sprintf(
+                "Data received from riskified: status: %s, old_status: %s, description: %s",
+                $riskifiedStatus,
+                $riskifiedOldStatus,
+                $description
+            )
+        );
+
+        $this->logger->log(
+            sprintf(
+            "On Hold Status Code : %s and Transport Error Status Code : %s",
+                $this->apiOrderConfig->getOnHoldStatusCode(),
+                $this->apiOrderConfig->getTransportErrorStatusCode()
+            )
+        );
 
         switch ($riskifiedStatus) {
             case 'approved':
@@ -92,26 +118,60 @@ class UpdateOrderState implements ObserverInterface
             && ($newState != $currentState || $newStatus != $currentStatus)
             && $this->apiConfig->getConfigStatusControlActive()
         ) {
+            $this->saveStatusBeforeHold($newState, $order);
+
             if ($newState == Order::STATE_CANCELED) {
-                $this->logger->log("Order '" . $order->getId() . "' should be canceled - calling cancel method");
+                $this->logger->log(
+                    sprintf(
+                        "Order '%s' should be canceled - calling cancel method",
+                        $order->getId()
+                    )
+                );
+
+                $order->unhold();
+
+                $order->addStatusHistoryComment(
+                    __("Order was unholded manually")
+                );
+
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
                 $order->setState($newState, $newStatus, $description);
                 $order->setStatus($newStatus);
                 $order->addStatusHistoryComment($description, $newStatus);
-                $this->logger->log("Updated order '" . $order->getId() . "' to: state:  '$newState', status: '$newStatus', description: '$description'");
+
+                $this->logger->log(
+                    sprintf(
+                        "Updated order '%s' to: state:  '%s', status: '%s', description: '%s'",
+                        $order->getId(),
+                        $newState,
+                        $newStatus,
+                        $description
+                    )
+                );
             }
 
             $changed = true;
         } elseif ($description && $riskifiedStatus != $riskifiedOldStatus) {
-            if ($riskifiedStatus != 'approved' || !$this->apiConfig->isAutoInvoiceEnabled()) {
-                $this->logger->log("Updated order " . $order->getId() . " history comment to: " . $description);
+            if ($riskifiedStatus != 'approved' || ! $this->apiConfig->isAutoInvoiceEnabled()) {
+                $this->logger->log(
+                    sprintf(
+                        "Updated order %s history comment to: %s",
+                        $order->getId(),
+                        $description
+                    )
+                );
                 $order->addStatusHistoryComment($description);
                 $changed = true;
             }
         } else {
-            $this->logger->log("No update to state, status, comments is required for " . $order->getId());
+            $this->logger->log(
+                sprintf(
+                    "No update to state, status, comments is required for %s",
+                    $order->getId()
+                )
+            );
         }
 
         if ($changed) {
@@ -123,5 +183,48 @@ class UpdateOrderState implements ObserverInterface
                 return;
             }
         }
+    }
+
+    private function saveStatusBeforeHold($newState, $order)
+    {
+        if ($newState == Order::STATE_HOLDED) {
+            if ($order->getState() != Order::STATE_HOLDED) {
+                $order->setHoldBeforeState($order->getState());
+                $order->setHoldBeforeStatus($order->getStatus());
+            } else {
+                $historyCollection = $order->getStatusHistoryCollection();
+                $avoidStatuses = [
+                    $this->apiOrderConfig->getSelectedApprovedStatus(),
+                    $this->apiOrderConfig->getTransportErrorStatusCode(),
+                    $this->apiOrderConfig->getSelectedDeclinedStatus(),
+                    "holded",
+                    "riskified_holded",
+                    "riskified_approved",
+                    "riskified_declined",
+                    "riskified_approved",
+                ];
+
+                $status = false;
+                foreach ($historyCollection as $historyRow) {
+                    if (!in_array($historyRow->getStatus(), $avoidStatuses)) {
+                        $status = $historyRow->getStatus();
+                        break;
+                    }
+                }
+                if ($status !== false) {
+                    $connection = $this->resource->getConnection(
+                        \Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION
+                    );
+                    $tableOrderStatuses = $connection->getTableName('sales_order_status_state');
+                    $result = $connection->fetchRow('SELECT state FROM `'.$tableOrderStatuses.'` WHERE status="' . $status.'"');
+                    $state = $result['state'];
+
+                    $order->setHoldBeforeState($state);
+                    $order->setHoldBeforeStatus($status);
+                }
+            }
+        }
+
+        return $this;
     }
 }
