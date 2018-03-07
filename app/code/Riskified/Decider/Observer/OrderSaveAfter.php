@@ -12,8 +12,7 @@ class OrderSaveAfter implements ObserverInterface
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
-    )
-    {
+    ) {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
     }

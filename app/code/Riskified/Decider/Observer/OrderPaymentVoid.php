@@ -12,8 +12,7 @@ class OrderPaymentVoid implements ObserverInterface
     public function __construct(
         \Riskified\Decider\Api\Log $logger,
         \Riskified\Decider\Api\Order $orderApi
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->apiOrderLayer = $orderApi;
     }

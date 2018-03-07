@@ -10,8 +10,10 @@ class Env implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return [['value' => 'PROD', 'label' => __('Production')],
+        return [
+            ['value' => 'PROD', 'label' => __('Production')],
             ['value' => 'SANDBOX', 'label' => __('Sandbox')],
-            ['value' => 'DEV', 'label' => __('Dev')]];
+            ['value' => 'DEV', 'label' => __('Dev')]
+        ];
     }
 }

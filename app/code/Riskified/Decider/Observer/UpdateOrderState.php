@@ -1,10 +1,12 @@
 <?php
+
 namespace Riskified\Decider\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use \Magento\Sales\Model\Order;
 
-class UpdateOrderState implements ObserverInterface {
+class UpdateOrderState implements ObserverInterface
+{
     private $logger;
     private $apiOrderLayer;
     private $apiConfig;
@@ -27,25 +29,26 @@ class UpdateOrderState implements ObserverInterface {
         \Riskified\Decider\Api\Order $orderApi,
         \Magento\Framework\App\ResourceConnection $resource
     ) {
-        $this->logger         = $logger;
+        $this->logger = $logger;
         $this->apiOrderConfig = $apiOrderConfig;
-        $this->apiOrderLayer  = $orderApi;
-        $this->apiConfig      = $config;
-        $this->resource      = $resource;
+        $this->apiOrderLayer = $orderApi;
+        $this->apiConfig = $config;
+        $this->resource = $resource;
     }
 
     /**
      * Observer handler
      * @param \Magento\Framework\Event\Observer $observer
      */
-    public function execute( \Magento\Framework\Event\Observer $observer ) {
-        $order              = $observer->getOrder();
-        $riskifiedStatus    = (string) $observer->getStatus();
-        $riskifiedOldStatus = (string) $observer->getOldStatus();
-        $description        = (string) $observer->getDescription();
-        $newState           = $newStatus = null;
-        $currentState       = $order->getState();
-        $currentStatus      = $order->getStatus();
+    public function execute(\Magento\Framework\Event\Observer $observer)
+    {
+        $order = $observer->getOrder();
+        $riskifiedStatus = (string)$observer->getStatus();
+        $riskifiedOldStatus = (string)$observer->getOldStatus();
+        $description = (string)$observer->getDescription();
+        $newState = $newStatus = null;
+        $currentState = $order->getState();
+        $currentStatus = $order->getStatus();
 
         $this->logger->log(
             sprintf(
@@ -73,59 +76,57 @@ class UpdateOrderState implements ObserverInterface {
             )
         );
 
-        switch ( $riskifiedStatus ) {
+        switch ($riskifiedStatus) {
             case 'approved':
-                if ( $currentState == Order::STATE_HOLDED
-                     && ( $currentStatus == $this->apiOrderConfig->getOnHoldStatusCode()
-                          || $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode() )
+                if ($currentState == Order::STATE_HOLDED
+                    && ($currentStatus == $this->apiOrderConfig->getOnHoldStatusCode()
+                        || $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
-                    $newState  = $this->apiOrderConfig->getSelectedApprovedState();
+                    $newState = $this->apiOrderConfig->getSelectedApprovedState();
                     $newStatus = $this->apiOrderConfig->getSelectedApprovedStatus();
                 }
                 break;
             case 'declined':
-                if ( $currentState == Order::STATE_HOLDED
-                     && ( $currentStatus == $this->apiOrderConfig->getOnHoldStatusCode()
-                          || $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode() )
+                if ($currentState == Order::STATE_HOLDED
+                    && ($currentStatus == $this->apiOrderConfig->getOnHoldStatusCode()
+                        || $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
-                    $newState  = $this->apiOrderConfig->getSelectedDeclinedState();
+                    $newState = $this->apiOrderConfig->getSelectedDeclinedState();
                     $newStatus = $this->apiOrderConfig->getSelectedDeclinedStatus();
                 }
                 break;
             case 'submitted':
-                if ( $currentState == Order::STATE_PROCESSING
-                     || ( $currentState == Order::STATE_HOLDED
-                          && $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode() )
+                if ($currentState == Order::STATE_PROCESSING
+                    || ($currentState == Order::STATE_HOLDED
+                        && $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
-                    $newState  = Order::STATE_HOLDED;
+                    $newState = Order::STATE_HOLDED;
                     $newStatus = $this->apiOrderConfig->getOnHoldStatusCode();
                 }
                 break;
             case 'error':
-                if ( $currentState == Order::STATE_PROCESSING
-                     && $this->apiConfig->isAutoInvoiceEnabled()
+                if ($currentState == Order::STATE_PROCESSING
+                    && $this->apiConfig->isAutoInvoiceEnabled()
                 ) {
-                    $newState  = Order::STATE_HOLDED;
+                    $newState = Order::STATE_HOLDED;
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
 
         $changed = false;
-
-
-        if ( $newState
-             && ( $newState != $currentState || $newStatus != $currentStatus )
-             && $this->apiConfig->getConfigStatusControlActive()
+        if ($newState
+            && ($newState != $currentState || $newStatus != $currentStatus)
+            && $this->apiConfig->getConfigStatusControlActive()
         ) {
             $this->saveStatusBeforeHold($newState, $order);
 
-            if ( $newState == Order::STATE_CANCELED ) {
-                $this->logger->log( 
-                	sprintf(
-                		"Order '%s' should be canceled - calling cancel method",
-                		 $order->getId()
-            		 )
-            	);
+            if ($newState == Order::STATE_CANCELED) {
+                $this->logger->log(
+                    sprintf(
+                        "Order '%s' should be canceled - calling cancel method",
+                        $order->getId()
+                    )
+                );
 
                 $order->unhold();
 
@@ -136,9 +137,9 @@ class UpdateOrderState implements ObserverInterface {
                 $order->cancel();
                 $order->addStatusHistoryComment($description, $newStatus);
             } else {
-                $order->setState( $newState, $newStatus, $description );
-                $order->setStatus( $newStatus );
-                $order->addStatusHistoryComment( $description, $newStatus );
+                $order->setState($newState, $newStatus, $description);
+                $order->setStatus($newStatus);
+                $order->addStatusHistoryComment($description, $newStatus);
 
                 $this->logger->log(
                     sprintf(
@@ -152,32 +153,32 @@ class UpdateOrderState implements ObserverInterface {
             }
 
             $changed = true;
-        } elseif ( $description && $riskifiedStatus != $riskifiedOldStatus ) {
-            if ( $riskifiedStatus != 'approved' || ! $this->apiConfig->isAutoInvoiceEnabled() ) {
+        } elseif ($description && $riskifiedStatus != $riskifiedOldStatus) {
+            if ($riskifiedStatus != 'approved' || ! $this->apiConfig->isAutoInvoiceEnabled()) {
                 $this->logger->log(
                     sprintf(
-                    "Updated order %s history comment to: %s",
+                        "Updated order %s history comment to: %s",
                         $order->getId(),
                         $description
                     )
                 );
-                $order->addStatusHistoryComment( $description );
+                $order->addStatusHistoryComment($description);
                 $changed = true;
             }
         } else {
             $this->logger->log(
                 sprintf(
-                "No update to state, status, comments is required for %s",
-                $order->getId()
+                    "No update to state, status, comments is required for %s",
+                    $order->getId()
                 )
             );
         }
 
-        if ( $changed ) {
+        if ($changed) {
             try {
                 $order->save();
-            } catch ( \Exception $e ) {
-                $this->logger->log( "Error saving order: " . $e->getMessage() );
+            } catch (\Exception $e) {
+                $this->logger->log("Error saving order: " . $e->getMessage());
 
                 return;
             }
@@ -187,7 +188,7 @@ class UpdateOrderState implements ObserverInterface {
     private function saveStatusBeforeHold($newState, $order)
     {
         if ($newState == Order::STATE_HOLDED) {
-            if($order->getState() != Order::STATE_HOLDED) {
+            if ($order->getState() != Order::STATE_HOLDED) {
                 $order->setHoldBeforeState($order->getState());
                 $order->setHoldBeforeStatus($order->getStatus());
             } else {
