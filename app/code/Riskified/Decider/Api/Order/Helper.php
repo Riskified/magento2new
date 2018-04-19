@@ -274,6 +274,7 @@ class Helper
                 case 'paypal_express':
                 case 'paypaluk_express':
                 case 'paypal_standard':
+                case 'payflow_express':
                     $payer_email = $payment->getAdditionalInformation('paypal_payer_email');
                     $payer_status = $payment->getAdditionalInformation('paypal_payer_status');
                     $payer_address_status = $payment->getAdditionalInformation('paypal_address_status');
