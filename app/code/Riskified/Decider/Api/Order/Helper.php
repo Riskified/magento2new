@@ -327,6 +327,18 @@ class Helper
                     $houseVerification = $payment->getAdditionalInformation('avsaddr');
                     $zipVerification = $payment->getAdditionalInformation('avszip');
                     $avs_result_code = $houseVerification . ',' . $zipVerification;
+                break;
+                case 'adyen_oneclick':
+                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
+                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
+                    $transactionId = $payment->getAdditionalInformation('pspReference');
+                    $credit_card_bin = $payment->getAdyenCardBin();
+                break;
+                case 'adyen_cc':
+                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
+                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
+                    $transactionId = $payment->getAdditionalInformation('pspReference');
+                    $credit_card_bin = $payment->getAdyenCardBin();
                     break;
                 default:
                     break;
