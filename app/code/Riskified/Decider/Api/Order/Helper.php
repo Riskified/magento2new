@@ -340,6 +340,10 @@ class Helper
                     $transactionId = $payment->getAdditionalInformation('pspReference');
                     $credit_card_bin = $payment->getAdyenCardBin();
                     break;
+                case 'cryozonic_stripe':
+                    $credit_card_number = $payment->getCcLast4();
+                    $credit_card_company = $payment->getCcType();
+                    break;
                 default:
                     break;
             }
