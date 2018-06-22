@@ -343,6 +343,7 @@ class Helper
                 case 'cryozonic_stripe':
                     $credit_card_number = $payment->getCcLast4();
                     $credit_card_company = $payment->getCcType();
+                    $avs_result_code = $payment->getAdditionalInformation('address_line1_check') . ',' . $payment->getAdditionalInformation('address_zip_check');
                     break;
                 default:
                     break;
