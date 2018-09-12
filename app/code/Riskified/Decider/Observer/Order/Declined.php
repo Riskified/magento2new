@@ -16,6 +16,7 @@ use Riskified\Decider\Api\Config;
 use Riskified\Decider\Api\Order as OrderApi;
 use Riskified\Decider\Api\Order\Log;
 use Riskified\Decider\Logger\Order;
+use \Magento\Sales\Api\OrderRepositoryInterface;
 
 
 class Declined implements ObserverInterface {
@@ -88,6 +89,7 @@ class Declined implements ObserverInterface {
      * @var \Magento\Framework\Escaper
      */
     private $escaper;
+    private $orderRepository;
 
     /**
      * AutoInvoice constructor.
@@ -97,6 +99,7 @@ class Declined implements ObserverInterface {
      * @param Config               $apiConfig
      * @param OrderApi             $orderApi
      * @param InvoiceService       $invoiceService
+     * @param OrderRepositoryInterface       $orderRepository
      * @param Context              $context
      */
     public function __construct(
@@ -110,6 +113,7 @@ class Declined implements ObserverInterface {
         StateInterface $inlineTranslation,
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
+        OrderRepositoryInterface $orderRepository,
         Escaper $escaper
     ) {
         $this->logger = $logger;
@@ -122,6 +126,7 @@ class Declined implements ObserverInterface {
         $this->transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
         $this->storeManager = $storeManager;
+        $this->orderRepository = $orderRepository;
         $this->escaper = $escaper;
     }
 
@@ -212,7 +217,8 @@ class Declined implements ObserverInterface {
             $order
                 ->addStatusHistoryComment($orderComment)
                 ->setIsCustomerNotified(true);
-            $order->save();
+
+            $this->orderRepository->save($order);
         } catch (\Exception $e) {
             $this->logger->critical($e->getMessage());
         }

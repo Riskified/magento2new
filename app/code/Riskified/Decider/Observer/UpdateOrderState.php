@@ -12,6 +12,10 @@ class UpdateOrderState implements ObserverInterface
     private $apiConfig;
     private $apiOrderConfig;
     private $resource;
+    /**
+     * @var \Magento\Sales\Model\OrderRepository
+     */
+    private $orderRepository;
 
 
     /**
@@ -21,12 +25,15 @@ class UpdateOrderState implements ObserverInterface
      * @param \Riskified\Decider\Api\Config $config
      * @param \Riskified\Decider\Api\Order\Config $apiOrderConfig
      * @param \Riskified\Decider\Api\Order $orderApi
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param \Magento\Framework\App\ResourceConnection $resource
      */
     public function __construct(
         \Riskified\Decider\Api\Log $logger,
         \Riskified\Decider\Api\Config $config,
         \Riskified\Decider\Api\Order\Config $apiOrderConfig,
         \Riskified\Decider\Api\Order $orderApi,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\App\ResourceConnection $resource
     ) {
         $this->logger = $logger;
@@ -34,6 +41,7 @@ class UpdateOrderState implements ObserverInterface
         $this->apiOrderLayer = $orderApi;
         $this->apiConfig = $config;
         $this->resource = $resource;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -176,7 +184,7 @@ class UpdateOrderState implements ObserverInterface
 
         if ($changed) {
             try {
-                $order->save();
+                $this->orderRepository->save($order);
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
 
