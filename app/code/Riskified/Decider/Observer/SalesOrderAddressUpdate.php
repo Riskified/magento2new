@@ -8,23 +8,23 @@ class SalesOrderAddressUpdate implements ObserverInterface
 {
     private $logger;
     private $apiOrder;
-    private $orderFactory;
+    private $orderRepository;
 
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi,
-        \Magento\Sales\Model\Order $orderFactory
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->logger = $logger;
         $this->apiOrder = $orderApi;
-        $this->orderFactory = $orderFactory;
+        $this->orderRepository = $orderRepository;
     }
 
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         try {
             $order_id = $observer->getOrderId();
-            $order = $this->orderFactory->load($order_id);
+            $order = $this->orderRepository->get($order_id);
 
             if (!$order) {
                 return;

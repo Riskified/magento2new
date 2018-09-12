@@ -18,6 +18,7 @@ class Order
     private $session;
     private $date;
     private $queueFactory;
+    private $orderRepository;
 
     public function __construct(
         Api $api,
@@ -30,7 +31,8 @@ class Order
         \Magento\Sales\Model\Order $orderFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Riskified\Decider\Model\QueueFactory $queueFactory,
-        \Magento\Framework\Session\SessionManagerInterface $session
+        \Magento\Framework\Session\SessionManagerInterface $session,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
 
     )
     {
@@ -46,6 +48,7 @@ class Order
         $this->session = $session;
         $this->date = $date;
         $this->queueFactory = $queueFactory;
+        $this->orderRepository = $orderRepository;
 
         $this->_api->initSdk();
     }
@@ -255,11 +258,11 @@ class Order
         }
 
         if (!$order_id && $increment_id) {
-            return $this->_orderFactory->loadByIncrementId($increment_id);
+            return $this->orderRepository->loadByIncrementId($increment_id);
         }
 
         if ($order_id) {
-            return $this->_orderFactory->load($order_id);
+            return $this->orderRepository->get($order_id);
         }
 
         return null;
