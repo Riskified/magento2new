@@ -346,6 +346,17 @@ class Helper
                     $credit_card_company = $payment->getCcType();
                     $avs_result_code = $payment->getAdditionalInformation('address_line1_check') . ',' . $payment->getAdditionalInformation('address_zip_check');
                     break;
+                case 'vantiv_cc':
+                    $credit_card_number = $payment->getAdditionalInformation('last_four');
+                    $credit_card_company = $payment->getCcType();
+                    $transactionAdditionalInfo = $payment->getTransactionAdditionalInfo();
+                    if (isset($transactionAdditionalInfo['raw_details_info']['avsResult'])) {
+                        $avs_result_code = $transactionAdditionalInfo['raw_details_info']['avsResult'];
+                    }
+                    if (isset($transactionAdditionalInfo['raw_details_info']['tokenBin'])) {
+                        $credit_card_bin = $transactionAdditionalInfo['raw_details_info']['tokenBin'];
+                    }
+                    break;
                 default:
                     break;
             }
