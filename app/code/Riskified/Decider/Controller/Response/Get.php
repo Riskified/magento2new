@@ -24,27 +24,48 @@ class Get extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
-
         $request = $this->getRequest();
         $response = $this->getResponse();
         $logger = $this->apiLogger;
-        $logger->log("Start execute");
+
+        $logger->log(
+            __("Riskified extension endpoint start")
+        );
+
         $statusCode = 200;
         $id = null;
         $msg = null;
-        $logger->log("Start Try");
         try {
             $notification = $this->api->parseRequest($request);
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
                 $statusCode = 200;
-                $msg = 'Test notification received successfully';
-                $logger->log("Test Notification received: ", serialize($notification));
+                $msg = __('Test notification received successfully');
+
+                $logger->log(
+                    sprintf(
+                        __("Test Notification received: %s"),
+                        serialize($notification)
+                    )
+                );
             } else {
-                $logger->log("Notification received: ", serialize($notification));
+                $logger->log(
+                    sprintf(
+                        __("Notification received: %s"),
+                        serialize($notification)
+                    )
+                );
+
+                /** @var \Magento\Sales\Api\Data\OrderInterface $order */
                 $order = $this->apiOrderLayer->loadOrderByOrigId($id);
+
                 if (!$order || !$order->getId()) {
-                    $logger->log("ERROR: Unable to load order (" . $id . ")");
+                    $logger->log(
+                        sprintf(
+                           "ERROR: Unable to load order (%s)",
+                            $id
+                        )
+                    );
                     $statusCode = 400;
                     $msg = 'Could not find order to update.';
                 } else {
