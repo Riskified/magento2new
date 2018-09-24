@@ -13,7 +13,6 @@ class Order
     private $_eventManager;
     private $_messageManager;
     private $_backendAuthSession;
-    private $_orderFactory;
     private $logger;
     private $session;
     private $date;
@@ -29,7 +28,6 @@ class Order
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Backend\Model\Auth\Session $backendAuthSession,
         \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Sales\Model\Order $orderFactory,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Riskified\Decider\Model\QueueFactory $queueFactory,
         \Magento\Framework\Session\SessionManagerInterface $session,
@@ -44,7 +42,6 @@ class Order
         $this->_eventManager = $context->getEventManager();
         $this->_backendAuthSession = $backendAuthSession;
         $this->_messageManager = $messageManager;
-        $this->_orderFactory = $orderFactory;
         $this->logger = $logger;
         $this->session = $session;
         $this->date = $date;
@@ -106,7 +103,7 @@ class Order
             );
             throw $curlException;
         } catch (\Riskified\OrderWebhook\Exception\MalformedJsonException $e) {
-            if(strstr($e->getMessage(), "504") && strstr($e->getMessage(), "Status Code:")) {
+            if (strstr($e->getMessage(), "504") && strstr($e->getMessage(), "Status Code:")) {
                 $this->_raiseOrderUpdateEvent($order, 'error', null, 'Error transferring order data to Riskified');
                 $this->scheduleSubmissionRetry($order, $action);
             }
@@ -144,7 +141,8 @@ class Order
             'riskified_decider_order_update_' . $eventIdentifier,
             $eventData
         );
-        return;
+
+        return $this;
     }
 
     private function getCustomerSession()
@@ -229,7 +227,8 @@ class Order
             'riskified_decider_order_update_' . $eventIdentifier,
             $eventData
         );
-        return;
+
+        return $this;
     }
 
     public function loadOrderByOrigId($full_orig_id)
@@ -336,12 +335,12 @@ class Order
         }
         $i = 0;
         foreach ($order_ids as $order_id) {
-            $order = $this->_orderFactory->load($order_id);
+            $order = $this->orderRepository->get($order_id);
             try {
                 $this->post($order, \Riskified\Decider\Api\Api::ACTION_SUBMIT);
                 $i++;
             } catch (\Exception $e) {
-
+                $this->logger->logException($e);
             }
         }
 

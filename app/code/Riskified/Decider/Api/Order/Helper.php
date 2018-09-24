@@ -1,7 +1,9 @@
 <?php
+
 namespace Riskified\Decider\Api\Order;
 
 use Riskified\OrderWebhook\Model;
+use Magento\Catalog\Api\CategoryRepositoryInterface;
 
 class Helper
 {
@@ -12,8 +14,12 @@ class Helper
     private $_messageManager;
     private $_customerFactory;
     private $_orderFactory;
-    private $_categoryFactory;
     private $_storeManager;
+
+    /**
+     * @var CategoryRepositoryInterface
+     */
+    private $categoryRepository;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
@@ -21,19 +27,18 @@ class Helper
         Log $apiLogger,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\Customer $customerFactory,
-        \Magento\Catalog\Model\Category $categoryFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
-    )
-    {
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        CategoryRepositoryInterface $categoryRepository
+    ) {
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
         $this->_apiConfig = $apiConfig;
         $this->_apiLogger = $apiLogger;
         $this->_customerFactory = $customerFactory;
         $this->_orderFactory = $orderFactory;
-        $this->_categoryFactory = $categoryFactory;
         $this->_storeManager = $storeManager;
+        $this->categoryRepository = $categoryRepository;
     }
 
     public function setOrder($model)
@@ -149,7 +154,7 @@ class Helper
                 $category_ids = $product->getCategoryIds();
 
                 foreach ($category_ids as $categoryId) {
-                    $cat = $this->_categoryFactory->load($categoryId);
+                    $cat = $this->categoryRepository->get($categoryId);
                     if ($cat->getLevel() == 2) {
                         $categories[] = $cat->getName();
                     } elseif ($cat->getLevel() >= 3) {
@@ -157,9 +162,9 @@ class Helper
                     }
                 }
 
-                if (count($category_ids) == 0) {
+                if (empty($category_ids)) {
                     $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                    $root_category = $this->_categoryFactory->load($store_root_category_id);
+                    $root_category = $this->categoryRepository->get($store_root_category_id);
                     $categories[] = $root_category->getName();
                 }
 
@@ -176,8 +181,8 @@ class Helper
                 'grams' => $item->getWeight(),
                 'product_type' => $prod_type,
                 'brand'	=> $brand,
-                'category' => (isset($categories) && count($categories) > 0) ? implode('|', $categories) : '',
-                'sub_category' => (isset($sub_categories) && count($sub_categories) > 0) ? implode('|', $sub_categories) : ''
+                'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
+                'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
             ), 'strlen'));
         }
         return $line_items;
@@ -232,26 +237,28 @@ class Helper
         $gateway_name = $payment->getMethod();
         try {
             $credit_card_bin = '';
-
+            $paymentData = $this->getPaymentData($gateway_name);
             switch ($gateway_name) {
                 case 'authorizenet_directpost':
                     $authorize_data = $payment->getAdditionalInformation('authorize_cards');
-                    if ($authorize_data && is_array($authorize_data)) {
-                        $cards_data = array_values($authorize_data);
-                        if ($cards_data && $cards_data[0]) {
-                            $card_data = $cards_data[0];
-                            if (isset($card_data['cc_last4'])) {
-                                $credit_card_number = $payment->decrypt($card_data['cc_last4']);
-                            }
-                            if (isset($card_data['cc_type'])) {
-                                $credit_card_company = $card_data['cc_type'];
-                            }
-                            if (isset($card_data['cc_avs_result_code'])) {
-                                $avs_result_code = $card_data['cc_avs_result_code'];
-                            }
-                            if (isset($card_data['cc_response_code'])) {
-                                $cvv_result_code = $card_data['cc_response_code'];
-                            }
+                    if (!$authorize_data || !is_array($authorize_data)) {
+                        break;
+                    }
+
+                    $cards_data = array_values($authorize_data);
+                    if ($cards_data && $cards_data[0]) {
+                        $card_data = $cards_data[0];
+                        if (isset($card_data['cc_last4'])) {
+                            $credit_card_number = $payment->decrypt($card_data['cc_last4']);
+                        }
+                        if (isset($card_data['cc_type'])) {
+                            $credit_card_company = $card_data['cc_type'];
+                        }
+                        if (isset($card_data['cc_avs_result_code'])) {
+                            $avs_result_code = $card_data['cc_avs_result_code'];
+                        }
+                        if (isset($card_data['cc_response_code'])) {
+                            $cvv_result_code = $card_data['cc_response_code'];
                         }
                     }
 
@@ -269,6 +276,10 @@ class Helper
                         $zipVerification = $optimalTransaction->zipVerification;
                         $avs_result_code = $houseVerification . ',' . $zipVerification;
                     } catch (\Exception $e) {
+                        $this->_apiLogger->log(__(
+                            'optimal payment additional payment info failed to parse: %1',
+                            $e->getMessage()
+                        ));
                     }
                     break;
                 case 'paypal_express':
@@ -306,7 +317,6 @@ class Helper
                         $cvv_result_code = $sage->getData('cv2result');
                         $credit_card_number = $sage->getData('last_four_digits');
                         $credit_card_company = $sage->getData('card_type');
-                    } else {
                     }
                     break;
                 case 'transarmor':
@@ -328,13 +338,13 @@ class Helper
                     $houseVerification = $payment->getAdditionalInformation('avsaddr');
                     $zipVerification = $payment->getAdditionalInformation('avszip');
                     $avs_result_code = $houseVerification . ',' . $zipVerification;
-                break;
+                    break;
                 case 'adyen_oneclick':
                     $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
                     $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
                     $transactionId = $payment->getAdditionalInformation('pspReference');
                     $credit_card_bin = $payment->getAdyenCardBin();
-                break;
+                    break;
                 case 'adyen_cc':
                     $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
                     $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
@@ -361,6 +371,10 @@ class Helper
                     break;
             }
         } catch (\Exception $e) {
+            $this->_apiLogger->log(__(
+                'Riskified: %1',
+                $e->getMessage()
+            ));
         }
         if (!isset($cvv_result_code)) {
             $cvv_result_code = $payment->getCcCidStatus();
@@ -397,6 +411,11 @@ class Helper
             'credit_card_company' => $credit_card_company,
             'credit_card_bin' => $credit_card_bin
         ), 'strlen'));
+    }
+
+    public function getPaymentData($gateway)
+    {
+
     }
 
     public function getShippingLines()
@@ -465,5 +484,10 @@ class Helper
         $state =  $om->get('Magento\Framework\App\State');
 
         return $state->getAreaCode() === 'adminhtml';
+    }
+
+    public function preparePaymentData($payment)
+    {
+
     }
 }

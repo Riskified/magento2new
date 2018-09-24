@@ -29,7 +29,6 @@ class UploadHistoricalOrders extends Command
 
     public function __construct(
         \Magento\Framework\App\State $state,
-        \Magento\Store\Model\StoreManagerInterface $storeManagerInterface,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder
