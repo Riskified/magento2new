@@ -16,7 +16,6 @@ app/functions.php
 .php_cs
 .travis.yml
 CHANGELOG.md
-composer.json
 composer.lock
 CONTRIBUTING.md
 CONTRIBUTOR_LICENSE_AGREEMENT.html
