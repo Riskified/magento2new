@@ -4,6 +4,7 @@ namespace Riskified\Decider\Api\Order;
 
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Riskified\Decider\Api\Order\PaymentProcessorFactory;
 
 class Helper
 {
@@ -15,6 +16,11 @@ class Helper
     private $_customerFactory;
     private $_orderFactory;
     private $_storeManager;
+
+    /**
+     * @var \Riskified\Decider\Api\Order\PaymentProcessorFactory
+     */
+    private $paymentProcessorFactory;
 
     /**
      * @var CategoryRepositoryInterface
@@ -29,7 +35,8 @@ class Helper
         \Magento\Customer\Model\Customer $customerFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        CategoryRepositoryInterface $categoryRepository
+        CategoryRepositoryInterface $categoryRepository,
+        PaymentProcessorFactory $paymentProcessorFactory
     ) {
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
@@ -39,6 +46,7 @@ class Helper
         $this->_orderFactory = $orderFactory;
         $this->_storeManager = $storeManager;
         $this->categoryRepository = $categoryRepository;
+        $this->paymentProcessorFactory = $paymentProcessorFactory;
     }
 
     public function setOrder($model)
@@ -199,7 +207,7 @@ class Helper
 
         $firstName = $address->getFirstname();
 
-        if(is_object($firstName)) {
+        if (is_object($firstName)) {
             $firstName = $firstName->getText();
         }
 
@@ -233,189 +241,90 @@ class Helper
         if ($this->_apiConfig->isLoggingEnabled()) {
             $this->_apiLogger->payment($this->getOrder());
         }
-        $transactionId = $payment->getTransactionId();
-        $gateway_name = $payment->getMethod();
+        $paymentData = [];
         try {
-            $credit_card_bin = '';
-            $paymentData = $this->getPaymentData($gateway_name);
-            switch ($gateway_name) {
-                case 'authorizenet_directpost':
-                    $authorize_data = $payment->getAdditionalInformation('authorize_cards');
-                    if (!$authorize_data || !is_array($authorize_data)) {
-                        break;
-                    }
-
-                    $cards_data = array_values($authorize_data);
-                    if ($cards_data && $cards_data[0]) {
-                        $card_data = $cards_data[0];
-                        if (isset($card_data['cc_last4'])) {
-                            $credit_card_number = $payment->decrypt($card_data['cc_last4']);
-                        }
-                        if (isset($card_data['cc_type'])) {
-                            $credit_card_company = $card_data['cc_type'];
-                        }
-                        if (isset($card_data['cc_avs_result_code'])) {
-                            $avs_result_code = $card_data['cc_avs_result_code'];
-                        }
-                        if (isset($card_data['cc_response_code'])) {
-                            $cvv_result_code = $card_data['cc_response_code'];
-                        }
-                    }
-
-                    $credit_card_number = $payment->decrypt($payment->getCcLast4());
-                    break;
-                case 'authnetcim':
-                    $avs_result_code = $payment->getAdditionalInformation('avs_result_code');
-                    $cvv_result_code = $payment->getAdditionalInformation('card_code_response_code');
-                    break;
-                case 'optimal_hosted':
-                    try {
-                        $optimalTransaction = unserialize($payment->getAdditionalInformation('transaction'));
-                        $cvv_result_code = $optimalTransaction->cvdVerification;
-                        $houseVerification = $optimalTransaction->houseNumberVerification;
-                        $zipVerification = $optimalTransaction->zipVerification;
-                        $avs_result_code = $houseVerification . ',' . $zipVerification;
-                    } catch (\Exception $e) {
-                        $this->_apiLogger->log(__(
-                            'optimal payment additional payment info failed to parse: %1',
-                            $e->getMessage()
-                        ));
-                    }
-                    break;
-                case 'paypal_express':
-                case 'paypaluk_express':
-                case 'paypal_standard':
-                case 'payflow_express':
-                    $payer_email = $payment->getAdditionalInformation('paypal_payer_email');
-                    $payer_status = $payment->getAdditionalInformation('paypal_payer_status');
-                    $payer_address_status = $payment->getAdditionalInformation('paypal_address_status');
-                    $protection_eligibility = $payment->getAdditionalInformation('paypal_protection_eligibility');
-                    $payment_status = $payment->getAdditionalInformation('paypal_payment_status');
-                    $pending_reason = $payment->getAdditionalInformation('paypal_pending_reason');
-                    return new Model\PaymentDetails(array_filter(array(
-                        'authorization_id' => $transactionId,
-                        'payer_email' => $payer_email,
-                        'payer_status' => $payer_status,
-                        'payer_address_status' => $payer_address_status,
-                        'protection_eligibility' => $protection_eligibility,
-                        'payment_status' => $payment_status,
-                        'pending_reason' => $pending_reason
-                    ), 'strlen'));
-                case 'paypal_direct':
-                case 'paypaluk_direct':
-                    $avs_result_code = $payment->getAdditionalInformation('paypal_avs_code');
-                    $cvv_result_code = $payment->getAdditionalInformation('paypal_cvv2_match');
-                    $credit_card_number = $payment->getCcLast4();
-                    $credit_card_company = $payment->getCcType();
-                    break;
-                case 'sagepaydirectpro':
-                case 'sage_pay_form':
-                case 'sagepayserver':
-                    $sage = $this->getOrder()->getSagepayInfo();
-                    if ($sage) {
-                        $avs_result_code = $sage->getData('address_result');
-                        $cvv_result_code = $sage->getData('cv2result');
-                        $credit_card_number = $sage->getData('last_four_digits');
-                        $credit_card_company = $sage->getData('card_type');
-                    }
-                    break;
-                case 'transarmor':
-                    $avs_result_code = $payment->getAdditionalInformation('avs_response');
-                    $cvv_result_code = $payment->getAdditionalInformation('cvv2_response');
-                    break;
-                case 'braintree':
-                    $cvv_result_code = $payment->getAdditionalInformation('cvvResponseCode');
-                    $credit_card_bin = $payment->getAdditionalInformation('bin');
-                    $houseVerification = $payment->getAdditionalInformation('avsStreetAddressResponseCode');
-                    $zipVerification = $payment->getAdditionalInformation('avsPostalCodeResponseCode');
-                    $avs_result_code = $houseVerification . ',' . $zipVerification;
-                    break;
-                case 'payflowpro':
-                    $cc_details = $payment->getAdditionalInformation('cc_details');
-                    $credit_card_number =  $cc_details['cc_last_4'];
-                    $credit_card_company = $cc_details['cc_type'];
-                    $cvv_result_code = $payment->getAdditionalInformation('cvv2match');
-                    $houseVerification = $payment->getAdditionalInformation('avsaddr');
-                    $zipVerification = $payment->getAdditionalInformation('avszip');
-                    $avs_result_code = $houseVerification . ',' . $zipVerification;
-                    break;
-                case 'adyen_oneclick':
-                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
-                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
-                    $transactionId = $payment->getAdditionalInformation('pspReference');
-                    $credit_card_bin = $payment->getAdyenCardBin();
-                    break;
-                case 'adyen_cc':
-                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
-                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
-                    $transactionId = $payment->getAdditionalInformation('pspReference');
-                    $credit_card_bin = $payment->getAdyenCardBin();
-                    break;
-                case 'cryozonic_stripe':
-                    $credit_card_number = $payment->getCcLast4();
-                    $credit_card_company = $payment->getCcType();
-                    $avs_result_code = $payment->getAdditionalInformation('address_line1_check') . ',' . $payment->getAdditionalInformation('address_zip_check');
-                    break;
-                case 'vantiv_cc':
-                    $credit_card_number = $payment->getAdditionalInformation('last_four');
-                    $credit_card_company = $payment->getCcType();
-                    $transactionAdditionalInfo = $payment->getTransactionAdditionalInfo();
-                    if (isset($transactionAdditionalInfo['raw_details_info']['avsResult'])) {
-                        $avs_result_code = $transactionAdditionalInfo['raw_details_info']['avsResult'];
-                    }
-                    if (isset($transactionAdditionalInfo['raw_details_info']['tokenBin'])) {
-                        $credit_card_bin = $transactionAdditionalInfo['raw_details_info']['tokenBin'];
-                    }
-                    break;
-                default:
-                    break;
-            }
+            $paymentProcessor = $this->getPaymentProcessor($this->getOrder());
+            $paymentData = $paymentProcessor->getDetails();
         } catch (\Exception $e) {
             $this->_apiLogger->log(__(
                 'Riskified: %1',
                 $e->getMessage()
             ));
         }
-        if (!isset($cvv_result_code)) {
-            $cvv_result_code = $payment->getCcCidStatus();
-        }
-        if (!isset($credit_card_number)) {
-            $credit_card_number = $payment->getCcLast4();
-        }
-        if (!isset($credit_card_company)) {
-            $credit_card_company = $payment->getCcType();
-        }
-        if (!isset($avs_result_code)) {
-            $avs_result_code = $payment->getCcAvsStatus();
-        }
 
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
-        if (!isset($credit_card_bin) || !$credit_card_bin) {
-            $session = $om->get('Magento\Customer\Model\Session');
-            $credit_card_bin = $session->getRiskifiedBin();
-            $session->unsRiskifiedBin();
-        }
-        if (!isset($credit_card_bin) || !$credit_card_bin) {
-            $coreRegistry = $om->get('Magento\Framework\Registry');
-            $credit_card_bin = $coreRegistry->registry('riskified_cc_bin');
-        }
-        if (isset($credit_card_number)) {
-            $credit_card_number = "XXXX-XXXX-XXXX-" . $credit_card_number;
+        $this->preparePaymentData($payment, $paymentData);
+
+        if (isset($paymentProcessor)
+            && $paymentProcessor instanceof \Riskified\Decider\Api\Order\PaymentProcessor\Paypal
+        ) {
+            return new Model\PaymentDetails(array_filter(array(
+                'authorization_id' => $paymentData['transaction_id'],
+                'payer_email' => $paymentData['payer_email'],
+                'payer_status' => $paymentData['payer_status'],
+                'payer_address_status' => $paymentData['payer_address_status'],
+                'protection_eligibility' => $paymentData['protection_eligibility'],
+                'payment_status' => $paymentData['payment_status'],
+                'pending_reason' => $paymentData['pending_reason']
+            ), 'strlen'));
         }
 
         return new Model\PaymentDetails(array_filter(array(
-            'authorization_id' => $transactionId,
-            'avs_result_code' => $avs_result_code,
-            'cvv_result_code' => $cvv_result_code,
-            'credit_card_number' => $credit_card_number,
-            'credit_card_company' => $credit_card_company,
-            'credit_card_bin' => $credit_card_bin
+            'authorization_id' => $paymentData['transaction_id'],
+            'avs_result_code' => $paymentData['avs_result_code'],
+            'cvv_result_code' => $paymentData['cvv_result_code'],
+            'credit_card_number' => $paymentData['credit_card_number'],
+            'credit_card_company' => $paymentData['credit_card_company'],
+            'credit_card_bin' => $paymentData['credit_card_bin']
         ), 'strlen'));
     }
 
-    public function getPaymentData($gateway)
+    /**
+     * @param $order
+     *
+     * @return PaymentProcessor\AbstractPayment
+     */
+    public function getPaymentProcessor($order)
     {
+        return $this->paymentProcessorFactory->create($order);
+    }
 
+    /**
+     * Fill empty fields.
+     *
+     * @param $payment
+     * @param $paymentData
+     */
+    public function preparePaymentData($payment, &$paymentData)
+    {
+        if (!isset($paymentData['transaction_id'])) {
+            $paymentData['transaction_id'] = $payment->getTransactionId();
+        }
+        if (!isset($paymentData['cvv_result_code'])) {
+            $paymentData['cvv_result_code'] = $payment->getCcCidStatus();
+        }
+        if (!isset($paymentData['credit_card_number'])) {
+            $paymentData['credit_card_number'] = $payment->getCcLast4();
+        }
+        if (!isset($paymentData['credit_card_company'])) {
+            $paymentData['credit_card_company'] = $payment->getCcType();
+        }
+        if (!isset($paymentData['avs_result_code'])) {
+            $paymentData['avs_result_code'] = $payment->getCcAvsStatus();
+        }
+
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
+            $session = $om->get('Magento\Customer\Model\Session');
+            $paymentData['credit_card_bin'] = $session->getRiskifiedBin();
+            $session->unsRiskifiedBin();
+        }
+        if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
+            $coreRegistry = $om->get('Magento\Framework\Registry');
+            $paymentData['credit_card_bin'] = $coreRegistry->registry('riskified_cc_bin');
+        }
+        if (isset($paymentData['credit_card_bin'])) {
+            $paymentData['credit_card_bin'] = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
+        }
     }
 
     public function getShippingLines()
@@ -484,10 +393,5 @@ class Helper
         $state =  $om->get('Magento\Framework\App\State');
 
         return $state->getAreaCode() === 'adminhtml';
-    }
-
-    public function preparePaymentData($payment)
-    {
-
     }
 }

@@ -8,7 +8,6 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Translate\Inline\StateInterface;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Escaper;
 use Magento\Sales\Model\Service\InvoiceService;
@@ -111,7 +110,6 @@ class Declined implements ObserverInterface {
         Context $context,
         TransportBuilder $transportBuilder,
         StateInterface $inlineTranslation,
-        ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
         OrderRepositoryInterface $orderRepository,
         Escaper $escaper
