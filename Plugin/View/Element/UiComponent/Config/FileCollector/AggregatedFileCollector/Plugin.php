@@ -2,7 +2,6 @@
 
 namespace Riskified\Decider\Plugin\View\Element\UiComponent\Config\FileCollector\AggregatedFileCollector;
 
-use Magento\Framework\Filesystem;
 use Magento\Framework\Registry as CoreRegistry;
 use Magento\Framework\View\Element\UiComponent\Config\FileCollector\AggregatedFileCollector;
 use Riskified\Decider\Model\Config as ModuleConfig;

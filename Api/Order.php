@@ -1,25 +1,87 @@
 <?php
+
 namespace Riskified\Decider\Api;
 
-use Riskified\Common\Signature;
 use Riskified\OrderWebhook\Model;
-use Riskified\OrderWebhook\Transport;
 
 class Order
 {
+    /**
+     * @var Api
+     */
     private $_api;
+
+    /**
+     * @var Order\Helper
+     */
     private $_orderHelper;
+
+    /**
+     * @var \Magento\Framework\App\Helper\Context
+     */
     private $_context;
+
+    /**
+     * @var \Magento\Framework\Event\ManagerInterface
+     */
     private $_eventManager;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
     private $_messageManager;
+
+    /**
+     * @var \Magento\Backend\Model\Auth\Session
+     */
     private $_backendAuthSession;
+
+    /**
+     * @var Order\Log
+     */
     private $logger;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManagerInterface
+     */
     private $session;
+
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
     private $date;
+
+    /**
+     * @var \Riskified\Decider\Model\QueueFactory
+     */
     private $queueFactory;
+
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
     private $orderRepository;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
     private $searchCriteriaBuilder;
 
+    /**
+     * Order constructor.
+     *
+     * @param Api $api
+     * @param Order\Helper $orderHelper
+     * @param Config $apiConfig
+     * @param Order\Log $logger
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Backend\Model\Auth\Session $backendAuthSession
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Riskified\Decider\Model\QueueFactory $queueFactory
+     * @param \Magento\Framework\Session\SessionManagerInterface $session
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     */
     public function __construct(
         Api $api,
         Order\Helper $orderHelper,
@@ -33,8 +95,7 @@ class Order
         \Magento\Framework\Session\SessionManagerInterface $session,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
-    )
-    {
+    ) {
         $this->_api = $api;
         $this->_orderHelper = $orderHelper;
         $this->_apiConfig = $apiConfig;
@@ -52,6 +113,16 @@ class Order
         $this->_api->initSdk();
     }
 
+    /**
+     * @param $order
+     * @param $action
+     *
+     * @return $this|object
+     *
+     * @throws \Exception
+     * @throws \Riskified\OrderWebhook\Exception\CurlException
+     * @throws \Riskified\OrderWebhook\Exception\MalformedJsonException
+     */
     public function post($order, $action)
     {
         if (!$this->_apiConfig->isEnabled()) {
@@ -122,6 +193,14 @@ class Order
         return $response;
     }
 
+    /**
+     * @param $order
+     * @param $status
+     * @param $oldStatus
+     * @param $description
+     *
+     * @return $this
+     */
     private function _raiseOrderUpdateEvent($order, $status, $oldStatus, $description)
     {
         $eventData = array(
@@ -145,12 +224,11 @@ class Order
         return $this;
     }
 
-    private function getCustomerSession()
-    {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        return $objectManager->get('Magento\Customer\Model\Session');
-    }
-
+    /**
+     * @param $model
+     *
+     * @return Model\Order
+     */
     private function load($model)
     {
         /** @var \Magento\Sales\Api\Data\OrderInterface $model */
@@ -200,9 +278,18 @@ class Order
         if (!$this->_backendAuthSession->isLoggedIn()) {
             $order->client_details = $this->_orderHelper->getClientDetails();
         }
+
         return $order;
     }
 
+    /**
+     * @param $order
+     * @param $status
+     * @param $oldStatus
+     * @param $description
+     *
+     * @return $this|void
+     */
     public function update($order, $status, $oldStatus, $description)
     {
         if (!$this->_apiConfig->isEnabled()) {
@@ -231,6 +318,11 @@ class Order
         return $this;
     }
 
+    /**
+     * @param $full_orig_id
+     *
+     * @return bool|\Magento\Sales\Api\Data\OrderInterface|mixed|null
+     */
     public function loadOrderByOrigId($full_orig_id)
     {
         if (!$full_orig_id) {
@@ -289,6 +381,11 @@ class Order
         return null;
     }
 
+    /**
+     * @param $models
+     *
+     * @return string|void
+     */
     public function postHistoricalOrders($models)
     {
         if (!$this->_apiConfig->isEnabled()) {
@@ -304,6 +401,10 @@ class Order
         return "Success decidery uploaded " . count($msgs) . " orders." . PHP_EOL;
     }
 
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     * @param $action
+     */
     public function scheduleSubmissionRetry(\Magento\Sales\Model\Order $order, $action)
     {
         $this->logger->log("Scheduling submission retry for order " . $order->getId());
@@ -328,6 +429,11 @@ class Order
         }
     }
 
+    /**
+     * @param $order_ids
+     *
+     * @return int|void
+     */
     public function sendOrders($order_ids)
     {
         if (!$this->_apiConfig->isEnabled()) {

@@ -7,16 +7,35 @@ use \Magento\Sales\Model\Order;
 
 class UpdateOrderState implements ObserverInterface
 {
+    /**
+     * @var \Riskified\Decider\Api\Log
+     */
     private $logger;
+
+    /**
+     * @var \Riskified\Decider\Api\Order
+     */
     private $apiOrderLayer;
+
+    /**
+     * @var \Riskified\Decider\Api\Config
+     */
     private $apiConfig;
+
+    /**
+     * @var \Riskified\Decider\Api\Order\Config
+     */
     private $apiOrderConfig;
+
+    /**
+     * @var \Magento\Framework\App\ResourceConnection
+     */
     private $resource;
+
     /**
      * @var \Magento\Sales\Model\OrderRepository
      */
     private $orderRepository;
-
 
     /**
      * UpdateOrderState constructor.
@@ -64,7 +83,7 @@ class UpdateOrderState implements ObserverInterface
                 $order->getId(),
                 $currentState,
                 $currentStatus
-                )
+            )
         );
 
         $this->logger->log(
@@ -78,7 +97,7 @@ class UpdateOrderState implements ObserverInterface
 
         $this->logger->log(
             sprintf(
-            "On Hold Status Code : %s and Transport Error Status Code : %s",
+                "On Hold Status Code : %s and Transport Error Status Code : %s",
                 $this->apiOrderConfig->getOnHoldStatusCode(),
                 $this->apiOrderConfig->getTransportErrorStatusCode()
             )
@@ -193,6 +212,12 @@ class UpdateOrderState implements ObserverInterface
         }
     }
 
+    /**
+     * @param $newState
+     * @param $order
+     *
+     * @return $this
+     */
     private function saveStatusBeforeHold($newState, $order)
     {
         if ($newState == Order::STATE_HOLDED) {

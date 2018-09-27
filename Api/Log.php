@@ -1,15 +1,27 @@
 <?php
+
 namespace Riskified\Decider\Api;
 
 class Log
 {
+    /**
+     * @var \Riskified\Decider\Logger\Order
+     */
     private $_logger;
 
+    /**
+     * Log constructor.
+     *
+     * @param \Riskified\Decider\Logger\Order $logger
+     */
     public function __construct(\Riskified\Decider\Logger\Order $logger)
     {
         $this->_logger = $logger;
     }
 
+    /**
+     * @param $model
+     */
     public function payment($model)
     {
         $this->_logger->debug("Payment info debug Logs:");
@@ -56,11 +68,17 @@ class Log
         }
     }
 
+    /**
+     * @param $message
+     */
     public function log($message)
     {
         $this->_logger->addInfo($message);
     }
 
+    /**
+     * @param $message
+     */
     public function logException($message)
     {
         $this->_logger->addCritical($message);

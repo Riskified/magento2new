@@ -1,14 +1,21 @@
 <?php
+
 namespace Riskified\Decider\Config\Source;
 
 class HoldedStateStatuses implements \Magento\Framework\Option\ArrayInterface
 {
+    /**
+     * @var \Magento\Sales\Model\Order\ConfigFactory
+     */
     private $_configFactory;
 
+    /**
+     * HoldedStateStatuses constructor.
+     * @param \Magento\Sales\Model\Order\ConfigFactory $configFactory
+     */
     public function __construct(
         \Magento\Sales\Model\Order\ConfigFactory $configFactory
-    )
-    {
+    ) {
         $this->_configFactory = $configFactory;
     }
 
@@ -21,6 +28,7 @@ class HoldedStateStatuses implements \Magento\Framework\Option\ArrayInterface
     {
         $orderConfig = $this->_configFactory->create();
         $arr = $orderConfig->getStateStatuses(\Magento\Sales\Model\Order::STATE_HOLDED);
+
         return array_map(function ($status_code, $status_label) {
             return ['value' => $status_code, 'label' => __($status_label)];
         }, array_keys($arr), $arr);

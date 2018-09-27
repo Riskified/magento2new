@@ -1,11 +1,10 @@
 <?php
+
 namespace Riskified\Decider\Api;
 
 use Riskified\Common\Riskified;
 use Riskified\Common\Signature;
 use Riskified\Common\Validations;
-use Riskified\OrderWebhook\Model;
-use Riskified\OrderWebhook\Transport;
 use Riskified\OrderWebhook\Transport\CurlTransport;
 use Riskified\DecisionNotification\Model\Notification as DecisionNotification;
 
@@ -16,14 +15,29 @@ class Api
     const ACTION_SUBMIT = 'submit';
     const ACTION_CANCEL = 'cancel';
 
+    /**
+     * @var string
+     */
     private $version;
+
+    /**
+     * @var Config
+     */
     private $_apiConfig;
 
+    /**
+     * Api constructor.
+     *
+     * @param Config $apiConfig
+     */
     public function __construct(Config $apiConfig)
     {
         $this->_apiConfig = $apiConfig;
     }
 
+    /**
+     * Init Sdk.
+     */
     public function initSdk()
     {
         $authToken = $this->_apiConfig->getAuthToken();
@@ -34,6 +48,9 @@ class Api
         Riskified::init($shopDomain, $authToken, $env, Validations::SKIP);
     }
 
+    /**
+     * @return CurlTransport
+     */
     public function getTransport()
     {
         $transport = new CurlTransport(new Signature\HttpDataSignature());
@@ -41,6 +58,9 @@ class Api
         return $transport;
     }
 
+    /**
+     * @return array
+     */
     protected function getHeaders()
     {
         return [
@@ -50,6 +70,11 @@ class Api
         ];
     }
 
+    /**
+     * @param $request
+     *
+     * @return DecisionNotification
+     */
     public function parseRequest($request)
     {
         $header_name = Signature\HttpDataSignature::HMAC_HEADER_NAME;

@@ -1,14 +1,26 @@
 <?php
+
 namespace Riskified\Decider\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
-use Riskified\Decider\Api\Api;
 
 class ProcessSuccessfulPost implements ObserverInterface
 {
+    /**
+     * @var \Riskified\Decider\Logger\Order
+     */
     private $logger;
+
+    /**
+     * @var \Riskified\Decider\Api\Order
+     */
     private $orderApi;
 
+    /**
+     * ProcessSuccessfulPost constructor.
+     * @param \Riskified\Decider\Logger\Order $logger
+     * @param \Riskified\Decider\Api\Order $orderApi
+     */
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
@@ -17,6 +29,9 @@ class ProcessSuccessfulPost implements ObserverInterface
         $this->orderApi = $orderApi;
     }
 
+    /**
+     * @param \Magento\Framework\Event\Observer $observer
+     */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getOrder();

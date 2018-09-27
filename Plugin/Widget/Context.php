@@ -4,6 +4,12 @@ namespace Riskified\Decider\Plugin\Widget;
 
 class Context
 {
+    /**
+     * @param \Magento\Backend\Block\Widget\Context $subject
+     * @param $buttonList
+     *
+     * @return mixed
+     */
     public function afterGetButtonList(
         \Magento\Backend\Block\Widget\Context $subject,
         $buttonList
@@ -16,8 +22,7 @@ class Context
             $registry = $objectManager->get('Magento\Framework\Registry');
             $scopeConfig = $objectManager->get('\Magento\Framework\App\Config\ScopeConfigInterface');
 
-            if (
-                $registry->registry('current_order')->getState() != 'canceled'
+            if ($registry->registry('current_order')->getState() != 'canceled'
                 && $scopeConfig->getValue('riskified/riskified_general/enabled')
             ) {
                 $buttonList->add(
@@ -34,6 +39,9 @@ class Context
         return $buttonList;
     }
 
+    /**
+     * @return mixed
+     */
     public function getCustomUrl()
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();

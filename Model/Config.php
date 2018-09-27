@@ -2,8 +2,6 @@
 
 namespace Riskified\Decider\Model;
 
-use Magento\Store\Model\StoreManagerInterface;
-
 /**
  * Riskified Decider config model.
  *

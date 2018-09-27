@@ -1,15 +1,34 @@
 <?php
+
 namespace Riskified\Decider\Controller\Response;
 
 use \Riskified\DecisionNotification;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
+    /**
+     * @var \Riskified\Decider\Api\Order
+     */
     private $apiOrderLayer;
-    private $api;
-    private $apiLogger;
-    private $order;
 
+    /**
+     * @var \Riskified\Decider\Api\Api
+     */
+    private $api;
+
+    /**
+     * @var \Riskified\Decider\Api\Log
+     */
+    private $apiLogger;
+
+    /**
+     * Get constructor.
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Riskified\Decider\Api\Api $api
+     * @param \Riskified\Decider\Api\Order $apiOrder
+     * @param \Riskified\Decider\Api\Log $apiLogger
+     */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Riskified\Decider\Api\Api $api,
@@ -22,6 +41,9 @@ class Get extends \Magento\Framework\App\Action\Action
         $this->apiOrderLayer = $apiOrder;
     }
 
+    /**
+     * Execute.
+     */
     public function execute()
     {
         $request = $this->getRequest();
@@ -62,7 +84,7 @@ class Get extends \Magento\Framework\App\Action\Action
                 if (!$order || !$order->getId()) {
                     $logger->log(
                         sprintf(
-                           "ERROR: Unable to load order (%s)",
+                            "ERROR: Unable to load order (%s)",
                             $id
                         )
                     );

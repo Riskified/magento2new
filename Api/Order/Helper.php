@@ -4,7 +4,6 @@ namespace Riskified\Decider\Api\Order;
 
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
-use Riskified\Decider\Api\Order\PaymentProcessorFactory;
 
 class Helper
 {
@@ -71,11 +70,13 @@ class Helper
     {
         $code = $this->getOrder()->getDiscountDescription();
         $amount = $this->getOrder()->getDiscountAmount();
-        if ($amount && $code)
+        if ($amount && $code) {
             return new Model\DiscountCode(array_filter(array(
                 'code' => $code,
                 'amount' => $amount
             )));
+        }
+
         return null;
     }
 

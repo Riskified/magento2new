@@ -1,19 +1,48 @@
 <?php
+
 namespace Riskified\Decider\Cron;
 
 class Submission
 {
-    protected $queue;
-    protected $logger;
-    protected $api;
-    protected $config;
-    protected $date;
-    protected $orderFactory;
-
     const MAX_ATTEMPTS = 7;
     const INTERVAL_BASE = 3;
     const BATCH_SIZE = 10;
 
+    /**
+     * @var \Riskified\Decider\Model\Queue
+     */
+    protected $queue;
+    /**
+     * @var \Riskified\Decider\Logger\Order
+     */
+    protected $logger;
+    /**
+     * @var \Riskified\Decider\Api\Order
+     */
+    protected $api;
+    /**
+     * @var \Riskified\Decider\Api\Config
+     */
+    protected $config;
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $date;
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
+     */
+    protected $orderFactory;
+
+    /**
+     * Submission constructor.
+     *
+     * @param \Riskified\Decider\Model\Queue $queue
+     * @param \Riskified\Decider\Api\Order $api
+     * @param \Riskified\Decider\Api\Config $apiConfig
+     * @param \Riskified\Decider\Logger\Order $logger
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory
+     */
     public function __construct(
         \Riskified\Decider\Model\Queue $queue,
         \Riskified\Decider\Api\Order $api,
@@ -31,16 +60,20 @@ class Submission
         $this->orderFactory = $orderFactory;
     }
 
+    /**
+     * Execute.
+     */
     public function execute()
     {
-        if(!$this->config->isEnabled()) {
+        if (!$this->config->isEnabled()) {
             return;
         }
 
         $this->logger->addInfo("Retrying failed order submissions");
 
         $retries = $this->queue->getCollection()
-            ->addfieldtofilter('attempts',
+            ->addfieldtofilter(
+                'attempts',
                 array(
                     array('lt' => self::MAX_ATTEMPTS)
                 )
@@ -50,9 +83,9 @@ class Submission
         $adapter = $select->getAdapter();
         $select
             ->where(sprintf(
-                "TIMESTAMPDIFF(MINUTE, `updated_at`, %s) - POW(%s, attempts) > 0"
-                , $adapter->quote($this->date->gmtDate())
-                , $adapter->quote(self::INTERVAL_BASE)
+                "TIMESTAMPDIFF(MINUTE, `updated_at`, %s) - POW(%s, attempts) > 0",
+                $adapter->quote($this->date->gmtDate()),
+                $adapter->quote(self::INTERVAL_BASE)
             ))
             ->order('updated_at ASC')
             ->limit(self::BATCH_SIZE);

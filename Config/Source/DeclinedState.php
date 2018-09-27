@@ -1,4 +1,5 @@
 <?php
+
 namespace Riskified\Decider\Config\Source;
 
 class DeclinedState implements \Magento\Framework\Option\ArrayInterface

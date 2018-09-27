@@ -1,9 +1,19 @@
 <?php
+
 namespace Riskified\Decider\Config\Source;
 
 class ProcessingStateStatuses implements \Magento\Framework\Option\ArrayInterface
 {
+    /**
+     * @var \Magento\Sales\Model\Order\ConfigFactory
+     */
     private $_configFactory;
+
+    /**
+     * ProcessingStateStatuses constructor.
+     *
+     * @param \Magento\Sales\Model\Order\ConfigFactory $configFactory
+     */
     public function __construct(
         \Magento\Sales\Model\Order\ConfigFactory $configFactory
     ) {

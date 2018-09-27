@@ -1,4 +1,5 @@
 <?php
+
 namespace Riskified\Decider\Config\Source;
 
 class Env implements \Magento\Framework\Option\ArrayInterface

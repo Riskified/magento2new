@@ -1,12 +1,22 @@
 <?php
+
 namespace Riskified\Decider\Controller\Response;
 
 use \Riskified\DecisionNotification;
 
 class Bin extends \Magento\Framework\App\Action\Action
 {
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
     private $customerSession;
 
+    /**
+     * Bin constructor.
+     *
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Customer\Model\Session $customerSession
+     */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Customer\Model\Session $customerSession
@@ -16,6 +26,9 @@ class Bin extends \Magento\Framework\App\Action\Action
     }
 
 
+    /**
+     * Execute.
+     */
     public function execute()
     {
         $card_no = $this->getRequest()->getParam('card', null);

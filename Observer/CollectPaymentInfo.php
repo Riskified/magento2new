@@ -1,15 +1,25 @@
 <?php
+
 namespace Riskified\Decider\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Model\Service\InvoiceService;
-use Magento\Framework\App\ObjectManagerFactory;
 
 class CollectPaymentInfo implements ObserverInterface
 {
+    /**
+     * @var \Riskified\Decider\Logger\Order
+     */
     private $_logger;
+    /**
+     * @var \Riskified\Decider\Api\Order
+     */
     private $_orderApi;
 
+    /**
+     * CollectPaymentInfo constructor.
+     * @param \Riskified\Decider\Logger\Order $logger
+     * @param \Riskified\Decider\Api\Order $orderApi
+     */
     public function __construct(
         \Riskified\Decider\Logger\Order $logger,
         \Riskified\Decider\Api\Order $orderApi
@@ -18,6 +28,9 @@ class CollectPaymentInfo implements ObserverInterface
         $this->_orderApi = $orderApi;
     }
 
+    /**
+     * @param \Magento\Framework\Event\Observer $observer
+     */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         return;

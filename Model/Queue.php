@@ -1,6 +1,7 @@
 <?php
 
 namespace Riskified\Decider\Model;
+
 class Queue extends \Magento\Framework\Model\AbstractModel
 {
     protected function _construct()
@@ -27,6 +28,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     {
         return $this->getData('action');
     }
+
     /**
      * Get URL Key
      *
@@ -36,6 +38,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     {
         return $this->getData('order_id');
     }
+
     /**
      * Get URL Key
      *
@@ -45,6 +48,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel
     {
         return $this->getData('last_error');
     }
+
     /**
      * Get URL Key
      *
@@ -68,25 +72,32 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Set ID
      *
      * @param int $entry_id
+     *
+     * @return $this
      */
     public function setEntryId($entry_id)
     {
-
         return $this->setData('entry_id', $entry_id);
     }
+
     /**
      * Set Action
      *
      * @param string $action
+     *
+     * @return $this
      */
     public function setAction($action)
     {
         return $this->setData('action', $action);
     }
+
     /**
      * Set Order ID
      *
      * @param int $order_id
+     *
+     * @return $this
      */
     public function setOrderId($order_id)
     {
@@ -96,6 +107,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Set Attemps
      *
      * @param int $attempts
+     *
+     * @return $this
      */
     public function setAttempts($attempts)
     {
@@ -105,6 +118,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Set ID
      *
      * @param int $lastAttempt
+     *
+     * @return $this
      */
     public function setLastAttempt($lastAttempt)
     {
@@ -114,6 +129,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Set ID
      *
      * @param int $nextAttempt
+     *
+     * @return $this
      */
     public function setNextAttempt($nextAttempt)
     {
@@ -123,6 +140,8 @@ class Queue extends \Magento\Framework\Model\AbstractModel
      * Set ID
      *
      * @param int $status
+     *
+     * @return $this
      */
     public function setStatus($status)
     {

@@ -17,8 +17,8 @@ use Riskified\Decider\Api\Order\Log;
 use Riskified\Decider\Logger\Order;
 use \Magento\Sales\Api\OrderRepositoryInterface;
 
-
-class Declined implements ObserverInterface {
+class Declined implements ObserverInterface
+{
     /**
      * Module main logger class.
      *
@@ -46,7 +46,6 @@ class Declined implements ObserverInterface {
      * @var Config
      */
     protected $apiConfig;
-
 
     /**
      * Magento's invoice service.
@@ -88,6 +87,10 @@ class Declined implements ObserverInterface {
      * @var \Magento\Framework\Escaper
      */
     private $escaper;
+
+    /**
+     * @var OrderRepositoryInterface
+     */
     private $orderRepository;
 
     /**
@@ -130,8 +133,9 @@ class Declined implements ObserverInterface {
 
     /**
      * Observer execute
-     * 
+     *
      * @param Observer $observer
+     *
      * @return $this
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -224,6 +228,7 @@ class Declined implements ObserverInterface {
 
     /**
      * @param $order
+     *
      * @return array
      */
     private function getFormattedData($order)

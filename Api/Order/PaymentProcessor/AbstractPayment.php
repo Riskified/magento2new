@@ -19,6 +19,11 @@ abstract class AbstractPayment
         return $this;
     }
 
+    /**
+     * @param $order
+     *
+     * @return $this
+     */
     public function setOrder($order)
     {
         $this->order = $order;
