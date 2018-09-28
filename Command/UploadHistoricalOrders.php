@@ -11,6 +11,7 @@ use Riskified\Common\Validations;
 use Riskified\Common\Signature;
 use Riskified\OrderWebhook\Model;
 use Riskified\OrderWebhook\Transport\CurlTransport;
+use Riskified\Decider\Api\Order\Helper;
 
 class UploadHistoricalOrders extends Command
 {
@@ -32,7 +33,7 @@ class UploadHistoricalOrders extends Command
     protected $_searchCriteriaBuilder;
 
     /**
-     * @var mixed
+     * @var Helper
      */
     protected $_orderHelper;
 
@@ -63,12 +64,14 @@ class UploadHistoricalOrders extends Command
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      * @param \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder
+     * @param Helper $helper
      */
     public function __construct(
         \Magento\Framework\App\State $state,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder
+        \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder,
+        Helper $helper
     ) {
         $state->setAreaCode('adminhtml');
 
@@ -76,8 +79,7 @@ class UploadHistoricalOrders extends Command
         $this->_orderRepository         = $orderRepository;
         $this->_searchCriteriaBuilder   = $searchCriteriaBuilder;
 
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $this->_orderHelper = $objectManager->get('\Riskified\Decider\Api\Order\Helper');
+        $this->_orderHelper = $helper;
 
         $this->_transport = new CurlTransport(new Signature\HttpDataSignature());
         $this->_transport->timeout = 15;

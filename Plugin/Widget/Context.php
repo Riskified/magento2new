@@ -2,8 +2,44 @@
 
 namespace Riskified\Decider\Plugin\Widget;
 
+use Magento\Framework\App\Action\Context as ActionContext;
+use Magento\Framework\Registry;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+
 class Context
 {
+    /**
+     * @var ActionContext
+     */
+    private $context;
+
+    /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
+     * @var ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    /**
+     * Context constructor.
+     *
+     * @param ActionContext $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $scopeConfig
+     */
+    public function __construct(
+        ActionContext $context,
+        Registry $registry,
+        ScopeConfigInterface $scopeConfig
+    ) {
+        $this->context = $context;
+        $this->registry = $registry;
+        $this->scopeConfig = $scopeConfig;
+    }
+
     /**
      * @param \Magento\Backend\Block\Widget\Context $subject
      * @param $buttonList
@@ -14,16 +50,10 @@ class Context
         \Magento\Backend\Block\Widget\Context $subject,
         $buttonList
     ) {
-
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $request = $objectManager->get('Magento\Framework\App\Action\Context')->getRequest();
-
+        $request = $this->context->getRequest();
         if ($request->getFullActionName() == 'sales_order_view') {
-            $registry = $objectManager->get('Magento\Framework\Registry');
-            $scopeConfig = $objectManager->get('\Magento\Framework\App\Config\ScopeConfigInterface');
-
-            if ($registry->registry('current_order')->getState() != 'canceled'
-                && $scopeConfig->getValue('riskified/riskified_general/enabled')
+            if ($this->registry->registry('current_order')->getState() != 'canceled'
+                && $this->scopeConfig->getValue('riskified/riskified_general/enabled')
             ) {
                 $buttonList->add(
                     'send_to_riskified',
@@ -40,13 +70,13 @@ class Context
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getCustomUrl()
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $urlManager = $objectManager->get('Magento\Framework\App\Action\Context')->getUrl();
-        $request = $objectManager->get('Magento\Framework\App\Action\Context')->getRequest();
-        return $urlManager->getUrl('riskified/riskified/send', array('order_id' => $request->getParam('order_id')));
+        return $this->context->getUrl()->getUrl(
+            'riskified/riskified/send',
+            array('order_id' => $this->context->getRequest()->getParam('order_id'))
+        );
     }
 }

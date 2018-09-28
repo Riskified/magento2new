@@ -2,7 +2,6 @@
 
 namespace Riskified\Decider\Observer;
 
-use Magento\Framework\App\ObjectManagerFactory;
 use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -66,13 +65,6 @@ class AutoInvoice implements ObserverInterface
     private $context;
 
     /**
-     * Object Manager class.
-     *
-     * @var ObjectManagerFactory
-     */
-    private $objectManager;
-
-    /**
      * State class used to emulate admin scope during invoice creation.
      *
      * @var State
@@ -102,7 +94,6 @@ class AutoInvoice implements ObserverInterface
      * @param OrderApi             $orderApi
      * @param InvoiceService       $invoiceService
      * @param Context              $context
-     * @param ObjectManagerFactory $objectManagerFactory
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
      * @param \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository
      */
@@ -113,7 +104,6 @@ class AutoInvoice implements ObserverInterface
         OrderApi $orderApi,
         InvoiceService $invoiceService,
         Context $context,
-        ObjectManagerFactory $objectManagerFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository
     ) {
@@ -123,7 +113,6 @@ class AutoInvoice implements ObserverInterface
         $this->apiConfig = $apiConfig;
         $this->apiOrderLogger = $apiOrderLogger;
         $this->invoiceService = $invoiceService;
-        $this->objectManager = $objectManagerFactory;
         $this->state = $context->getAppState();
         $this->orderRepository = $orderRepository;
         $this->invoiceRepository = $invoiceRepository;

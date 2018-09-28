@@ -4,6 +4,11 @@ namespace Riskified\Decider\Api\Order;
 
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\HTTP\Header;
+use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Registry;
 
 class Helper
 {
@@ -17,6 +22,11 @@ class Helper
     private $_storeManager;
 
     /**
+     * @var State
+     */
+    private $state;
+
+    /**
      * @var \Riskified\Decider\Api\Order\PaymentProcessorFactory
      */
     private $paymentProcessorFactory;
@@ -25,6 +35,23 @@ class Helper
      * @var CategoryRepositoryInterface
      */
     private $categoryRepository;
+
+    /**
+     * @var ResolverInterface
+     */
+    private $localeResolver;
+
+    /**
+     * @var Header
+     */
+    private $httpHeader;
+
+    /**
+     * @var CustomerSession
+     */
+    private $customerSession;
+
+    private $registry;
 
     public function __construct(
         \Magento\Framework\Logger\Monolog $logger,
@@ -35,7 +62,12 @@ class Helper
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         CategoryRepositoryInterface $categoryRepository,
-        PaymentProcessorFactory $paymentProcessorFactory
+        PaymentProcessorFactory $paymentProcessorFactory,
+        State $state,
+        ResolverInterface $localeResolver,
+        Header $httpHeader,
+        CustomerSession $customerSession,
+        Registry $registry
     ) {
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
@@ -46,6 +78,11 @@ class Helper
         $this->_storeManager = $storeManager;
         $this->categoryRepository = $categoryRepository;
         $this->paymentProcessorFactory = $paymentProcessorFactory;
+        $this->state = $state;
+        $this->localeResolver = $localeResolver;
+        $this->httpHeader = $httpHeader;
+        $this->customerSession = $customerSession;
+        $this->registry = $registry;
     }
 
     public function setOrder($model)
@@ -92,15 +129,14 @@ class Helper
         return $this->getAddress($mageAddr);
     }
 
+    /**
+     * @return Model\ClientDetails
+     */
     public function getClientDetails()
     {
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $resolver = $om->get('Magento\Framework\Locale\Resolver');
-        $httpHeader = $om->get('Magento\Framework\HTTP\Header');
-
         return new Model\ClientDetails(array_filter(array(
-            'accept_language' => $resolver->getLocale(),
-            'user_agent' => $httpHeader->getHttpUserAgent()
+            'accept_language' => $this->localeResolver->getLocale(),
+            'user_agent' => $this->httpHeader->getHttpUserAgent()
         ), 'strlen'));
     }
 
@@ -138,10 +174,12 @@ class Helper
         return new Model\Customer(array_filter($customer_props, 'strlen'));
     }
 
+    /**
+     * @return CustomerSession
+     */
     public function getCustomerSession()
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        return $objectManager->get('Magento\Customer\Model\Session');
+        return $this->customerSession;
     }
 
     public function getLineItems()
@@ -177,7 +215,7 @@ class Helper
                     $categories[] = $root_category->getName();
                 }
 
-                if($product->getManufacturer()) {
+                if ($product->getManufacturer()) {
                     $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
                 }
             }
@@ -189,7 +227,7 @@ class Helper
                 'product_id' => $item->getItemId(),
                 'grams' => $item->getWeight(),
                 'product_type' => $prod_type,
-                'brand'	=> $brand,
+                'brand' => $brand,
                 'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
                 'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
             ), 'strlen'));
@@ -313,15 +351,12 @@ class Helper
             $paymentData['avs_result_code'] = $payment->getCcAvsStatus();
         }
 
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
-            $session = $om->get('Magento\Customer\Model\Session');
-            $paymentData['credit_card_bin'] = $session->getRiskifiedBin();
-            $session->unsRiskifiedBin();
+            $paymentData['credit_card_bin'] = $this->customerSession->getRiskifiedBin();
+            $this->customerSession->unsRiskifiedBin();
         }
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
-            $coreRegistry = $om->get('Magento\Framework\Registry');
-            $paymentData['credit_card_bin'] = $coreRegistry->registry('riskified_cc_bin');
+            $paymentData['credit_card_bin'] = $this->registry->registry('riskified_cc_bin');
         }
         if (isset($paymentData['credit_card_bin'])) {
             $paymentData['credit_card_bin'] = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
@@ -358,6 +393,9 @@ class Helper
         return $orderCancellation;
     }
 
+    /**
+     * @return string
+     */
     public function getRemoteIp()
     {
         $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
@@ -374,7 +412,7 @@ class Helper
             if (is_array($remotes) && count($remotes) > 1) {
                 return trim($remotes[0]);
             } else {
-                foreach ($remotes AS $k => $val) {
+                foreach ($remotes as $k => $val) {
                     $remotes[$k] = trim($val);
                 }
 
@@ -384,15 +422,21 @@ class Helper
         return $remoteIp;
     }
 
+    /**
+     * @param $dateStr
+     *
+     * @return false|null|string
+     */
     public function formatDateAsIso8601($dateStr)
     {
-        return ($dateStr == NULL) ? NULL : date('c', strtotime($dateStr));
+        return ($dateStr == null) ? null : date('c', strtotime($dateStr));
     }
 
-    public function isAdmin() {
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $state =  $om->get('Magento\Framework\App\State');
-
-        return $state->getAreaCode() === 'adminhtml';
+    /**
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->state->getAreaCode() === 'adminhtml';
     }
 }
