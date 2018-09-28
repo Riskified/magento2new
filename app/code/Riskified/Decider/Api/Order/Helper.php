@@ -209,8 +209,15 @@ class Helper
         $street = $address->getStreet();
         $address_1 = (!is_null($street) && array_key_exists('0', $street)) ? $street['0'] : null;
         $address_2 = (!is_null($street) && array_key_exists('1', $street)) ? $street['1'] : null;
+
+        $firstName = $address->getFirstname();
+
+        if (is_object($firstName)) {
+            $firstName = $firstName->getText();
+        }
+
         $addrArray = array_filter(array(
-            'first_name' => $address->getFirstname(),
+            'first_name' => $firstName,
             'last_name' => $address->getLastname(),
             'name' => $address->getFirstname() . " " . $address->getLastname(),
             'company' => $address->getCompany(),
@@ -285,6 +292,7 @@ class Helper
                 case 'paypal_express':
                 case 'paypaluk_express':
                 case 'paypal_standard':
+                case 'payflow_express':
                     $payer_email = $payment->getAdditionalInformation('paypal_payer_email');
                     $payer_status = $payment->getAdditionalInformation('paypal_payer_status');
                     $payer_address_status = $payment->getAdditionalInformation('paypal_address_status');
@@ -338,6 +346,23 @@ class Helper
                     $houseVerification = $payment->getAdditionalInformation('avsaddr');
                     $zipVerification = $payment->getAdditionalInformation('avszip');
                     $avs_result_code = $houseVerification . ',' . $zipVerification;
+                break;
+                case 'adyen_oneclick':
+                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
+                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
+                    $transactionId = $payment->getAdditionalInformation('pspReference');
+                    $credit_card_bin = $payment->getAdyenCardBin();
+                break;
+                case 'adyen_cc':
+                    $avs_result_code = $payment->getAdditionalInformation('adyen_avs_result');
+                    $cvv_result_code = $payment->getAdditionalInformation('adyen_cvc_result');
+                    $transactionId = $payment->getAdditionalInformation('pspReference');
+                    $credit_card_bin = $payment->getAdyenCardBin();
+                    break;
+                case 'cryozonic_stripe':
+                    $credit_card_number = $payment->getCcLast4();
+                    $credit_card_company = $payment->getCcType();
+                    $avs_result_code = $payment->getAdditionalInformation('address_line1_check') . ',' . $payment->getAdditionalInformation('address_zip_check');
                     break;
                 default:
                     break;
@@ -385,7 +410,7 @@ class Helper
     {
         return new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
-            'title' => $this->getOrder()->getShippingDescription(),
+            'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
         ), 'strlen'));
     }
@@ -442,7 +467,9 @@ class Helper
 
     public function getRemoteIp()
     {
-        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() . ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
+            ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
@@ -467,5 +494,12 @@ class Helper
     public function formatDateAsIso8601($dateStr)
     {
         return ($dateStr == NULL) ? NULL : date('c', strtotime($dateStr));
+    }
+
+    public function isAdmin() {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $state =  $om->get('Magento\Framework\App\State');
+
+        return $state->getAreaCode() === 'adminhtml';
     }
 }

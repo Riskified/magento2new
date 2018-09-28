@@ -22,7 +22,7 @@ class HoldedStateStatuses implements \Magento\Framework\Option\ArrayInterface
         $orderConfig = $this->_configFactory->create();
         $arr = $orderConfig->getStateStatuses(\Magento\Sales\Model\Order::STATE_HOLDED);
         return array_map(function ($status_code, $status_label) {
-            return array('value' => $status_code, 'label' => __($status_label));
+            return ['value' => $status_code, 'label' => __($status_label)];
         }, array_keys($arr), $arr);
     }
 }

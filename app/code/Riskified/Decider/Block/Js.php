@@ -1,25 +1,22 @@
 <?php
+
 namespace Riskified\Decider\Block;
 
-class Js extends \Magento\Framework\View\Element\Template
+use Magento\Framework\View\Element\Template\Context;
+use Riskified\Decider\Api\Config;
+use Magento\Framework\View\Element\Template;
+
+class Js extends Template
 {
     private $apiConfig;
     private $session;
     protected $_isScopePrivate = false;
 
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        \Riskified\Decider\Api\Config $apiConfig,
-        array $data = [])
-    {
-        $this->validator = $context->getValidator();
-        $this->resolver = $context->getResolver();
-        $this->_filesystem = $context->getFilesystem();
-        $this->templateEnginePool = $context->getEnginePool();
-        $this->_storeManager = $context->getStoreManager();
-        $this->_appState = $context->getAppState();
-        $this->templateContext = $this;
-        $this->pageConfig = $context->getPageConfig();
+        Context $context,
+        Config $apiConfig,
+        array $data = []
+    ) {
         $this->apiConfig = $apiConfig;
         $this->session = $context->getSession();
 
@@ -55,5 +52,4 @@ class Js extends \Magento\Framework\View\Element\Template
     {
         return $this->apiConfig->getConfigBeaconUrl();
     }
-
 }

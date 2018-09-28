@@ -1,6 +1,8 @@
 <?php
 namespace Riskified\Decider\Api;
 
+use \Magento\Store\Model\ScopeInterface as ScopeInterface;
+
 class Config
 {
     private $version;
@@ -16,8 +18,7 @@ class Config
         \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
         \Magento\Framework\Module\FullModuleList $fullModuleList,
         \Magento\Checkout\Model\Session $checkoutSession
-    )
-    {
+    ) {
         $this->_scopeConfig     = $scopeConfig;
         $this->cookieManager    = $cookieManager;
         $this->fullModuleList   = $fullModuleList;
@@ -29,24 +30,37 @@ class Config
         return $this->_scopeConfig->getValue('riskified/riskified_general/enabled');
     }
 
-    protected function getHeaders()
+    public function getHeaders()
     {
-        return array('headers' => array('X_RISKIFIED_VERSION:' . $this->version));
+        return [
+            'headers' => [
+                'X_RISKIFIED_VERSION:' . $this->version
+            ]
+        ];
     }
 
     public function getAuthToken()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/key',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getConfigStatusControlActive()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/order_status_sync');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/order_status_sync',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getConfigEnv()
     {
-        return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue('riskified/riskified/env');
+        return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue(
+                'riskified/riskified/env',
+                ScopeInterface::SCOPE_STORES
+            );
     }
 
     public function getSessionId()
@@ -56,12 +70,18 @@ class Config
 
     public function getConfigEnableAutoInvoice()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/auto_invoice_enabled',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getConfigAutoInvoiceCaptureCase()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/auto_invoice_capture_case');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/auto_invoice_capture_case',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getConfigBeaconUrl()
@@ -71,7 +91,10 @@ class Config
 
     public function getShopDomain()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/domain');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/domain',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getExtensionVersion()
@@ -82,51 +105,137 @@ class Config
 
     public function getDeclinedState()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/declined_state');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/declined_state',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getDeclinedStatus()
     {
         $state = $this->getDeclinedState();
-        return $this->_scopeConfig->getValue('riskified/riskified/declined_status_' . $state);
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/declined_status_' . $state,
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getApprovedState()
     {
-        return $this->_scopeConfig->getValue('riskified/riskified/approved_state');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/approved_state',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getApprovedStatus()
     {
         $state = $this->getApprovedState();
-        return $this->_scopeConfig->getValue('riskified/riskified/approved_status_' . $state);
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified/approved_status_' . $state,
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function isLoggingEnabled()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/debug_logs');
+        return (bool)$this->_scopeConfig->getValue(
+            'riskified/riskified/debug_logs',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function isAutoInvoiceEnabled()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified/auto_invoice_enabled');
+        return (bool)$this->_scopeConfig->getValue(
+            'riskified/riskified/auto_invoice_enabled',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 
     public function getInvoiceCaptureCase()
     {
-        $case = $this->_scopeConfig->getValue('riskified/riskified/auto_invoice_capture_case');
-        if (!in_array($case, array(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE, \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE))) {
-            $case = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
+        $captureCase = $this->_scopeConfig->getValue(
+            'riskified/riskified/auto_invoice_capture_case',
+            ScopeInterface::SCOPE_STORES
+        );
+
+        $availableStatuses = [
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE,
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE
+        ];
+
+        if (!in_array($captureCase, $availableStatuses)) {
+            $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
         }
-        return $case;
+
+        return $captureCase;
     }
 
     public function getCaptureCase()
     {
-        $case = $this->_scopeConfig->getValue('riskified/riskified/auto_invoice_capture_case');
-        if (!in_array($case, array(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE, \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE))) {
-            $case = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
+        $captureCase = $this->_scopeConfig->getValue(
+            'riskified/riskified/auto_invoice_capture_case',
+            ScopeInterface::SCOPE_STORES
+        );
+
+        $avialableStatuses =  [
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE,
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE
+        ];
+
+        if (!in_array($captureCase, $avialableStatuses)) {
+            $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
         }
-        return $case;
+
+        return $captureCase;
+    }
+
+    public function isDeclineNotificationEnabled()
+    {
+        return (bool)$this->_scopeConfig->getValue(
+            'riskified/decline_notification/enabled',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSender()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/email_identity',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSenderEmail()
+    {
+        return $this->_scopeConfig->getValue(
+            'trans_email/ident_' . $this->getDeclineNotificationSender() . '/email',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSenderName()
+    {
+        return $this->_scopeConfig->getValue(
+            'trans_email/ident_' . $this->getDeclineNotificationSender() . '/name',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationSubject()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/title',
+            ScopeInterface::SCOPE_STORES
+        );
+    }
+
+    public function getDeclineNotificationContent()
+    {
+        return $this->_scopeConfig->getValue(
+            'riskified/decline_notification/content',
+            ScopeInterface::SCOPE_STORES
+        );
     }
 }

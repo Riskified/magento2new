@@ -1,0 +1,19 @@
+<?php /** @var \Riskified\Decider\Block\Js $block */ ?>
+<?php if ($block->isEnabled()) : ?>
+<script>
+    require([
+        'jquery',
+        "jquery/ui",
+        'domReady!'
+    ], function($){
+        $(document).on('mousedown', '.payment-method-content .checkout', function (e) {
+            var value = jQuery('.payment-methods input[type="radio"]:checked').parent().next().find("input[name='payment[cc_number]']").val();
+            if (value.length > 0) {
+                $.ajax({url: "/decider/response/bin", data: {card: value.substr(0, 6)}});
+            }
+            e.preventDefault();
+        });
+
+    });
+</script>
+<?php endif ?>

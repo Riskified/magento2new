@@ -28,14 +28,46 @@ class InstallData implements InstallDataInterface
             ->insertArray($setup->getTable('sales_order_status'), ['status', 'label'], $data);
 
         $stateData = [];
-        $stateData[] = ['status' => 'riskified_approved', 'state' => 'holded', 'is_default' => 0, 'visible_on_front' => 0];
-        $stateData[] = ['status' => 'riskified_declined', 'state' => 'canceled', 'is_default' => 0, 'visible_on_front' => 0];
-        $stateData[] = ['status' => 'riskified_trans_error', 'state' => 'holded', 'is_default' => 0, 'visible_on_front' => 0];
-        $stateData[] = ['status' => 'riskified_declined', 'state' => 'holded', 'is_default' => 0, 'visible_on_front' => 0];
-        $stateData[] = ['status' => 'riskified_holded', 'state' => 'holded', 'is_default' => 0, 'visible_on_front' => 0];
-        $stateData[] = ['status' => 'riskified_approved', 'state' => 'processing', 'is_default' => 0, 'visible_on_front' => 0];
+        $stateData[] = [
+            'status' => 'riskified_approved',
+            'state' => 'holded',
+            'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+        $stateData[] = [
+            'status' => 'riskified_declined',
+            'state' => 'canceled',
+            'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+        $stateData[] = [
+            'status' => 'riskified_trans_error',
+            'state' => 'holded',
+            'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+        $stateData[] = [
+            'status' => 'riskified_declined',
+            'state' => 'holded', 'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+        $stateData[] = [
+            'status' => 'riskified_holded',
+            'state' => 'holded', 'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+        $stateData[] = [
+            'status' => 'riskified_approved',
+            'state' => 'processing', 'is_default' => 0,
+            'visible_on_front' => 0
+        ];
+
         $setup->getConnection()
-            ->insertArray($setup->getTable('sales_order_status_state'), ['status', 'state', 'is_default', 'visible_on_front'], $stateData);
+            ->insertArray(
+                $setup->getTable('sales_order_status_state'),
+                ['status', 'state', 'is_default', 'visible_on_front'],
+                $stateData
+            );
 
         $setup->endSetup();
     }

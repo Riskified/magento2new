@@ -1,4 +1,5 @@
 <?php
+
 namespace Riskified\Decider\Plugin\Widget;
 
 class Context
@@ -6,8 +7,7 @@ class Context
     public function afterGetButtonList(
         \Magento\Backend\Block\Widget\Context $subject,
         $buttonList
-    )
-    {
+    ) {
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $request = $objectManager->get('Magento\Framework\App\Action\Context')->getRequest();
@@ -16,7 +16,10 @@ class Context
             $registry = $objectManager->get('Magento\Framework\Registry');
             $scopeConfig = $objectManager->get('\Magento\Framework\App\Config\ScopeConfigInterface');
 
-            if ($registry->registry('current_order')->getState() != 'canceled' && $scopeConfig->getValue('riskified/riskified_general/enabled')) {
+            if (
+                $registry->registry('current_order')->getState() != 'canceled'
+                && $scopeConfig->getValue('riskified/riskified_general/enabled')
+            ) {
                 $buttonList->add(
                     'send_to_riskified',
                     [

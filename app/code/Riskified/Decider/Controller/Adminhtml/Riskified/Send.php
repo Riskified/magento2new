@@ -6,10 +6,10 @@ class Send extends \Magento\Backend\App\Action
 
     protected $apiOrderLayer;
 
-    public function __construct(\Magento\Backend\App\Action\Context $context,
-                                \Riskified\Decider\Api\Order $apiOrderLayer
-    )
-    {
+    public function __construct(
+        \Magento\Backend\App\Action\Context $context,
+        \Riskified\Decider\Api\Order $apiOrderLayer
+    ) {
         parent::__construct($context);
         $this->apiOrderLayer = $apiOrderLayer;
     }

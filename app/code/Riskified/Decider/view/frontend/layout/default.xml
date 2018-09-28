@@ -4,7 +4,7 @@
     <body>
         <referenceContainer name="before.body.end">
             <block class="Riskified\Decider\Block\Js" name="riskified_decider_js" as="riskified_decider_js"
-                   template="riskified_js.phtml" cacheable="false"/>
+                   template="riskified_js.phtml" />
         </referenceContainer>
     </body>
 </page>

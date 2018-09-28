@@ -28,6 +28,10 @@
     <event name="sales_order_payment_cancel">
         <observer name="riskified_sales_order_payment_cancel" instance="Riskified\Decider\Observer\OrderPaymentCancel"/>
     </event>
+    <event name="riskified_decider_order_update_declined">
+        <observer name="riskified_decider_order_update_declined"
+                  instance="Riskified\Decider\Observer\Order\Declined"/>
+    </event>
     <event name="sales_order_payment_refund">
         <observer name="riskified_sales_sales_order_payment_refund"
                   instance="Riskified\Decider\Observer\OrderPaymentRefund"/>
