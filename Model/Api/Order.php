@@ -157,6 +157,10 @@ class Order
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
+                case Api::ACTION_FULFILL:
+                    $orderForTransport = $this->_orderHelper->getOrderFulfillments();
+                    $response = $transport->fulfillOrder($orderForTransport);
+                    break;
             }
             $eventData['response'] = $response;
 

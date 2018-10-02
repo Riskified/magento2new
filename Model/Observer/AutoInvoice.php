@@ -179,7 +179,7 @@ class AutoInvoice implements ObserverInterface
                     false,
                     false
                 );
-            
+
             $this->state->emulateAreaCode(
                 'adminhtml',
                 [$invoice, 'register']
