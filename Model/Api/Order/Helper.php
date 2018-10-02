@@ -242,52 +242,72 @@ class Helper
         $line_items = array();
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
-            $prod_type = null;
+            $line_items[] = $this->getPreparedLineItem($item);
 
-            $prod_type = null;
-            $category = null;
-            $sub_categories = null;
-            $brand = null;
-            $product = $item->getProduct();
-
-            if ($product) {
-                $categories = [];
-                $sub_categories = [];
-                $category_ids = $product->getCategoryIds();
-
-                foreach ($category_ids as $categoryId) {
-                    $cat = $this->categoryRepository->get($categoryId);
-                    if ($cat->getLevel() == 2) {
-                        $categories[] = $cat->getName();
-                    } elseif ($cat->getLevel() >= 3) {
-                        $sub_categories[] = $cat->getName();
-                    }
-                }
-
-                if (empty($category_ids)) {
-                    $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                    $root_category = $this->categoryRepository->get($store_root_category_id);
-                    $categories[] = $root_category->getName();
-                }
-
-                if ($product->getManufacturer()) {
-                    $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
-                }
-            }
-            $line_items[] = new Model\LineItem(array_filter(array(
-                'price' => $item->getPrice(),
-                'quantity' => intval($item->getQtyOrdered()),
-                'title' => $item->getName(),
-                'sku' => $item->getSku(),
-                'product_id' => $item->getItemId(),
-                'grams' => $item->getWeight(),
-                'product_type' => $prod_type,
-                'brand' => $brand,
-                'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
-                'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
-            ), 'strlen'));
         }
         return $line_items;
+    }
+
+    public function getAllLineItems()
+    {
+        $line_items = array();
+
+        foreach ($this->getOrder()->getAllItems() as $key => $item) {
+            $line_items[] = $this->getPreparedLineItem($item);
+        }
+
+        return $line_items;
+    }
+
+    protected function getPreparedLineItem($item)
+    {
+        $prod_type = null;
+
+        $prod_type = null;
+        $category = null;
+        $sub_categories = null;
+        $brand = null;
+        $product = $item->getProduct();
+
+        if ($product) {
+            $categories = [];
+            $sub_categories = [];
+            $category_ids = $product->getCategoryIds();
+
+            foreach ($category_ids as $categoryId) {
+                $cat = $this->categoryRepository->get($categoryId);
+                if ($cat->getLevel() == 2) {
+                    $categories[] = $cat->getName();
+                } elseif ($cat->getLevel() >= 3) {
+                    $sub_categories[] = $cat->getName();
+                }
+            }
+
+            if (empty($category_ids)) {
+                $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
+                $root_category = $this->categoryRepository->get($store_root_category_id);
+                $categories[] = $root_category->getName();
+            }
+
+            if ($product->getManufacturer()) {
+                $brand = $product->getResource()->getAttribute('manufacturer')->getFrontend()->getValue($product);
+            }
+        }
+
+        $line_item = new Model\LineItem(array_filter(array(
+            'price' => $item->getPrice(),
+            'quantity' => intval($item->getQtyOrdered()),
+            'title' => $item->getName(),
+            'sku' => $item->getSku(),
+            'product_id' => $item->getItemId(),
+            'grams' => $item->getWeight(),
+            'product_type' => $prod_type,
+            'brand' => $brand,
+            'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
+            'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
+        ), 'strlen'));
+
+        return $line_item;
     }
 
     public function getAddress($address)
@@ -349,7 +369,7 @@ class Helper
         $this->preparePaymentData($payment, $paymentData);
 
         if (isset($paymentProcessor)
-            && $paymentProcessor instanceof \Riskified\Decider\Api\Order\PaymentProcessor\Paypal
+            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\Paypal
         ) {
             return new Model\PaymentDetails(array_filter(array(
                 'authorization_id' => $paymentData['transaction_id'],
@@ -448,9 +468,35 @@ class Helper
         return $orderCancellation;
     }
 
-    /**
-     * @return string
-     */
+    public function getOrderFulfillments()
+    {
+        $fulfillments = array();
+
+        foreach ($this->getOrder()->getShipmentsCollection() as $shipment) {
+            $tracking = $shipment->getTracksCollection()->getFirstItem();
+            $comment = $shipment->getCommentsCollection()->getFirstItem();
+            $payload = array(
+                "fulfillment_id" => $shipment->getIncrementId(),
+                "created_at" => $this->formatDateAsIso8601($shipment->getCreatedAt()),
+                "status" => "success",
+                "tracking_company" => $tracking->getTitle(),
+                "tracking_numbers" => $tracking->getTrackNumber(),
+                "message" => $comment->getComment(),
+                "line_items" => $this->getAllLineItems($shipment)
+            );
+
+            $fulfillments[] = new Model\FulfillmentDetails(array_filter($payload));
+        }
+
+
+        $orderFulfillments = new Model\Fulfillment(array_filter(array(
+            'id' => $this->getOrderOrigId(),
+            'fulfillments' => $fulfillments,
+        )));
+
+        return $orderFulfillments;
+    }
+
     public function getRemoteIp()
     {
         $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .

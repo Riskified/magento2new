@@ -46,6 +46,6 @@
     </event>
     <event name="sales_order_shipment_save_after">
         <observer name="riskified_sales_order_shipment_save_after"
-              instance="Riskified\Decider\Observer\SalesOrderShipmentSaveAfter"/>
+              instance="Riskified\Decider\Model\Observer\SalesOrderShipmentSaveAfter"/>
     </event>
 </config>
