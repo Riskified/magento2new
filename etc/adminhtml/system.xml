@@ -25,7 +25,7 @@
                 <field id="env" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1"
                        showInStore="1">
                     <label>Riskified environment</label>
-                    <source_model>Riskified\Decider\Config\Source\Env</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\Env</source_model>
                     <comment><![CDATA[Select Riskified's environment.<br> You can use sandbox for testing.
                                           <br>If you don't have a sandbox account please contact support@riskified.com ]]></comment>
                     <depends>
@@ -71,7 +71,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Approved State</label>
                     <comment><![CDATA[The Magento state to move to when an order is approved]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\ApprovedState</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\ApprovedState</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/riskified_general/enabled">1</field>
@@ -81,7 +81,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Approved Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is approved]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\ProcessingStateStatuses</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\ProcessingStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/approved_state">processing</field>
@@ -92,7 +92,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Approved Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is approved]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\HoldedStateStatuses</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\HoldedStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/approved_state">holded</field>
@@ -103,7 +103,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Declined State</label>
                     <comment><![CDATA[The Magento state to move to when an order is declined]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\DeclinedState</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\DeclinedState</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/riskified_general/enabled">1</field>
@@ -113,7 +113,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Declined Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\CanceledStateStatuses</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\CanceledStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/declined_state">canceled</field>
@@ -124,7 +124,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Declined Status</label>
                     <comment><![CDATA[The Magento status to move to when an order is declined]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\HoldedStateStatuses</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\HoldedStateStatuses</source_model>
                     <depends>
                         <field id="*/*/order_status_sync">1</field>
                         <field id="*/*/declined_state">holded</field>
@@ -145,7 +145,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Auto-Invoice Case</label>
                     <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
-                    <source_model>Riskified\Decider\Config\Source\CaptureCase</source_model>
+                    <source_model>Riskified\Decider\Model\Config\Source\CaptureCase</source_model>
                     <depends>
                         <field id="*/*/auto_invoice_enabled">1</field>
                         <field id="*/riskified_general/enabled">1</field>

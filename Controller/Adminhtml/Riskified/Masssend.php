@@ -2,10 +2,12 @@
 
 namespace Riskified\Decider\Controller\Adminhtml\Riskified;
 
+use Riskified\Decider\Model\Api\Order as OrderApi;
+
 class Masssend extends \Magento\Backend\App\Action
 {
     /**
-     * @var \Riskified\Decider\Api\Order
+     * @var OrderApi
      */
     protected $apiOrderLayer;
 
@@ -13,11 +15,11 @@ class Masssend extends \Magento\Backend\App\Action
      * Masssend constructor.
      *
      * @param \Magento\Backend\App\Action\Context $context
-     * @param \Riskified\Decider\Api\Order $apiOrderLayer
+     * @param OrderApi $apiOrderLayer
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \Riskified\Decider\Api\Order $apiOrderLayer
+        OrderApi $apiOrderLayer
     ) {
         parent::__construct($context);
         $this->apiOrderLayer = $apiOrderLayer;

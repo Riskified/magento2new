@@ -3,7 +3,7 @@
 namespace Riskified\Decider\Block;
 
 use Magento\Framework\View\Element\Template\Context;
-use Riskified\Decider\Api\Config;
+use Riskified\Decider\Model\Api\Config;
 use Magento\Framework\View\Element\Template;
 
 class Js extends Template

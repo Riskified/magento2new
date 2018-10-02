@@ -2,38 +2,42 @@
 
 namespace Riskified\Decider\Controller\Response;
 
+use Magento\Framework\App\Action\Context;
 use \Riskified\DecisionNotification;
+use Riskified\Decider\Model\Api\Api;
+use Riskified\Decider\Model\Api\Order as OrderApi;
+use Riskified\Decider\Model\Api\Log as LogApi;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Riskified\Decider\Api\Order
+     * @var OrderApi
      */
     private $apiOrderLayer;
 
     /**
-     * @var \Riskified\Decider\Api\Api
+     * @var Api
      */
     private $api;
 
     /**
-     * @var \Riskified\Decider\Api\Log
+     * @var LogApi
      */
     private $apiLogger;
 
     /**
      * Get constructor.
      *
-     * @param \Magento\Framework\App\Action\Context $context
-     * @param \Riskified\Decider\Api\Api $api
-     * @param \Riskified\Decider\Api\Order $apiOrder
-     * @param \Riskified\Decider\Api\Log $apiLogger
+     * @param Context $context
+     * @param Api $api
+     * @param OrderApi $apiOrder
+     * @param LogApi $apiLogger
      */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Riskified\Decider\Api\Api $api,
-        \Riskified\Decider\Api\Order $apiOrder,
-        \Riskified\Decider\Api\Log $apiLogger
+        Context $context,
+        Api $api,
+        OrderApi $apiOrder,
+        LogApi $apiLogger
     ) {
         parent::__construct($context);
         $this->api = $api;

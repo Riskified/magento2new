@@ -6,19 +6,19 @@
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
         </arguments>
     </type>
-    <type name="Riskified\Decider\Logger\Order">
+    <type name="Riskified\Decider\Model\Logger\Order">
         <arguments>
             <argument name="name" xsi:type="string">Order</argument>
             <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Riskified\Decider\Logger\Handler</item>
+                <item name="system" xsi:type="object">Riskified\Decider\Model\Logger\Handler</item>
             </argument>
         </arguments>
     </type>
-    <type name="Riskified\Decider\Logger\Merchant">
+    <type name="Riskified\Decider\Model\Logger\Merchant">
         <arguments>
             <argument name="name" xsi:type="string">Merchant</argument>
             <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Riskified\Decider\Logger\Handler</item>
+                <item name="system" xsi:type="object">Riskified\Decider\Model\Logger\Handler</item>
             </argument>
         </arguments>
     </type>
@@ -29,7 +29,7 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="riskfied_send_historical_orders" xsi:type="object">Riskified\Decider\Command\UploadHistoricalOrders</item>
+                <item name="riskfied_send_historical_orders" xsi:type="object">Riskified\Decider\Model\Command\UploadHistoricalOrders</item>
             </argument>
         </arguments>
     </type>
