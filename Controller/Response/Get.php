@@ -7,6 +7,7 @@ use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Order as OrderApi;
 use Riskified\Decider\Model\Api\Log as LogApi;
+use Magento\Framework\Controller\ResultFactory;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
@@ -32,6 +33,7 @@ class Get extends \Magento\Framework\App\Action\Action
      * @param Api $api
      * @param OrderApi $apiOrder
      * @param LogApi $apiLogger
+     * @param PageFactory $resultPageFactory
      */
     public function __construct(
         Context $context,
@@ -51,7 +53,6 @@ class Get extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $request = $this->getRequest();
-        $response = $this->getResponse();
         $logger = $this->apiLogger;
 
         $logger->log(
@@ -120,10 +121,15 @@ class Get extends \Magento\Framework\App\Action\Action
             $msg = "Internal Error";
         }
         $logger->log($msg);
-        $response->setHttpResponseCode($statusCode);
-        $response->setHeader('Content-Type', 'application/json');
-        $response->setBody('{ "order" : { "id" : "' . $id . '", "description" : "' . $msg . '" } }');
-        $response->sendResponse();
-        exit;
+
+        $this->getResponse()->setHttpResponseCode($statusCode);
+
+        $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
+        $resultJson->setData([
+            "id" => $id,
+            "description" => $msg
+        ]);
+
+        return $resultJson;
     }
 }
