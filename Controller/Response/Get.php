@@ -33,6 +33,7 @@ class Get extends \Magento\Framework\App\Action\Action
      * @param Api $api
      * @param OrderApi $apiOrder
      * @param LogApi $apiLogger
+     * @param PageFactory $resultPageFactory
      */
     public function __construct(
         Context $context,

@@ -83,7 +83,7 @@ class Submission
         $this->logger->addInfo("Retrying failed order submissions");
 
         $retries = $this->queue->getCollection()
-            ->addfieldtofilter(
+            ->addFieldToFilter(
                 'attempts',
                 array(
                     array('lt' => self::MAX_ATTEMPTS)

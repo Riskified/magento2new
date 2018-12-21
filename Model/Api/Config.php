@@ -6,7 +6,6 @@ use Magento\Store\Model\ScopeInterface as ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\Module\FullModuleList;
-use Magento\Checkout\Model\Session as CheckoutSession;
 
 class Config
 {
@@ -31,11 +30,6 @@ class Config
     private $fullModuleList;
 
     /**
-     * @var CheckoutSession
-     */
-    private $checkoutSession;
-
-    /**
      * @var string
      */
     const BEACON_URL = 'beacon.riskified.com';
@@ -46,18 +40,15 @@ class Config
      * @param ScopeConfigInterface $scopeConfig
      * @param CookieManagerInterface $cookieManager
      * @param FullModuleList $fullModuleList
-     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         CookieManagerInterface $cookieManager,
-        FullModuleList $fullModuleList,
-        CheckoutSession $checkoutSession
+        FullModuleList $fullModuleList
     ) {
         $this->_scopeConfig     = $scopeConfig;
         $this->cookieManager    = $cookieManager;
         $this->fullModuleList   = $fullModuleList;
-        $this->checkoutSession  = $checkoutSession;
     }
 
     /**
@@ -112,14 +103,6 @@ class Config
                 'riskified/riskified/env',
                 ScopeInterface::SCOPE_STORES
             );
-    }
-
-    /**
-     * @return int
-     */
-    public function getSessionId()
-    {
-        return $this->checkoutSession->getQuoteId();
     }
 
     /**

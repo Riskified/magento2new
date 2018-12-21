@@ -32,7 +32,9 @@ class Masssend extends \Magento\Backend\App\Action
     {
         $ids = $this->getRequest()->getParam('selected');
         $sendCount = $this->apiOrderLayer->sendOrders($ids);
-        $this->messageManager->addSuccess(__('%1 order(s) was sent to Riskified', $sendCount));
+        $this->messageManager->addSuccess(
+            __('%1 order(s) was sent to Riskified', $sendCount)
+        );
         $this->_redirect("sales/order");
     }
 }

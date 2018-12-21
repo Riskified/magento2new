@@ -2,12 +2,12 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Magento\Customer\Model\Authorization\CustomerSessionUserContext;
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\HTTP\Header;
-use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Registry;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
 use Magento\Framework\Logger\Monolog;
@@ -15,7 +15,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-
+use \Magento\Customer\Model\Session as CustomerSession;
 class Helper
 {
     private $_order;
@@ -140,16 +140,25 @@ class Helper
         $this->registry = $registry;
     }
 
+    /**
+     * @param $model
+     */
     public function setOrder($model)
     {
         $this->_order = $model;
     }
 
+    /**
+     * @return mixed
+     */
     public function getOrder()
     {
         return $this->_order;
     }
 
+    /**
+     * @return null|string
+     */
     public function getOrderOrigId()
     {
         if (!$this->getOrder()) {
@@ -158,6 +167,10 @@ class Helper
         return $this->getOrder()->getId() . '_' . $this->getOrder()->getIncrementId();
     }
 
+    /**
+     * @return null|Model\DiscountCode
+     * @throws \Exception
+     */
     public function getDiscountCodes()
     {
         $code = $this->getOrder()->getDiscountDescription();
@@ -172,12 +185,18 @@ class Helper
         return null;
     }
 
+    /**
+     * @return null|Model\Address
+     */
     public function getShippingAddress()
     {
         $mageAddr = $this->getOrder()->getShippingAddress();
         return $this->getAddress($mageAddr);
     }
 
+    /**
+     * @return null|Model\Address
+     */
     public function getBillingAddress()
     {
         $mageAddr = $this->getOrder()->getBillingAddress();
@@ -195,6 +214,10 @@ class Helper
         ), 'strlen'));
     }
 
+    /**
+     * @return Model\Customer
+     * @throws \Exception
+     */
     public function getCustomer()
     {
         $customer_id = $this->getOrder()->getCustomerId();
@@ -237,6 +260,9 @@ class Helper
         return $this->customerSession;
     }
 
+    /**
+     * @return array
+     */
     public function getLineItems()
     {
         $line_items = array();
@@ -248,6 +274,9 @@ class Helper
         return $line_items;
     }
 
+    /**
+     * @return array
+     */
     public function getAllLineItems()
     {
         $line_items = array();
@@ -259,6 +288,11 @@ class Helper
         return $line_items;
     }
 
+    /**
+     * @param $item
+     * @return Model\LineItem
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     protected function getPreparedLineItem($item)
     {
         $prod_type = null;
@@ -310,6 +344,11 @@ class Helper
         return $line_item;
     }
 
+    /**
+     * @param $address
+     * @return null|Model\Address
+     * @throws \Exception
+     */
     public function getAddress($address)
     {
         if (!$address) {
@@ -345,6 +384,10 @@ class Helper
         return new Model\Address($addrArray);
     }
 
+    /**
+     * @return null|Model\PaymentDetails
+     * @throws \Exception
+     */
     public function getPaymentDetails()
     {
         $payment = $this->getOrder()->getPayment();
@@ -374,7 +417,7 @@ class Helper
             return new Model\PaymentDetails(array_filter(array(
                 'authorization_id' => $paymentData['transaction_id'],
                 'payer_email' => $paymentData['payer_email'],
-                'payer_status' => $paymentData['payer_status'],
+                'payer_status' => isset($paymentData['payer_status']) ? $paymentData['payer_status'] : '',
                 'payer_address_status' => $paymentData['payer_address_status'],
                 'protection_eligibility' => $paymentData['protection_eligibility'],
                 'payment_status' => $paymentData['payment_status'],
@@ -438,6 +481,10 @@ class Helper
         }
     }
 
+    /**
+     * @return Model\ShippingLine
+     * @throws \Exception
+     */
     public function getShippingLines()
     {
         return new Model\ShippingLine(array_filter(array(
@@ -447,6 +494,9 @@ class Helper
         ), 'strlen'));
     }
 
+    /**
+     * @return null|string
+     */
     public function getCancelledAt()
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
@@ -458,6 +508,10 @@ class Helper
         return null;
     }
 
+    /**
+     * @return Model\OrderCancellation
+     * @throws \Exception
+     */
     public function getOrderCancellation()
     {
         $orderCancellation = new Model\OrderCancellation(array_filter(array(
@@ -468,6 +522,10 @@ class Helper
         return $orderCancellation;
     }
 
+    /**
+     * @return Model\Fulfillment
+     * @throws \Exception
+     */
     public function getOrderFulfillments()
     {
         $fulfillments = array();
@@ -497,6 +555,9 @@ class Helper
         return $orderFulfillments;
     }
 
+    /**
+     * @return string
+     */
     public function getRemoteIp()
     {
         $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
