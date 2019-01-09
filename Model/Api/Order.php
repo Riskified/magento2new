@@ -258,7 +258,7 @@ class Order
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $this->_orderHelper->getQuoteId()
+            'cart_token' => $model->getQuoteId()
         );
 
 
