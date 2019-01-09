@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api;
 
+use Magento\Checkout\Model\Session;
 use Riskified\OrderWebhook\Model;
 
 class Order
@@ -42,11 +43,6 @@ class Order
     private $logger;
 
     /**
-     * @var \Magento\Framework\Session\SessionManagerInterface
-     */
-    private $session;
-
-    /**
      * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     private $date;
@@ -78,7 +74,6 @@ class Order
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param \Riskified\Decider\Model\QueueFactory $queueFactory
-     * @param \Magento\Framework\Session\SessionManagerInterface $session
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      */
@@ -92,8 +87,8 @@ class Order
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Riskified\Decider\Model\QueueFactory $queueFactory,
-        \Magento\Framework\Session\SessionManagerInterface $session,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->_api = $api;
@@ -104,11 +99,12 @@ class Order
         $this->_backendAuthSession = $backendAuthSession;
         $this->_messageManager = $messageManager;
         $this->logger = $logger;
-        $this->session = $session;
         $this->date = $date;
         $this->queueFactory = $queueFactory;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+
+        $this->_orderHelper->setCheckoutSession($checkoutSession);
 
         $this->_api->initSdk();
     }
@@ -262,7 +258,7 @@ class Order
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $this->session->getSessionId()
+            'cart_token' => $this->_orderHelper->getQuoteId()
         );
 
 

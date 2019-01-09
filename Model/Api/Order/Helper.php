@@ -2,7 +2,6 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
-use Magento\Customer\Model\Authorization\CustomerSessionUserContext;
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\State;
@@ -15,7 +14,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use \Magento\Customer\Model\Session as CustomerSession;
+
 class Helper
 {
     private $_order;
@@ -81,14 +80,13 @@ class Helper
     private $httpHeader;
 
     /**
-     * @var CustomerSession
-     */
-    private $customerSession;
-
-    /**
      * @var Registry
      */
     private $registry;
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    private $checkoutSession;
 
     /**
      * Helper constructor.
@@ -105,7 +103,6 @@ class Helper
      * @param State $state
      * @param ResolverInterface $localeResolver
      * @param Header $httpHeader
-     * @param CustomerSession $customerSession
      * @param Registry $registry
      */
     public function __construct(
@@ -121,7 +118,6 @@ class Helper
         State $state,
         ResolverInterface $localeResolver,
         Header $httpHeader,
-        CustomerSession $customerSession,
         Registry $registry
     ) {
         $this->_logger = $logger;
@@ -136,7 +132,6 @@ class Helper
         $this->state = $state;
         $this->localeResolver = $localeResolver;
         $this->httpHeader = $httpHeader;
-        $this->customerSession = $customerSession;
         $this->registry = $registry;
     }
 
@@ -146,6 +141,14 @@ class Helper
     public function setOrder($model)
     {
         $this->_order = $model;
+    }
+
+    /**
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     */
+    public function setCheckoutSession($checkoutSession)
+    {
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -250,14 +253,6 @@ class Helper
             }
         }
         return new Model\Customer(array_filter($customer_props, 'strlen'));
-    }
-
-    /**
-     * @return CustomerSession
-     */
-    public function getCustomerSession()
-    {
-        return $this->customerSession;
     }
 
     /**
@@ -470,8 +465,8 @@ class Helper
         }
 
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
-            $paymentData['credit_card_bin'] = $this->customerSession->getRiskifiedBin();
-            $this->customerSession->unsRiskifiedBin();
+            $paymentData['credit_card_bin'] = $this->checkoutSession->getRiskifiedBin();
+            $this->checkoutSession->unsRiskifiedBin();
         }
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
             $paymentData['credit_card_bin'] = $this->registry->registry('riskified_cc_bin');
