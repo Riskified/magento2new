@@ -20,7 +20,7 @@ use Riskified\Decider\Model\Api\Order\PaymentProcessor\Vantiv;
 class PaymentProcessorFactory
 {
     const GATEWAY_INSTANCE = [
-        'default' => AbstractPayment::class,
+        'default' => Paypal::class,
         'authorizenet_directpost' => DirectPost::class,
         'authnetcim' => Authcim::class,
         'optimal_hosted' => OptimalHosted::class,
