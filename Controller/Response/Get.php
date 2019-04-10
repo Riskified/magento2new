@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Controller\Response;
 
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\Http as HttpRequest;
 use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Order as OrderApi;
@@ -11,6 +12,12 @@ use Magento\Framework\Controller\ResultFactory;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
+
+    const STATUS_OK = 200;
+    const STATUS_BAD = 400;
+    const STATUS_UNAUTHORIZED = 401;
+    const STATUS_INTERNAL_SERVER = 500;
+
     /**
      * @var OrderApi
      */
@@ -33,7 +40,6 @@ class Get extends \Magento\Framework\App\Action\Action
      * @param Api $api
      * @param OrderApi $apiOrder
      * @param LogApi $apiLogger
-     * @param PageFactory $resultPageFactory
      */
     public function __construct(
         Context $context,
@@ -45,6 +51,15 @@ class Get extends \Magento\Framework\App\Action\Action
         $this->api = $api;
         $this->apiLogger = $apiLogger;
         $this->apiOrderLayer = $apiOrder;
+
+        // CsrfAwareAction Magento2.3 compatibility
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $context->getRequest();
+            if ($request instanceof HttpRequest && $request->isPost()) {
+                $request->setParam('isAjax', true);
+            }
+        }
+        parent::__construct($context);
     }
 
     /**
@@ -59,7 +74,6 @@ class Get extends \Magento\Framework\App\Action\Action
             __("Riskified extension endpoint start")
         );
 
-        $statusCode = 200;
         $id = null;
         $msg = null;
         try {
@@ -93,7 +107,7 @@ class Get extends \Magento\Framework\App\Action\Action
                             $id
                         )
                     );
-                    $statusCode = 400;
+                    $statusCode = self::STATUS_BAD;
                     $msg = 'Could not find order to update.';
                 } else {
                     $this->apiOrderLayer->update(
@@ -102,22 +116,22 @@ class Get extends \Magento\Framework\App\Action\Action
                         $notification->oldStatus,
                         $notification->description
                     );
-                    $statusCode = 200;
+                    $statusCode = self::STATUS_OK;
                     $msg = 'Order-Update event triggered.';
                 }
             }
         } catch (\Riskified\DecisionNotification\Exception\AuthorizationException $e) {
             $logger->logException($e);
-            $statusCode = 401;
+            $statusCode = self::STATUS_UNAUTHORIZED;
             $msg = 'Authentication Failed.';
         } catch (\Riskified\DecisionNotification\Exception\BadPostJsonException $e) {
             $logger->logException($e);
-            $statusCode = 400;
+            $statusCode = self::STATUS_BAD;
             $msg = "JSON Parsing Error.";
         } catch (\Exception $e) {
             $logger->log("ERROR: while processing notification for order $id");
             $logger->logException($e);
-            $statusCode = 500;
+            $statusCode = self::STATUS_INTERNAL_SERVER;
             $msg = "Internal Error";
         }
         $logger->log($msg);
