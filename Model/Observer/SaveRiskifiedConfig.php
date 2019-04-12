@@ -69,6 +69,9 @@ class SaveRiskifiedConfig implements ObserverInterface
 
     /**
      * @param \Magento\Framework\Event\Observer $observer
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Riskified\OrderWebhook\Exception\CurlException
+     * @throws \Riskified\OrderWebhook\Exception\UnsuccessfulActionException
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
