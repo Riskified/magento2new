@@ -25,6 +25,9 @@ class OrderPaymentRefund implements ObserverInterface
      */
     private $messageManager;
 
+
+    private $registry;
+
     /**
      * OrderPaymentRefund constructor.
      *
@@ -33,10 +36,12 @@ class OrderPaymentRefund implements ObserverInterface
      * @param ManagerInterface $messageManager
      */
     public function __construct(
+        \Magento\Framework\Registry $registry,
         LogApi $logger,
         OrderApi $orderApi,
         ManagerInterface $messageManager
     ) {
+        $this->registry = $registry;
         $this->logger = $logger;
         $this->apiOrderLayer = $orderApi;
         $this->messageManager = $messageManager;
@@ -49,12 +54,22 @@ class OrderPaymentRefund implements ObserverInterface
     {
         try {
             $order = $observer->getPayment()->getOrder();
-            $this->apiOrderLayer->post($order, Api::ACTION_CANCEL);
+            $creditMemo = $observer->getEvent()->getCreditmemo();
+            $this->saveMemoInRegistry($creditMemo);
+            $this->apiOrderLayer->post($order, Api::ACTION_REFUND);
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(
                 __("Riskified API Respond : %1", $e->getMessage())
             );
             $this->logger->logException($e);
         }
+    }
+
+    /**
+     * @param $creditMemo
+     */
+    public function saveMemoInRegistry($creditMemo)
+    {
+        $this->registry->register('creditMemo', $creditMemo);
     }
 }

@@ -157,6 +157,10 @@ class Order
                     $orderForTransport = $this->_orderHelper->getOrderFulfillments();
                     $response = $transport->fulfillOrder($orderForTransport);
                     break;
+                case Api::ACTION_REFUND:
+                    $orderForTransport = $this->loadRefund();
+                    $response = $transport->refundOrder($orderForTransport);
+                    break;
             }
             $eventData['response'] = $response;
 
@@ -222,6 +226,20 @@ class Order
         );
 
         return $this;
+    }
+
+    /**
+     * @return Model\Refund
+     * @throws \Exception
+     */
+    private function loadRefund()
+    {
+        $refund = new Model\Refund();
+        $refund->id = strval($this->_orderHelper->getOrderOrigId());
+        $refundDetails = $this->_orderHelper->getRefundDetails();
+        $refund->refunds = array_filter($refundDetails, 'strlen');
+
+        return $refund;
     }
 
     /**

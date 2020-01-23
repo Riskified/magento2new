@@ -380,6 +380,46 @@ class Helper
     }
 
     /**
+     * @param $payload
+     * @return Model\RefundDetails
+     * @throws \Exception
+     */
+    public function buildRefundDetailsObject($payload)
+    {
+        $refundObject = new Model\RefundDetails(array_filter(array(
+            'refund_id' => $payload->getIncrementId(),
+            'amount' => $payload->getSubtotal(),
+            'currency' => $payload->getBaseCurrencyCode(),
+            'refunded_at' => $payload->getCreatedAt(),
+            'reason' => $payload->getCustomerNote()
+        ), 'strlen'));
+
+        return $refundObject;
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function getRefundDetails()
+    {
+        $order = $this->getOrder();
+        $creditMemos = $order->getCreditmemosCollection();
+        $refundObjectCollection = array();
+        if($creditMemos->getSize() > 0){
+            foreach($creditMemos as $memo){
+                array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
+            }
+        }
+        $currentMemo = $this->getCreditMemoFromRegistry();
+        if(!is_null($currentMemo)){
+            array_push($refundObjectCollection, $this->buildRefundDetailsObject($currentMemo));
+        }
+
+        return $refundObjectCollection;
+    }
+
+    /**
      * @return null|Model\PaymentDetails
      * @throws \Exception
      */
