@@ -14,6 +14,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Customer\Model\ResourceModel\GroupRepository;
 
 class Helper
 {
@@ -89,6 +90,16 @@ class Helper
     private $checkoutSession;
 
     /**
+     * @var Customer
+     */
+    private $_customerFactory;
+
+    /**
+     * @var CustomerGroupFactory
+     */
+    private $_groupRepository;
+
+    /**
      * Helper constructor.
      *
      * @param Monolog $logger
@@ -106,6 +117,8 @@ class Helper
      * @param Registry $registry
      */
     public function __construct(
+        CustomerGroupFactory $customerGroupFactory,
+        \Magento\Customer\Model\Customer $customerFactory,
         Monolog $logger,
         ApiConfig $apiConfig,
         Log $apiLogger,
@@ -120,6 +133,8 @@ class Helper
         Header $httpHeader,
         Registry $registry
     ) {
+        $this->_customerFactory = $customerFactory;
+        $this->_groupRepository = $customerGroupFactory;
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
         $this->_apiConfig = $apiConfig;
@@ -236,6 +251,7 @@ class Helper
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
+            $customer_props['account_type'] = $this->getCustomerGroupCode($customer_details->getGroupId());
             try {
                 $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
@@ -253,6 +269,18 @@ class Helper
             }
         }
         return new Model\Customer(array_filter($customer_props, 'strlen'));
+    }
+
+    /**
+     * @param $customer
+     * @return string
+     */
+    public function getCustomerGroupCode($groupId)
+    {
+        $customerGroup = $this->_groupRepository->getById($groupId);
+        $code = $customerGroup->getCode();
+
+        return $code;
     }
 
     /**
