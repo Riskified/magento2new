@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\State;
@@ -117,7 +118,7 @@ class Helper
      * @param Registry $registry
      */
     public function __construct(
-        CustomerGroupFactory $customerGroupFactory,
+        GroupRepository $groupRepository,
         \Magento\Customer\Model\Customer $customerFactory,
         Monolog $logger,
         ApiConfig $apiConfig,
@@ -134,7 +135,7 @@ class Helper
         Registry $registry
     ) {
         $this->_customerFactory = $customerFactory;
-        $this->_groupRepository = $customerGroupFactory;
+        $this->_groupRepository = $groupRepository;
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
         $this->_apiConfig = $apiConfig;
