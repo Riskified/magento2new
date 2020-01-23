@@ -2,7 +2,6 @@ lib/
 var/
 .htaccess
 update/
-setup/
 pub/
 phpserver/
 dev/

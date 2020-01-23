@@ -236,6 +236,14 @@ class Order
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
         }
+        if(is_null($model->getRiskifiedCartToken())){
+            $cartToken = $this->session->getSessionId();
+            //save card_token into db
+            $model->setRiskifiedCartToken($cartToken);
+            $model->save();
+        }else{
+            $cartToken = $model->getRiskifiedCartToken();
+        }
         $order_array = array(
             'id' => $this->_orderHelper->getOrderOrigId(),
             'name' => $model->getIncrementId(),
@@ -258,7 +266,7 @@ class Order
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $model->getQuoteId()
+            'cart_token' => $cartToken
         );
 
 
