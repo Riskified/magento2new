@@ -8,5 +8,3 @@ Plugin/                         app/code/Riskified/Decider/Plugin
 Setup/                          app/code/Riskified/Decider/Setup
 view/                           app/code/Riskified/Decider/view
 registration.php                app/code/Riskified/Decider/registration.php
-i18n                            app/code/Riskified/Decider/i18n
-vendor/riskified_php_sdk        vendor/riskified/php_sdk
