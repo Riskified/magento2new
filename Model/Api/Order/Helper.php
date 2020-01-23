@@ -238,7 +238,7 @@ class Helper
      */
     public function getCustomer()
     {
-        $customer_id = $this->getOrder()->getCustomerId();
+        $customer_id = strval($this->getOrder()->getCustomerId());
         $customer_props = array(
             'id' => $customer_id,
             'email' => $this->getOrder()->getCustomerEmail(),
@@ -352,7 +352,7 @@ class Helper
         }
 
         $line_item = new Model\LineItem(array_filter(array(
-            'price' => $item->getPrice(),
+            'price' => floatval($item->getPrice()),
             'quantity' => intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
@@ -550,11 +550,11 @@ class Helper
      */
     public function getShippingLines()
     {
-        return new Model\ShippingLine(array_filter(array(
+        return [new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
             'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
-        ), 'strlen'));
+        ), 'strlen'))];
     }
 
     /**

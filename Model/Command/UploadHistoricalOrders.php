@@ -218,7 +218,7 @@ class UploadHistoricalOrders extends Command
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
-            'vendor_id' => $model->getStoreId(),
+            'vendor_id' => strval($model->getStoreId()),
             'vendor_name' => $model->getStoreName(),
         );
 
