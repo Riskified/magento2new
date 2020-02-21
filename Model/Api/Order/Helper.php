@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\State;
@@ -14,6 +15,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Customer\Model\ResourceModel\GroupRepository;
 
 class Helper
 {
@@ -89,6 +91,16 @@ class Helper
     private $checkoutSession;
 
     /**
+     * @var Customer
+     */
+    private $_customerFactory;
+
+    /**
+     * @var CustomerGroupFactory
+     */
+    private $_groupRepository;
+
+    /**
      * Helper constructor.
      *
      * @param Monolog $logger
@@ -106,6 +118,8 @@ class Helper
      * @param Registry $registry
      */
     public function __construct(
+        GroupRepository $groupRepository,
+        \Magento\Customer\Model\Customer $customerFactory,
         Monolog $logger,
         ApiConfig $apiConfig,
         Log $apiLogger,
@@ -120,6 +134,8 @@ class Helper
         Header $httpHeader,
         Registry $registry
     ) {
+        $this->_customerFactory = $customerFactory;
+        $this->_groupRepository = $groupRepository;
         $this->_logger = $logger;
         $this->_messageManager = $messageManager;
         $this->_apiConfig = $apiConfig;
@@ -223,7 +239,7 @@ class Helper
      */
     public function getCustomer()
     {
-        $customer_id = $this->getOrder()->getCustomerId();
+        $customer_id = strval($this->getOrder()->getCustomerId());
         $customer_props = array(
             'id' => $customer_id,
             'email' => $this->getOrder()->getCustomerEmail(),
@@ -236,6 +252,7 @@ class Helper
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
+            $customer_props['account_type'] = $this->getCustomerGroupCode($customer_details->getGroupId());
             try {
                 $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
@@ -253,6 +270,18 @@ class Helper
             }
         }
         return new Model\Customer(array_filter($customer_props, 'strlen'));
+    }
+
+    /**
+     * @param $customer
+     * @return string
+     */
+    public function getCustomerGroupCode($groupId)
+    {
+        $customerGroup = $this->_groupRepository->getById($groupId);
+        $code = $customerGroup->getCode();
+
+        return $code;
     }
 
     /**
@@ -324,7 +353,7 @@ class Helper
         }
 
         $line_item = new Model\LineItem(array_filter(array(
-            'price' => $item->getPrice(),
+            'price' => floatval($item->getPrice()),
             'quantity' => intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
@@ -377,6 +406,46 @@ class Helper
             return null;
         }
         return new Model\Address($addrArray);
+    }
+
+    /**
+     * @param $payload
+     * @return Model\RefundDetails
+     * @throws \Exception
+     */
+    public function buildRefundDetailsObject($payload)
+    {
+        $refundObject = new Model\RefundDetails(array_filter(array(
+            'refund_id' => $payload->getIncrementId(),
+            'amount' => $payload->getSubtotal(),
+            'currency' => $payload->getBaseCurrencyCode(),
+            'refunded_at' => $payload->getCreatedAt(),
+            'reason' => $payload->getCustomerNote()
+        ), 'strlen'));
+
+        return $refundObject;
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function getRefundDetails()
+    {
+        $order = $this->getOrder();
+        $creditMemos = $order->getCreditmemosCollection();
+        $refundObjectCollection = array();
+        if($creditMemos->getSize() > 0){
+            foreach($creditMemos as $memo){
+                array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
+            }
+        }
+        $currentMemo = $this->getCreditMemoFromRegistry();
+        if(!is_null($currentMemo)){
+            array_push($refundObjectCollection, $this->buildRefundDetailsObject($currentMemo));
+        }
+
+        return $refundObjectCollection;
     }
 
     /**
@@ -482,11 +551,11 @@ class Helper
      */
     public function getShippingLines()
     {
-        return new Model\ShippingLine(array_filter(array(
+        return [new Model\ShippingLine(array_filter(array(
             'price' => $this->getOrder()->getShippingAmount(),
             'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
-        ), 'strlen'));
+        ), 'strlen'))];
     }
 
     /**

@@ -14,6 +14,7 @@ class Api
     const ACTION_UPDATE = 'update';
     const ACTION_SUBMIT = 'submit';
     const ACTION_CANCEL = 'cancel';
+    const ACTION_REFUND = 'refund';
     const ACTION_FULFILL = 'fulfill';
 
     /**

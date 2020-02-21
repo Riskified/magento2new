@@ -157,6 +157,10 @@ class Order
                     $orderForTransport = $this->_orderHelper->getOrderFulfillments();
                     $response = $transport->fulfillOrder($orderForTransport);
                     break;
+                case Api::ACTION_REFUND:
+                    $orderForTransport = $this->loadRefund();
+                    $response = $transport->refundOrder($orderForTransport);
+                    break;
             }
             $eventData['response'] = $response;
 
@@ -225,6 +229,20 @@ class Order
     }
 
     /**
+     * @return Model\Refund
+     * @throws \Exception
+     */
+    private function loadRefund()
+    {
+        $refund = new Model\Refund();
+        $refund->id = strval($this->_orderHelper->getOrderOrigId());
+        $refundDetails = $this->_orderHelper->getRefundDetails();
+        $refund->refunds = array_filter($refundDetails, 'strlen');
+
+        return $refund;
+    }
+
+    /**
      * @param $model
      *
      * @return Model\Order
@@ -235,6 +253,14 @@ class Order
         $gateway = 'unavailable';
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
+        }
+        if(is_null($model->getRiskifiedCartToken())){
+            $cartToken = $this->session->getSessionId();
+            //save card_token into db
+            $model->setRiskifiedCartToken($cartToken);
+            $model->save();
+        }else{
+            $cartToken = $model->getRiskifiedCartToken();
         }
         $order_array = array(
             'id' => $this->_orderHelper->getOrderOrigId(),
@@ -256,15 +282,18 @@ class Order
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
-            'vendor_id' => $model->getStoreId(),
+            'vendor_id' => strval($model->getStoreId()),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $model->getQuoteId()
+            'cart_token' => $cartToken
         );
 
 
         if ($this->_orderHelper->isAdmin()) {
             unset($order_array['browser_ip']);
             unset($order_array['cart_token']);
+            $order_array['source'] = 'admin';
+        }else{
+            $order_array['source'] = 'web';
         }
 
         $order = new Model\Order(array_filter($order_array, 'strlen'));
