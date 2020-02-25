@@ -448,6 +448,11 @@ class Helper
         return $refundObjectCollection;
     }
 
+    public function getCreditMemoFromRegistry()
+    {
+        return $this->registry->registry('creditMemo');
+    }
+
     /**
      * @return null|Model\PaymentDetails
      * @throws \Exception
