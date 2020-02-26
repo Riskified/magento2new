@@ -3,6 +3,8 @@
 namespace Riskified\Decider\Model\Api;
 
 use Magento\Checkout\Model\Session;
+use Riskified\Decider\Model\Api\Order\Helper;
+use Riskified\Decider\Model\Api\Order\Log;
 use Riskified\OrderWebhook\Model;
 
 class Order
@@ -61,6 +63,7 @@ class Order
      * @var \Magento\Framework\Api\SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
+    private $session;
 
     /**
      * Order constructor.
@@ -89,6 +92,7 @@ class Order
         \Riskified\Decider\Model\QueueFactory $queueFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\Session\SessionManager $sessionManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->_api = $api;
@@ -99,6 +103,7 @@ class Order
         $this->_backendAuthSession = $backendAuthSession;
         $this->_messageManager = $messageManager;
         $this->logger = $logger;
+        $this->session = $sessionManager;
         $this->date = $date;
         $this->queueFactory = $queueFactory;
         $this->orderRepository = $orderRepository;
@@ -292,7 +297,7 @@ class Order
             unset($order_array['browser_ip']);
             unset($order_array['cart_token']);
             $order_array['source'] = 'admin';
-        }else{
+        } else {
             $order_array['source'] = 'web';
         }
 
@@ -361,7 +366,7 @@ class Order
 
         /**
          * validate if provided is is matching
-        */
+         */
         $order_id = false;
         $increment_id = false;
 
@@ -446,9 +451,9 @@ class Order
             if ($existingRetries->getSize() == 0) {
                 $queue = $this->queueFactory->create();
                 $queue->addData(array(
-                        'order_id' => $order->getId(),
-                        'action' => $action,
-                        'updated_at' => $this->date->gmtDate()
+                    'order_id' => $order->getId(),
+                    'action' => $action,
+                    'updated_at' => $this->date->gmtDate()
                 ))->save();
 
                 $this->logger->log("New retry scheduled successfully");
