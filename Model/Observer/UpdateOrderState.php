@@ -115,6 +115,11 @@ class UpdateOrderState implements ObserverInterface
                 ) {
                     $newState = $this->apiOrderConfig->getSelectedApprovedState();
                     $newStatus = $this->apiOrderConfig->getSelectedApprovedStatus();
+                    $order->setState($newState, $newStatus, $description);
+                    $order->setStatus($newStatus);
+                    $order->addStatusHistoryComment($description, $newStatus);
+                    $this->orderRepository->save($order);
+                    die;
                 }
                 break;
             case 'declined':
