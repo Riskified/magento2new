@@ -23,7 +23,7 @@
         </arguments>
     </type>
     <type name="Magento\Backend\Block\Widget\Context">
-        <plugin name="riskified_decider_sales_order_view_too<type name="Magento\Framework\App\Request\CsrfValidator">lbar_send_button"
+        <plugin name="riskified_decider_sales_order_view_toolbar_send_button"
                 type="Riskified\Decider\Plugin\Widget\Context" sortOrder="1"/>
     </type>
     <type name="Magento\Framework\Console\CommandList">
