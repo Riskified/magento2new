@@ -3,8 +3,6 @@
 namespace Riskified\Decider\Model\Api;
 
 use Magento\Checkout\Model\Session;
-use Riskified\Decider\Model\Api\Order\Helper;
-use Riskified\Decider\Model\Api\Order\Log;
 use Riskified\OrderWebhook\Model;
 
 class Order
@@ -63,6 +61,10 @@ class Order
      * @var \Magento\Framework\Api\SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManager
+     */
     private $session;
 
     /**
