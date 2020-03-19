@@ -148,14 +148,17 @@ class Order
                     break;
                 case Api::ACTION_UPDATE:
                     $orderForTransport = $this->load($order);
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
                     $orderForTransport = $this->load($order);
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
@@ -164,6 +167,7 @@ class Order
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->refundOrder($orderForTransport);
                     break;
             }

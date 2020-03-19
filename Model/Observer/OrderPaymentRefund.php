@@ -53,8 +53,8 @@ class OrderPaymentRefund implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         try {
-            $order = $observer->getPayment()->getOrder();
             $creditMemo = $observer->getEvent()->getCreditmemo();
+            $order = $creditMemo->getOrder();
             $this->saveMemoInRegistry($creditMemo);
             $this->apiOrderLayer->post($order, Api::ACTION_REFUND);
         } catch (\Exception $e) {
