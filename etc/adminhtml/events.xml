@@ -32,7 +32,7 @@
         <observer name="riskified_decider_order_update_declined"
                   instance="Riskified\Decider\Model\Observer\Order\Declined"/>
     </event>
-    <event name="sales_order_payment_refund">
+    <event name="sales_order_creditmemo_save_after">
         <observer name="riskified_sales_sales_order_payment_refund"
                   instance="Riskified\Decider\Model\Observer\OrderPaymentRefund"/>
     </event>
