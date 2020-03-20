@@ -21,7 +21,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
 
     /**
      * SalesOrderShipmentSaveAfter constructor.
-     *
+     * @param LogApi $logger
      * @param OrderApi $orderApi
      */
     public function __construct(
