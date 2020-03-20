@@ -40,6 +40,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
         $shipment = $observer->getShipment();
         $itemsToShip = $shipment->getItems();
         $order = $shipment->getOrder();
+        $this->logger->log("Order state is updated with shipping items while sending to fulfill endpoint.");
         $order->setItems($itemsToShip);
         $this->apiOrderLayer->post($order, Api::ACTION_FULFILL);
     }
