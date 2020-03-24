@@ -21,7 +21,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
 
     /**
      * SalesOrderShipmentSaveAfter constructor.
-     * @param LogApi $logger
+     *
      * @param OrderApi $orderApi
      */
     public function __construct(
@@ -38,10 +38,21 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $shipment = $observer->getShipment();
-        $itemsToShip = $shipment->getItems();
         $order = $shipment->getOrder();
-        $this->logger->log("Order state is updated with shipping items while sending to fulfill endpoint.");
-        $order->setItems($itemsToShip);
+        $currentOrderItems = $order->getItemsCollection();
+        $itemsToShip = $shipment->getItems();
+        $ids = array();
+        //collecting item ids to be shipped only
+        foreach($itemsToShip as $item) {
+            array_push($ids, $item->getOrderItemId());
+        }
+        //remove items that are not suppose tobe shipped
+        foreach($currentOrderItems as $orderItem) {
+            if(!in_array($orderItem->getItemId(), $ids)) {
+                $currentOrderItems->removeItemByKey($orderItem->getItemId());
+            }
+        }
+        $order->setItems($currentOrderItems);
         $this->apiOrderLayer->post($order, Api::ACTION_FULFILL);
     }
 }
