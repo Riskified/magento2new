@@ -1,6 +1,6 @@
 <?php
 
-namespace Riskified\Decider\Observer;
+namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Riskified\Decider\Model\Api\Api;
