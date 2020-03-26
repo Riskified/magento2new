@@ -140,8 +140,10 @@ class Get extends \Magento\Framework\App\Action\Action
 
         $resultJson = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         $resultJson->setData([
-            "id" => $id,
-            "description" => $msg
+            "order" => [
+                "id" => $id,
+                "description" => $msg
+            ]
         ]);
 
         return $resultJson;
