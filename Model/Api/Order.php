@@ -164,8 +164,9 @@ class Order
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
-                    $orderForTransport = $this->_orderHelper->getOrderFulfillments();
-                    $response = $transport->fulfillOrder($orderForTransport);
+                    $this->_orderHelper->setOrder($order->getOrder());
+                    $orderForTransport = $this->_orderHelper->getOrderFulfillments($order);
+                    $response = $transport->fulfillOrder($order);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();

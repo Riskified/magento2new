@@ -38,8 +38,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $shipment = $observer->getShipment();
-        $order = $shipment->getOrder();
-        
-        $this->apiOrderLayer->post($order, Api::ACTION_FULFILL);
+
+        $this->apiOrderLayer->post($shipment, Api::ACTION_FULFILL);
     }
 }
