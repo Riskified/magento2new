@@ -57,8 +57,12 @@ class Get extends \Magento\Framework\App\Action\Action
             $request = $context->getRequest();
             if ($request instanceof HttpRequest && $request->isPost()) {
                 $request->setParam('isAjax', true);
+                $headers = $request->getHeaders();
+                $headers->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
+                $request->setHeaders($headers);
             }
         }
+
         parent::__construct($context);
     }
 

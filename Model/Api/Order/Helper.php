@@ -301,12 +301,25 @@ class Helper
     /**
      * @return array
      */
-    public function getAllLineItems()
+    public function getAllLineItems($object = null)
     {
         $line_items = array();
 
-        foreach ($this->getOrder()->getAllItems() as $key => $item) {
+        if ($object === null) {
+            $object = $this->getOrder();
+        }
+
+        foreach ($object->getAllItems() as $key => $item) {
             $line_items[] = $this->getPreparedLineItem($item);
+        }
+
+        return $line_items;
+    }
+
+    public function getAllShipmentItems($object)
+    {
+        foreach ($object->getAllItems() as $key => $item) {
+            $line_items[] = $this->getPreparedLineItem($item->getOrderItem());
         }
 
         return $line_items;
@@ -440,17 +453,8 @@ class Helper
                 array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
             }
         }
-        $currentMemo = $this->getCreditMemoFromRegistry();
-        if(!is_null($currentMemo)){
-            array_push($refundObjectCollection, $this->buildRefundDetailsObject($currentMemo));
-        }
 
         return $refundObjectCollection;
-    }
-
-    public function getCreditMemoFromRegistry()
-    {
-        return $this->registry->registry('creditMemo');
     }
 
     /**
@@ -609,7 +613,7 @@ class Helper
                 "tracking_company" => $tracking->getTitle(),
                 "tracking_numbers" => $tracking->getTrackNumber(),
                 "message" => $comment->getComment(),
-                "line_items" => $this->getAllLineItems($shipment)
+                "line_items" => $this->getAllShipmentItems($shipment)
             );
 
             $fulfillments[] = new Model\FulfillmentDetails(array_filter($payload));

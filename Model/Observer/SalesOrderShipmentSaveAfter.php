@@ -39,20 +39,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
     {
         $shipment = $observer->getShipment();
         $order = $shipment->getOrder();
-        $currentOrderItems = $order->getItemsCollection();
-        $itemsToShip = $shipment->getItems();
-        $ids = array();
-        //collecting item ids to be shipped only
-        foreach($itemsToShip as $item) {
-            array_push($ids, $item->getOrderItemId());
-        }
-        //remove items that are not suppose tobe shipped
-        foreach($currentOrderItems as $orderItem) {
-            if(!in_array($orderItem->getItemId(), $ids)) {
-                $currentOrderItems->removeItemByKey($orderItem->getItemId());
-            }
-        }
-        $order->setItems($currentOrderItems);
+        
         $this->apiOrderLayer->post($order, Api::ACTION_FULFILL);
     }
 }
