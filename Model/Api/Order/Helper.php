@@ -301,12 +301,39 @@ class Helper
     /**
      * @return array
      */
-    public function getAllLineItems()
+    public function getAllLineItems($object = null)
     {
         $line_items = array();
 
-        foreach ($this->getOrder()->getAllItems() as $key => $item) {
+        if ($object === null) {
+            $object = $this->getOrder();
+        }
+
+        foreach ($object->getAllItems() as $key => $item) {
             $line_items[] = $this->getPreparedLineItem($item);
+        }
+
+        return $line_items;
+    }
+
+    public function getAllShipmentItems($object)
+    {
+        $line_items = [];
+
+        foreach ($object->getItems() as $key => $item) {
+            $orderItem = $item->getOrderItem();
+
+            if ($orderItem->getProductType() == "configurable") {
+                continue;
+            } else {
+                $parentItem = $orderItem->getParentItem();
+
+                if ($parentItem) {
+                    $orderItem->setPrice($parentItem->getPrice());
+                }
+            }
+
+            $line_items[] = $this->getPreparedLineItem($orderItem);
         }
 
         return $line_items;
@@ -439,10 +466,6 @@ class Helper
             foreach($creditMemos as $memo){
                 array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
             }
-        }
-        $currentMemo = $this->getCreditMemoFromRegistry();
-        if(!is_null($currentMemo)){
-            array_push($refundObjectCollection, $this->buildRefundDetailsObject($currentMemo));
         }
 
         return $refundObjectCollection;
@@ -590,11 +613,12 @@ class Helper
      * @return Model\Fulfillment
      * @throws \Exception
      */
-    public function getOrderFulfillments()
+    public function getOrderFulfillments($createdShipment = null)
     {
         $fulfillments = array();
+        $shipmentCollection = $this->getOrder()->getShipmentsCollection();
 
-        foreach ($this->getOrder()->getShipmentsCollection() as $shipment) {
+        foreach ($shipmentCollection as $shipment) {
             $tracking = $shipment->getTracksCollection()->getFirstItem();
             $comment = $shipment->getCommentsCollection()->getFirstItem();
             $payload = array(
@@ -604,12 +628,14 @@ class Helper
                 "tracking_company" => $tracking->getTitle(),
                 "tracking_numbers" => $tracking->getTrackNumber(),
                 "message" => $comment->getComment(),
-                "line_items" => $this->getAllLineItems($shipment)
+                "line_items" => $this->getAllShipmentItems($shipment)
             );
+            if ($shipment->getId() == $createdShipment->getId()) {
+                $payload['line_items'] = $this->getAllShipmentItems($createdShipment);
+            }
 
             $fulfillments[] = new Model\FulfillmentDetails(array_filter($payload));
         }
-
 
         $orderFulfillments = new Model\Fulfillment(array_filter(array(
             'id' => $this->getOrderOrigId(),

@@ -63,6 +63,11 @@ class Order
     private $searchCriteriaBuilder;
 
     /**
+     * @var \Magento\Framework\Session\SessionManager
+     */
+    private $session;
+
+    /**
      * Order constructor.
      *
      * @param Api $api
@@ -89,6 +94,7 @@ class Order
         \Riskified\Decider\Model\QueueFactory $queueFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\Session\SessionManager $sessionManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->_api = $api;
@@ -99,6 +105,7 @@ class Order
         $this->_backendAuthSession = $backendAuthSession;
         $this->_messageManager = $messageManager;
         $this->logger = $logger;
+        $this->session = $sessionManager;
         $this->date = $date;
         $this->queueFactory = $queueFactory;
         $this->orderRepository = $orderRepository;
@@ -143,22 +150,27 @@ class Order
                     break;
                 case Api::ACTION_UPDATE:
                     $orderForTransport = $this->load($order);
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
                     $orderForTransport = $this->load($order);
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
-                    $orderForTransport = $this->_orderHelper->getOrderFulfillments();
-                    $response = $transport->fulfillOrder($orderForTransport);
+                    $this->_orderHelper->setOrder($order->getOrder());
+                    $orderForTransport = $this->_orderHelper->getOrderFulfillments($order);
+                    $response = $transport->fulfillOrder($order);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
+                    $this->logger->log(serialize($orderForTransport));
                     $response = $transport->refundOrder($orderForTransport);
                     break;
             }
@@ -292,7 +304,7 @@ class Order
             unset($order_array['browser_ip']);
             unset($order_array['cart_token']);
             $order_array['source'] = 'admin';
-        }else{
+        } else {
             $order_array['source'] = 'web';
         }
 
@@ -361,7 +373,7 @@ class Order
 
         /**
          * validate if provided is is matching
-        */
+         */
         $order_id = false;
         $increment_id = false;
 
@@ -446,9 +458,9 @@ class Order
             if ($existingRetries->getSize() == 0) {
                 $queue = $this->queueFactory->create();
                 $queue->addData(array(
-                        'order_id' => $order->getId(),
-                        'action' => $action,
-                        'updated_at' => $this->date->gmtDate()
+                    'order_id' => $order->getId(),
+                    'action' => $action,
+                    'updated_at' => $this->date->gmtDate()
                 ))->save();
 
                 $this->logger->log("New retry scheduled successfully");
