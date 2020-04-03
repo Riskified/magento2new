@@ -166,7 +166,12 @@ class Order
                 case Api::ACTION_FULFILL:
                     $this->_orderHelper->setOrder($order->getOrder());
                     $orderForTransport = $this->_orderHelper->getOrderFulfillments($order);
-                    $response = $transport->fulfillOrder($order);
+                    
+                    $order = $order->getOrder();
+                    $eventData['order'] = $order->getOrder();
+
+                    $this->logger->log(serialize($orderForTransport));
+                    $response = $transport->fulfillOrder($orderForTransport);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
@@ -180,6 +185,7 @@ class Order
                 'riskified_decider_post_order_success',
                 $eventData
             );
+            
         } catch (\Riskified\OrderWebhook\Exception\CurlException $curlException) {
             $this->_raiseOrderUpdateEvent($order, 'error', null, 'Error transferring order data to Riskified');
             $this->scheduleSubmissionRetry($order, $action);
@@ -334,6 +340,10 @@ class Order
     public function update($order, $status, $oldStatus, $description)
     {
         if (!$this->_apiConfig->isEnabled()) {
+            return;
+        }
+
+        if (!$order) {
             return;
         }
 
