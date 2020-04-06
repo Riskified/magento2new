@@ -1,4 +1,5 @@
 
+
 # [Magento 2 fraud protection extension by Riskified](https://www.riskified.com/magento/)
 
 ## Overview
@@ -15,3 +16,5 @@ If you don't have an existing account, please start by signing up to Riskified [
 * Includes a **Sandbox Environment** option for testing and integration.
 
 https://www.riskified.com/magento/
+
+
