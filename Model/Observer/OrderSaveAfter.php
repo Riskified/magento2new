@@ -44,16 +44,44 @@ class OrderSaveAfter implements ObserverInterface
             return;
         }
 
-        if ($order->dataHasChangedFor('state')) {
-            if ($order->getPayment()->getMethod() == 'authorizenet_directpost') {
-                try {
-                    $this->_orderApi->post($order, Api::ACTION_UPDATE);
-                } catch (\Exception $e) {
-                    $this->_logger->critical($e);
-                }
+        $newState = $order->getState();
+
+        if((int)$order->dataHasChangedFor('state') === 1) {
+            $oldState = $order->getOrigData('state');
+
+            if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
+                $this->_logger->debug(__("Order : " . $order->getId() . " not notifying on unhold action"));
+                return;
             }
+
+            $this->_logger->debug(__("Order: " . $order->getId() . " state changed from: " . $oldState . " to: " . $newState));
+
+            // if we posted we should not re post
+            if ($this->_registry->registry("riskified-order")) {
+                $this->_logger->debug(__("Order : " . $order->getId() . " is already riskifiedInSave"));
+                return;
+            }
+
+            try {
+                if(!$this->_registry->registry("riskified-order")) {
+                    $this->_registry->register("riskified-order", $order);
+                }
+                $this->_orderApi->post($order, Api::ACTION_UPDATE);
+
+                $this->_registry->unregister("riskified-order");
+            } catch (\Exception $e) {
+                // There is no need to do anything here. The exception has already been handled and a retry scheduled.
+                // We catch this exception so that the order is still saved in Magento.
+            }
+
         } else {
-            $this->_logger->debug(__("No data found"));
+            $this->_logger->debug(
+                sprintf(
+                    __("Order: %s state didn't change on save - not posting again: %s"),
+                    $order->getIncrementId(),
+                    $newState
+                )
+            );
         }
     }
 }
