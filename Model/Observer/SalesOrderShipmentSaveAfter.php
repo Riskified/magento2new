@@ -39,6 +39,16 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
     {
         $shipment = $observer->getShipment();
 
-        $this->apiOrderLayer->post($shipment, Api::ACTION_FULFILL);
+        try {
+            $this->apiOrderLayer->post($shipment, Api::ACTION_FULFILL);
+        } catch(\Exception $e) {
+            $this->logger->log(
+                sprintf(
+                    __("Order fulfilment was not able to sent. Order #%s, shipment #%s"),
+                    $shipment->getOrder()->getIncrementId(),
+                    $shipment->getIncrementId()
+                )
+            );
+        }
     }
 }
