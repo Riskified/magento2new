@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Riskified\Decider\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Riskified\Decider\Model\Logger\Order">
+        <arguments>
+            <argument name="name" xsi:type="string">Order</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Riskified\Decider\Model\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Riskified\Decider\Model\Logger\Merchant">
+        <arguments>
+            <argument name="name" xsi:type="string">Merchant</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Riskified\Decider\Model\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Backend\Block\Widget\Context">
+        <plugin name="riskified_decider_sales_order_view_toolbar_send_button"
+                type="Riskified\Decider\Plugin\Widget\Context" sortOrder="1"/>
+    </type>
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="riskfied_send_historical_orders" xsi:type="object">Riskified\Decider\Model\Command\UploadHistoricalOrders</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
