@@ -1,5 +1,5 @@
 <?php
-namespace Riskified\Decider\Api;
+namespace Riskified\Decider\Model\Api;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use \Magento\Store\Model\ScopeInterface as ScopeInterface;
