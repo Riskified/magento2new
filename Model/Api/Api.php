@@ -40,8 +40,10 @@ class Api
     /**
      * Init Sdk.
      */
-    public function initSdk()
+    public function initSdk($order = null)
     {
+        $storeId = (!is_null($order)) ? $order->getStore() : null;
+        $this->_apiConfig->setStore($storeId);
         $authToken = $this->_apiConfig->getAuthToken();
         $env = constant($this->_apiConfig->getConfigEnv());
         $shopDomain = $this->_apiConfig->getShopDomain();

@@ -1,67 +1,37 @@
 <?php
+namespace Riskified\Decider\Api;
 
-namespace Riskified\Decider\Model\Api;
-
-use Magento\Store\Model\ScopeInterface as ScopeInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Stdlib\CookieManagerInterface;
-use Magento\Framework\Module\FullModuleList;
+use \Magento\Store\Model\ScopeInterface as ScopeInterface;
 
 class Config
 {
-    /**
-     * @var string
-     */
     private $version;
-
-    /**
-     * @var ScopeConfigInterface
-     */
     private $_scopeConfig;
-
-    /**
-     * @var CookieManagerInterface
-     */
     private $cookieManager;
-
-    /**
-     * @var FullModuleList
-     */
     private $fullModuleList;
+    private $checkoutSession;
+    private $store;
 
-    /**
-     * @var string
-     */
     const BEACON_URL = 'beacon.riskified.com';
 
-    /**
-     * Config constructor.
-     *
-     * @param ScopeConfigInterface $scopeConfig
-     * @param CookieManagerInterface $cookieManager
-     * @param FullModuleList $fullModuleList
-     */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        CookieManagerInterface $cookieManager,
-        FullModuleList $fullModuleList
+        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
+        \Magento\Framework\Module\FullModuleList $fullModuleList,
+        \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->_scopeConfig     = $scopeConfig;
         $this->cookieManager    = $cookieManager;
         $this->fullModuleList   = $fullModuleList;
+        $this->checkoutSession  = $checkoutSession;
     }
 
-    /**
-     * @return bool
-     */
     public function isEnabled()
     {
-        return (bool)$this->_scopeConfig->getValue('riskified/riskified_general/enabled');
+        return $this->_scopeConfig->getValue('riskified/riskified_general/enabled');
     }
 
-    /**
-     * @return array
-     */
     public function getHeaders()
     {
         return [
@@ -71,166 +41,138 @@ class Config
         ];
     }
 
-    /**
-     * @return string
-     */
     public function getAuthToken()
     {
         return $this->_scopeConfig->getValue(
             'riskified/riskified/key',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return bool
-     */
     public function getConfigStatusControlActive()
     {
-        return (bool)$this->_scopeConfig->getValue(
+        return $this->_scopeConfig->getValue(
             'riskified/riskified/order_status_sync',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getConfigEnv()
     {
-        return '\Riskified\Common\Env::'
-            . $this->_scopeConfig->getValue(
+        return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue(
                 'riskified/riskified/env',
-                ScopeInterface::SCOPE_STORES
+                ScopeInterface::SCOPE_STORES,
+                $this->getStore()
             );
     }
 
-    /**
-     * @return bool
-     */
+    public function getSessionId()
+    {
+        return $this->checkoutSession->getQuoteId();
+    }
+
     public function getConfigEnableAutoInvoice()
     {
-        return (bool)$this->_scopeConfig->getValue(
+        return $this->_scopeConfig->getValue(
             'riskified/riskified/auto_invoice_enabled',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getConfigAutoInvoiceCaptureCase()
     {
         return $this->_scopeConfig->getValue(
             'riskified/riskified/auto_invoice_capture_case',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getConfigBeaconUrl()
     {
         return self::BEACON_URL;
     }
 
-    /**
-     * @return mixed
-     */
     public function getShopDomain()
     {
         return $this->_scopeConfig->getValue(
             'riskified/riskified/domain',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getExtensionVersion()
     {
         $moduleConfig = $this->fullModuleList->getOne('Riskified_Decider');
         return $moduleConfig['setup_version'];
     }
 
-    /**
-     * @return string
-     */
     public function getDeclinedState()
     {
         return $this->_scopeConfig->getValue(
             'riskified/riskified/declined_state',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getDeclinedStatus()
     {
         $state = $this->getDeclinedState();
         return $this->_scopeConfig->getValue(
             'riskified/riskified/declined_status_' . $state,
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getApprovedState()
     {
         return $this->_scopeConfig->getValue(
             'riskified/riskified/approved_state',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getApprovedStatus()
     {
         $state = $this->getApprovedState();
         return $this->_scopeConfig->getValue(
             'riskified/riskified/approved_status_' . $state,
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return bool
-     */
     public function isLoggingEnabled()
     {
         return (bool)$this->_scopeConfig->getValue(
             'riskified/riskified/debug_logs',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return bool
-     */
     public function isAutoInvoiceEnabled()
     {
         return (bool)$this->_scopeConfig->getValue(
             'riskified/riskified/auto_invoice_enabled',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return mixed|string
-     */
     public function getInvoiceCaptureCase()
     {
         $captureCase = $this->_scopeConfig->getValue(
             'riskified/riskified/auto_invoice_capture_case',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
 
         $availableStatuses = [
@@ -245,14 +187,12 @@ class Config
         return $captureCase;
     }
 
-    /**
-     * @return mixed|string
-     */
     public function getCaptureCase()
     {
         $captureCase = $this->_scopeConfig->getValue(
             'riskified/riskified/auto_invoice_capture_case',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
 
         $avialableStatuses =  [
@@ -268,68 +208,88 @@ class Config
     }
 
     /**
+     * When scopeId is not defined checks if Decline Notification is enabled for Default Store View.
      * @return bool
      */
-    public function isDeclineNotificationEnabled()
+    public function isDeclineNotificationEnabled($scopeId = 0)
     {
         return (bool)$this->_scopeConfig->getValue(
             'riskified/decline_notification/enabled',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $scopeId
         );
     }
 
-    /**
-     * @return string
-     */
     public function getDeclineNotificationSender()
     {
         return $this->_scopeConfig->getValue(
             'riskified/decline_notification/email_identity',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getDeclineNotificationSenderEmail()
     {
         return $this->_scopeConfig->getValue(
             'trans_email/ident_' . $this->getDeclineNotificationSender() . '/email',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
-    /**
-     * @return string
-     */
     public function getDeclineNotificationSenderName()
     {
         return $this->_scopeConfig->getValue(
             'trans_email/ident_' . $this->getDeclineNotificationSender() . '/name',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
         );
     }
 
     /**
-     * @return string
+     * If scopeId is not defined returns Decline Notification Subject for Default Store View.
+     * @param int $scopeId
+     * @return mixed
      */
-    public function getDeclineNotificationSubject()
+    public function getDeclineNotificationSubject($scopeId = 0)
     {
         return $this->_scopeConfig->getValue(
             'riskified/decline_notification/title',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $scopeId
         );
     }
 
     /**
-     * @return string
+     * If scopeId is not defined returns Decline Notification Content for Default Store View.
+     * @param int $scopeId
+     * @return mixed
      */
-    public function getDeclineNotificationContent()
+    public function getDeclineNotificationContent($scopeId = 0)
     {
         return $this->_scopeConfig->getValue(
             'riskified/decline_notification/content',
-            ScopeInterface::SCOPE_STORES
+            ScopeInterface::SCOPE_STORES,
+            $scopeId
         );
+    }
+
+    /**
+     * Sets store id.
+     * @param $id
+     */
+    public function setStore($id)
+    {
+        $this->store = $id;
+    }
+
+    /**
+     * Returns store id. If not defined returns default store value.
+     * @return string
+     */
+    public function getStore()
+    {
+        return (!is_null($this->store)) ? $this->store : null;
     }
 }

@@ -18,19 +18,27 @@ class OrderSaveAfter implements ObserverInterface
      * @var OrderApi
      */
     private $_orderApi;
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $_registry;
 
     /**
      * OrderSaveAfter constructor.
      *
      * @param OrderLogger $logger
      * @param OrderApi $orderApi
+     * @param \Magento\Framework\Registry $registry
      */
     public function __construct(
         OrderLogger $logger,
-        OrderApi $orderApi
-    ) {
+        OrderApi $orderApi,
+        \Magento\Framework\Registry $registry
+    )
+    {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
+        $this->_registry = $registry;
     }
 
     /**

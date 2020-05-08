@@ -81,6 +81,7 @@ class Get extends \Magento\Framework\App\Action\Action
         $id = null;
         $msg = null;
         try {
+            $this->api->initSdk();
             $notification = $this->api->parseRequest($request);
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
