@@ -13,7 +13,7 @@ class Adyen extends AbstractPayment
         $details['avs_result_code'] = $this->payment->getAdditionalInformation('adyen_avs_result');
         $details['cvv_result_code'] = $this->payment->getAdditionalInformation('adyen_cvc_result');
         $details['transaction_id'] = $this->payment->getAdditionalInformation('pspReference');
-        $details['credit_card_bin'] = $this->payment->getAdyenCardBin();
+        $details['credit_card_bin'] = $this->payment->getAdditionalInformation('adyen_card_bin');
 
         return $details;
     }
