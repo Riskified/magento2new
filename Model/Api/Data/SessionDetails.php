@@ -1,12 +1,13 @@
 <?php
 namespace Riskified\Decider\Model\Api\Data;
 
-use \Magento\Framework\Session\SessionManager;
-use \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-use \Riskified\Decider\Model\DateFormatter;
-use \Riskified\Decider\Api\SessionDetailsInterface;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\Framework\Session\SessionManager;
+use Riskified\Decider\Api\SessionDetailsInterface;
+use Riskified\Decider\Model\DateFormatter;
 
-class SessionDetails implements SessionDetailsInterface {
+class SessionDetails implements SessionDetailsInterface
+{
     /**
      * @var \Magento\Framework\Session\SessionManager
      */
@@ -32,7 +33,8 @@ class SessionDetails implements SessionDetailsInterface {
     /**
      * @return array
      */
-    public function getData() {
+    public function getData()
+    {
         $userAgent = $this->httpHeader->getHttpUserAgent();
         $isMobile = $this->mobileAgent->match($userAgent, $_SERVER);
 
@@ -49,7 +51,8 @@ class SessionDetails implements SessionDetailsInterface {
     /**
      * @return array
      */
-    public function getCleanData() {
+    public function getCleanData()
+    {
         return array_filter($this->getData(), 'strlen');
     }
 }

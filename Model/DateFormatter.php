@@ -1,7 +1,8 @@
 <?php
 namespace Riskified\Decider\Model;
 
-trait DateFormatter {
+trait DateFormatter
+{
     /**
      * @param $dateStr
      *

@@ -1,11 +1,12 @@
 <?php
 namespace Riskified\Decider\Model\Api\Data;
 
-use \Magento\Framework\HTTP\Header;
-use \Magento\Framework\Locale\ResolverInterface;
-use \Riskified\Decider\Api\ClientDetailsInterface;
+use Magento\Framework\HTTP\Header;
+use Magento\Framework\Locale\ResolverInterface;
+use Riskified\Decider\Api\ClientDetailsInterface;
 
-class ClientDetails implements ClientDetailsInterface {
+class ClientDetails implements ClientDetailsInterface
+{
     /**
      * @var ResolverInterface
      */
@@ -31,7 +32,8 @@ class ClientDetails implements ClientDetailsInterface {
     /**
      * @return array
      */
-    public function getData() {
+    public function getData()
+    {
         return [
             'accept_language' => $this->localeResolver->getLocale(),
             'user_agent' => $this->httpHeader->getHttpUserAgent()
@@ -41,7 +43,8 @@ class ClientDetails implements ClientDetailsInterface {
     /**
      * @return array
      */
-    public function getCleanData() {
+    public function getCleanData()
+    {
         return array_filter($this->getData(), 'strlen');
     }
 }

@@ -1,7 +1,8 @@
 <?php
 namespace Riskified\Decider\Api;
 
-interface ClientDetailsInterface {
+interface ClientDetailsInterface
+{
     public function getData();
     public function getCleanData();
 }

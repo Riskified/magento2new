@@ -1,7 +1,8 @@
 <?php
 namespace Riskified\Decider\Api;
 
-interface SessionDetailsInterface {
+interface SessionDetailsInterface
+{
     public function getData();
     public function getCleanData();
 }

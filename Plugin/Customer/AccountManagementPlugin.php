@@ -1,18 +1,19 @@
 <?php
 namespace Riskified\Decider\Plugin\Customer;
 
-use \Magento\Customer\Api\CustomerRepositoryInterface;
-use \Magento\Framework\Exception\EmailNotConfirmedException;
-use \Magento\Framework\Exception\InvalidEmailOrPasswordException;
-use \Magento\Framework\Exception\State\UserLockedException;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\Exception\EmailNotConfirmedException;
+use Magento\Framework\Exception\InvalidEmailOrPasswordException;
+use Magento\Framework\Exception\State\UserLockedException;
 
 use Magento\Setup\Exception;
-use \Riskified\Decider\Api\ClientDetailsInterface;
-use \Riskified\Decider\Api\SessionDetailsInterface;
-use \Riskified\Decider\Model\Api\Api;
-use \Riskified\Decider\Model\DateFormatter;
+use Riskified\Decider\Api\ClientDetailsInterface;
+use Riskified\Decider\Api\SessionDetailsInterface;
+use Riskified\Decider\Model\Api\Api;
+use Riskified\Decider\Model\DateFormatter;
 
-class AccountManagementPlugin {
+class AccountManagementPlugin
+{
     /**
      * @var CustomerRepositoryInterface
      */
@@ -57,7 +58,7 @@ class AccountManagementPlugin {
         ClientDetailsInterface $clientDetails,
         SessionDetailsInterface $sessionDetails,
         Api $api
-    ){
+    ) {
         $this->customerRepository = $customerRepository;
         $this->clientDetails = $clientDetails;
         $this->sessionDetails = $sessionDetails;
@@ -78,19 +79,19 @@ class AccountManagementPlugin {
             $this->inputData = $args;
 
             $proceed(...$args);
-        } catch(InvalidEmailOrPasswordException $e) {
+        } catch (InvalidEmailOrPasswordException $e) {
             $this
                 ->prepareFailedLoginCustomerObject($e)
                 ->callApi();
 
             throw $e;
-        } catch(EmailNotConfirmedException $e) {
+        } catch (EmailNotConfirmedException $e) {
             $this
                 ->prepareFailedLoginCustomerObject($e)
                 ->callApi();
 
             throw $e;
-        } catch(UserLockedException $e) {
+        } catch (UserLockedException $e) {
             $this
                 ->prepareFailedLoginCustomerObject($e)
                 ->callApi();
@@ -181,7 +182,7 @@ class AccountManagementPlugin {
             $riskifiedCustomerObject = new \Riskified\OrderWebhook\Model\Login($customerPayload);
 
             $this->payload = $riskifiedCustomerObject;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
         }
 
         return $this;
@@ -200,7 +201,8 @@ class AccountManagementPlugin {
             $this->api->initSdk();
             $transport = $this->api->getTransport();
             $transport->login($this->payload);
-        } catch(Exception $e) {}
+        } catch (Exception $e) {
+        }
 
         return $this;
     }
