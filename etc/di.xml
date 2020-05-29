@@ -36,7 +36,7 @@
     <type name="Magento\Customer\Api\AccountManagementInterface">
         <plugin name="riskfied_validate_customer_login" type="Riskified\Decider\Plugin\Customer\AccountManagementPlugin"/>
     </type>
-<!--    <preference for="Magento\Customer\Api\AccountManagementInterface"-->
-<!--                type="Magento\Customer\Model\AccountManagement" />-->
 
+    <preference for="Riskified\Decider\Api\ClientDetailsInterface" type="Riskified\Decider\Model\Api\Data\ClientDetails" />
+    <preference for="Riskified\Decider\Api\SessionDetailsInterface" type="Riskified\Decider\Model\Api\Data\SessionDetails" />
 </config>
