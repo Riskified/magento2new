@@ -10,7 +10,9 @@ use Magento\Setup\Exception;
 use Riskified\Decider\Api\ClientDetailsInterface;
 use Riskified\Decider\Api\SessionDetailsInterface;
 use Riskified\Decider\Model\Api\Api;
+use Riskified\Decider\Model\Api\Config;
 use Riskified\Decider\Model\DateFormatter;
+use Riskified\Decider\Model\Api\Log;
 
 class AccountManagementPlugin
 {
@@ -35,7 +37,7 @@ class AccountManagementPlugin
     private $api;
 
     /**
-     * @var
+     * @var \Riskified\OrderWebhook\Model|null
      */
     private $payload;
 
@@ -43,6 +45,14 @@ class AccountManagementPlugin
      * @var [string] Input data needed to load  customer object and pass additional information to next steps
      */
     private $inputData;
+    /**
+     * @var Config
+     */
+    private $config;
+    /**
+     * @var Log
+     */
+    private $log;
 
     use DateFormatter;
 
@@ -57,12 +67,16 @@ class AccountManagementPlugin
         CustomerRepositoryInterface $customerRepository,
         ClientDetailsInterface $clientDetails,
         SessionDetailsInterface $sessionDetails,
+        Config $config,
+        Log $log,
         Api $api
     ) {
         $this->customerRepository = $customerRepository;
         $this->clientDetails = $clientDetails;
         $this->sessionDetails = $sessionDetails;
         $this->api = $api;
+        $this->config = $config;
+        $this->log = $log;
     }
 
     /**
@@ -109,6 +123,10 @@ class AccountManagementPlugin
      */
     private function prepareSuccessfulLoginCustomerObject()
     {
+        if (!$this->isEnabled()) {
+            return $this;
+        }
+
         return $this->prepareCustomerObject(true);
     }
 
@@ -118,6 +136,10 @@ class AccountManagementPlugin
      */
     private function prepareFailedLoginCustomerObject(\Exception $exception)
     {
+        if (!$this->isEnabled()) {
+            return $this;
+        }
+
         $type = false;
         if ($exception instanceof InvalidEmailOrPasswordException) {
             $type = 'wrong password';
@@ -189,6 +211,8 @@ class AccountManagementPlugin
     }
 
     /**
+     * Call Riskified API.
+     *
      * @return $this
      */
     private function callApi()
@@ -200,10 +224,55 @@ class AccountManagementPlugin
         try {
             $this->api->initSdk();
             $transport = $this->api->getTransport();
+
+            if ($this->isLoggingEnabled()) {
+                $this->log->log(
+                    __("Sending new request to login endpoint.")
+                );
+
+                $this->log->log(
+                    sprintf(
+                        __("Login used during form submission: %s."),
+                        $this->inputData[0]
+                    )
+                );
+
+                $this->log->log(
+                    $this->payload->toJson()
+                );
+            }
+
             $transport->login($this->payload);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            $this->log->log(
+                sprintf(
+                    __("Occurred error when sending login info to Riskified API login input: %s."),
+                    $this->inputData[0]
+                )
+            );
+            $this->log->log($e->getMessage());
         }
 
         return $this;
+    }
+
+    /**
+     * Retrieve information if feature is enabled in admin config.
+     *
+     * @return bool
+     */
+    private function isEnabled()
+    {
+        return $this->config->isEnabled() && $this->config->getCustomerLoginHandleEnabled();
+    }
+
+    /**
+     * Retrieve information when the log was enabled.
+     *
+     * @return bool
+     */
+    private function isLoggingEnabled()
+    {
+        return $this->config->isLoggingEnabled();
     }
 }
