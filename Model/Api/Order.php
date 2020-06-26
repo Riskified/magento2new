@@ -4,6 +4,7 @@ namespace Riskified\Decider\Model\Api;
 
 use Magento\Checkout\Model\Session;
 use Riskified\OrderWebhook\Model;
+use Riskified\Decider\Model\DateFormatter;
 
 class Order
 {
@@ -11,6 +12,7 @@ class Order
      * @var Api
      */
     private $_api;
+    private $_apiConfig;
 
     /**
      * @var Order\Helper
@@ -66,6 +68,8 @@ class Order
      * @var \Magento\Framework\Session\SessionManager
      */
     private $session;
+
+    use DateFormatter;
 
     /**
      * Order constructor.
@@ -166,7 +170,7 @@ class Order
                 case Api::ACTION_FULFILL:
                     $this->_orderHelper->setOrder($order->getOrder());
                     $orderForTransport = $this->_orderHelper->getOrderFulfillments($order);
-                    
+
                     $order = $order->getOrder();
                     $eventData['order'] = $order->getOrder();
 
@@ -185,7 +189,7 @@ class Order
                 'riskified_decider_post_order_success',
                 $eventData
             );
-            
+
         } catch (\Riskified\OrderWebhook\Exception\CurlException $curlException) {
             $this->_raiseOrderUpdateEvent($order, 'error', null, 'Error transferring order data to Riskified');
             $this->scheduleSubmissionRetry($order, $action);
@@ -284,9 +288,9 @@ class Order
             'id' => $this->_orderHelper->getOrderOrigId(),
             'name' => $model->getIncrementId(),
             'email' => $model->getCustomerEmail(),
-            'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
+            'created_at' => $this->formatDateAsIso8601($model->getCreatedAt()),
             'currency' => $model->getOrderCurrencyCode(),
-            'updated_at' => $this->_orderHelper->formatDateAsIso8601($model->getUpdatedAt()),
+            'updated_at' => $this->formatDateAsIso8601($model->getUpdatedAt()),
             'gateway' => $gateway,
             'browser_ip' => $this->_orderHelper->getRemoteIp(),
             'note' => $model->getCustomerNote(),
@@ -297,7 +301,7 @@ class Order
             'taxes_included' => true,
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
-            'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
+            'cancelled_at' => $this->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'vendor_id' => strval($model->getStoreId()),

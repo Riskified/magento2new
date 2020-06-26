@@ -2,6 +2,8 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Riskified\Decider\Api\ClientDetailsInterface;
+use Riskified\Decider\Model\Api\ClientDetails;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
 use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
@@ -16,6 +18,7 @@ use Magento\Customer\Model\Customer;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Model\ResourceModel\GroupRepository;
+use Riskified\Decider\Model\DateFormatter;
 
 class Helper
 {
@@ -99,6 +102,9 @@ class Helper
      * @var CustomerGroupFactory
      */
     private $_groupRepository;
+    private $clientDetials;
+
+    use DateFormatter;
 
     /**
      * Helper constructor.
@@ -113,8 +119,7 @@ class Helper
      * @param CategoryRepositoryInterface $categoryRepository
      * @param PaymentProcessorFactory $paymentProcessorFactory
      * @param State $state
-     * @param ResolverInterface $localeResolver
-     * @param Header $httpHeader
+     * @param ClientDetailsInterface $clientDetails
      * @param Registry $registry
      */
     public function __construct(
@@ -130,8 +135,7 @@ class Helper
         CategoryRepositoryInterface $categoryRepository,
         PaymentProcessorFactory $paymentProcessorFactory,
         State $state,
-        ResolverInterface $localeResolver,
-        Header $httpHeader,
+        ClientDetailsInterface $clientDetails,
         Registry $registry
     ) {
         $this->_customerFactory = $customerFactory;
@@ -146,8 +150,7 @@ class Helper
         $this->categoryRepository = $categoryRepository;
         $this->paymentProcessorFactory = $paymentProcessorFactory;
         $this->state = $state;
-        $this->localeResolver = $localeResolver;
-        $this->httpHeader = $httpHeader;
+        $this->clientDetials = $clientDetails;
         $this->registry = $registry;
     }
 
@@ -227,10 +230,9 @@ class Helper
      */
     public function getClientDetails()
     {
-        return new Model\ClientDetails(array_filter(array(
-            'accept_language' => $this->localeResolver->getLocale(),
-            'user_agent' => $this->httpHeader->getHttpUserAgent()
-        ), 'strlen'));
+        return new Model\ClientDetails(
+            $this->clientDetials->getCleanData()
+        );
     }
 
     /**
@@ -672,16 +674,6 @@ class Helper
             }
         }
         return $remoteIp;
-    }
-
-    /**
-     * @param $dateStr
-     *
-     * @return false|null|string
-     */
-    public function formatDateAsIso8601($dateStr)
-    {
-        return ($dateStr == null) ? null : date('c', strtotime($dateStr));
     }
 
     /**
