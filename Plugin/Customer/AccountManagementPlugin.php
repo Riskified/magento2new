@@ -83,6 +83,7 @@ class AccountManagementPlugin
      * @param $subject
      * @param \Closure $proceed
      * @param mixed ...$args
+     * @return mixed
      * @throws EmailNotConfirmedException
      * @throws InvalidEmailOrPasswordException
      * @throws UserLockedException
@@ -92,7 +93,7 @@ class AccountManagementPlugin
         try {
             $this->inputData = $args;
 
-            $proceed(...$args);
+            $result = $proceed(...$args);
         } catch (InvalidEmailOrPasswordException $e) {
             $this
                 ->prepareFailedLoginCustomerObject($e)
@@ -116,6 +117,8 @@ class AccountManagementPlugin
         $this
             ->prepareSuccessfulLoginCustomerObject()
             ->callApi();
+
+        return $result;
     }
 
     /**

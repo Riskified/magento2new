@@ -102,6 +102,7 @@ class Helper
      * @var CustomerGroupFactory
      */
     private $_groupRepository;
+    private $clientDetials;
 
     use DateFormatter;
 
