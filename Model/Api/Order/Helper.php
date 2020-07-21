@@ -2,20 +2,24 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
-use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\ResourceModel\GroupRepository;
 use Magento\Framework\App\State;
-use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\Event\ManagerInterface as eventManagerInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\Header;
-use Magento\Framework\Registry;
-use Riskified\Decider\Model\Api\Config as ApiConfig;
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Message\ManagerInterface;
-use Magento\Customer\Model\Customer;
+use Magento\Framework\Registry;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Customer\Model\ResourceModel\GroupRepository;
+use Riskified\Decider\Model\Api\Config as ApiConfig;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Paypal;
+use Riskified\OrderWebhook\Model;
 
 class Helper
 {
@@ -96,13 +100,20 @@ class Helper
     private $_customerFactory;
 
     /**
-     * @var CustomerGroupFactory
+     * @var GroupRepository
      */
     private $_groupRepository;
 
     /**
+     * @var eventManagerInterface
+     */
+    private $eventManagerInterface;
+
+    /**
      * Helper constructor.
      *
+     * @param GroupRepository $groupRepository
+     * @param Customer $customerFactory
      * @param Monolog $logger
      * @param ApiConfig $apiConfig
      * @param Log $apiLogger
@@ -116,6 +127,7 @@ class Helper
      * @param ResolverInterface $localeResolver
      * @param Header $httpHeader
      * @param Registry $registry
+     * @param eventManagerInterface $eventManagerInterface
      */
     public function __construct(
         GroupRepository $groupRepository,
@@ -132,7 +144,8 @@ class Helper
         State $state,
         ResolverInterface $localeResolver,
         Header $httpHeader,
-        Registry $registry
+        Registry $registry,
+        eventManagerInterface $eventManagerInterface
     ) {
         $this->_customerFactory = $customerFactory;
         $this->_groupRepository = $groupRepository;
@@ -149,10 +162,11 @@ class Helper
         $this->localeResolver = $localeResolver;
         $this->httpHeader = $httpHeader;
         $this->registry = $registry;
+        $this->eventManagerInterface = $eventManagerInterface;
     }
 
     /**
-     * @param $model
+     * @param Order $model
      */
     public function setOrder($model)
     {
@@ -168,7 +182,7 @@ class Helper
     }
 
     /**
-     * @return mixed
+     * @return Order
      */
     public function getOrder()
     {
@@ -195,10 +209,10 @@ class Helper
         $code = $this->getOrder()->getDiscountDescription();
         $amount = $this->getOrder()->getDiscountAmount();
         if ($amount && $code) {
-            return new Model\DiscountCode(array_filter(array(
+            return new Model\DiscountCode(array_filter([
                 'code' => $code,
                 'amount' => $amount
-            )));
+            ]));
         }
 
         return null;
@@ -227,10 +241,10 @@ class Helper
      */
     public function getClientDetails()
     {
-        return new Model\ClientDetails(array_filter(array(
+        return new Model\ClientDetails(array_filter([
             'accept_language' => $this->localeResolver->getLocale(),
             'user_agent' => $this->httpHeader->getHttpUserAgent()
-        ), 'strlen'));
+        ], 'strlen'));
     }
 
     /**
@@ -240,14 +254,14 @@ class Helper
     public function getCustomer()
     {
         $customer_id = strval($this->getOrder()->getCustomerId());
-        $customer_props = array(
+        $customer_props = [
             'id' => $customer_id,
             'email' => $this->getOrder()->getCustomerEmail(),
             'first_name' => $this->getOrder()->getCustomerFirstname(),
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
             'group_name' => $this->getOrder()->getCustomerGroupId()
-        );
+        ];
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
@@ -273,37 +287,40 @@ class Helper
     }
 
     /**
-     * @param $customer
+     * @param int $groupId
      * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getCustomerGroupCode($groupId)
     {
         $customerGroup = $this->_groupRepository->getById($groupId);
-        $code = $customerGroup->getCode();
 
-        return $code;
+        return $customerGroup->getCode();
     }
 
     /**
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getLineItems()
     {
-        $line_items = array();
+        $line_items = [];
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
             $line_items[] = $this->getPreparedLineItem($item);
-
         }
         return $line_items;
     }
 
     /**
+     * @param Order $object
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getAllLineItems($object = null)
     {
-        $line_items = array();
+        $line_items = [];
 
         if ($object === null) {
             $object = $this->getOrder();
@@ -342,7 +359,7 @@ class Helper
     /**
      * @param $item
      * @return Model\LineItem
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     protected function getPreparedLineItem($item)
     {
@@ -379,7 +396,7 @@ class Helper
             }
         }
 
-        $line_item = new Model\LineItem(array_filter(array(
+        $line_item = new Model\LineItem(array_filter([
             'price' => floatval($item->getPrice()),
             'quantity' => intval($item->getQtyOrdered()),
             'title' => $item->getName(),
@@ -390,7 +407,7 @@ class Helper
             'brand' => $brand,
             'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
             'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
-        ), 'strlen'));
+        ], 'strlen'));
 
         return $line_item;
     }
@@ -415,7 +432,7 @@ class Helper
             $firstName = $firstName->getText();
         }
 
-        $addrArray = array_filter(array(
+        $addrArray = array_filter([
             'first_name' => $firstName,
             'last_name' => $address->getLastname(),
             'name' => $address->getFirstname() . " " . $address->getLastname(),
@@ -427,7 +444,7 @@ class Helper
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
-        ), 'strlen');
+        ], 'strlen');
 
         if (!$addrArray) {
             return null;
@@ -442,13 +459,13 @@ class Helper
      */
     public function buildRefundDetailsObject($payload)
     {
-        $refundObject = new Model\RefundDetails(array_filter(array(
+        $refundObject = new Model\RefundDetails(array_filter([
             'refund_id' => $payload->getIncrementId(),
             'amount' => $payload->getSubtotal(),
             'currency' => $payload->getBaseCurrencyCode(),
             'refunded_at' => $payload->getCreatedAt(),
             'reason' => $payload->getCustomerNote()
-        ), 'strlen'));
+        ], 'strlen'));
 
         return $refundObject;
     }
@@ -461,9 +478,9 @@ class Helper
     {
         $order = $this->getOrder();
         $creditMemos = $order->getCreditmemosCollection();
-        $refundObjectCollection = array();
-        if($creditMemos->getSize() > 0){
-            foreach($creditMemos as $memo){
+        $refundObjectCollection = [];
+        if ($creditMemos->getSize() > 0) {
+            foreach ($creditMemos as $memo) {
                 array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
             }
         }
@@ -487,8 +504,18 @@ class Helper
         }
         $paymentData = [];
         try {
+            $this->eventManagerInterface->dispatch('riskified_decider_get_payment_processor_before', ['order' => $this->getOrder()]);
+
             $paymentProcessor = $this->getPaymentProcessor($this->getOrder());
             $paymentData = $paymentProcessor->getDetails();
+
+            $this->eventManagerInterface->dispatch(
+                'riskified_decider_get_payment_processor_after',
+                [
+                    'payment_data' => $paymentData,
+                    'order' => $this->getOrder()
+                ]
+            );
         } catch (\Exception $e) {
             $this->_apiLogger->log(__(
                 'Riskified: %1',
@@ -496,30 +523,38 @@ class Helper
             ));
         }
 
-        $this->preparePaymentData($payment, $paymentData);
+        $paymentInformation = $this->preparePaymentData($payment, $paymentData);
 
-        if (isset($paymentProcessor)
-            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\Paypal
-        ) {
-            return new Model\PaymentDetails(array_filter(array(
-                'authorization_id' => $paymentData['transaction_id'],
-                'payer_email' => $paymentData['payer_email'],
-                'payer_status' => isset($paymentData['payer_status']) ? $paymentData['payer_status'] : '',
-                'payer_address_status' => $paymentData['payer_address_status'],
-                'protection_eligibility' => $paymentData['protection_eligibility'],
-                'payment_status' => $paymentData['payment_status'],
-                'pending_reason' => $paymentData['pending_reason']
-            ), 'strlen'));
+        $this->eventManagerInterface->dispatch(
+            'riskified_decider_payment_data_compose_after',
+            [
+                'payment_data' => $paymentInformation,
+                'order' => $this->getOrder()
+            ]
+        );
+
+        if (isset($paymentProcessor) && $paymentProcessor instanceof Paypal) {
+            $paymentPayload = array_filter([
+                'authorization_id' => $paymentInformation->transaction_id,
+                'payer_email' => $paymentInformation->payer_email,
+                'payer_status' => isset($paymentInformation->payer_status) ? $paymentInformation->payer_status : '',
+                'payer_address_status' => $paymentInformation->payer_address_status,
+                'protection_eligibility' => $paymentInformation->protection_eligibility,
+                'payment_status' => $paymentInformation->payment_status,
+                'pending_reason' => $paymentInformation->pending_reason
+            ], 'strlen');
+        } else {
+            $paymentPayload = array_filter([
+                'authorization_id' => $paymentInformation->transaction_id,
+                'avs_result_code' => $paymentInformation->avs_result_code,
+                'cvv_result_code' => $paymentInformation->cvv_result_code,
+                'credit_card_number' => $paymentInformation->credit_card_number,
+                'credit_card_company' => $paymentInformation->credit_card_company,
+                'credit_card_bin' => $paymentInformation->credit_card_bin
+            ], 'strlen');
         }
 
-        return new Model\PaymentDetails(array_filter(array(
-            'authorization_id' => $paymentData['transaction_id'],
-            'avs_result_code' => $paymentData['avs_result_code'],
-            'cvv_result_code' => $paymentData['cvv_result_code'],
-            'credit_card_number' => $paymentData['credit_card_number'],
-            'credit_card_company' => $paymentData['credit_card_company'],
-            'credit_card_bin' => $paymentData['credit_card_bin']
-        ), 'strlen'));
+        return new Model\PaymentDetails($paymentPayload);
     }
 
     /**
@@ -533,52 +568,74 @@ class Helper
     }
 
     /**
-     * Fill empty fields.
+     * Fill empty fields.preparePaymentData
      *
      * @param $payment
      * @param $paymentData
+     * @return \stdClass
      */
     public function preparePaymentData($payment, &$paymentData)
     {
+        $paymentInformation = json_decode(json_encode($paymentData), false);
+
         if (!isset($paymentData['transaction_id'])) {
-            $paymentData['transaction_id'] = $payment->getTransactionId();
+            $paymentInformation->transaction_id = $payment->getTransactionId();
         }
         if (!isset($paymentData['cvv_result_code'])) {
-            $paymentData['cvv_result_code'] = $payment->getCcCidStatus();
+            $paymentInformation->cvv_result_code = $payment->getCcCidStatus();
         }
         if (!isset($paymentData['credit_card_number'])) {
-            $paymentData['credit_card_number'] = $payment->getCcLast4();
+            $paymentInformation->credit_card_number = $payment->getCcLast4();
         }
         if (!isset($paymentData['credit_card_company'])) {
-            $paymentData['credit_card_company'] = $payment->getCcType();
+            $paymentInformation->credit_card_company = $payment->getCcType();
         }
         if (!isset($paymentData['avs_result_code'])) {
-            $paymentData['avs_result_code'] = $payment->getCcAvsStatus();
+            $paymentInformation->avs_result_code = $payment->getCcAvsStatus();
         }
-
-        if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
-            $paymentData['credit_card_bin'] = $this->checkoutSession->getRiskifiedBin();
+        if (!isset($paymentInformation->credit_card_bin) || !$paymentInformation->credit_card_bin) {
+            $paymentInformation->credit_card_bin = $this->checkoutSession->getRiskifiedBin();
             $this->checkoutSession->unsRiskifiedBin();
         }
-        if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
-            $paymentData['credit_card_bin'] = $this->registry->registry('riskified_cc_bin');
+        if (!isset($paymentInformation->credit_card_bin) || !$paymentInformation->credit_card_bin) {
+            $paymentInformation->credit_card_bin = $this->registry->registry('riskified_cc_bin');
         }
         if (isset($paymentData['credit_card_bin'])) {
-            $paymentData['credit_card_bin'] = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
+            $paymentInformation->credit_card_bin = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
         }
+        if (!isset($paymentInformation->transaction_id)) {
+            $paymentInformation->transaction_id = null;
+        }
+        if (!isset($paymentInformation->avs_result_code)) {
+            $paymentInformation->avs_result_code = null;
+        }
+        if (!isset($paymentInformation->cvv_result_code)) {
+            $paymentInformation->cvv_result_code = null;
+        }
+        if (!isset($paymentInformation->credit_card_number)) {
+            $paymentInformation->credit_card_number = null;
+        }
+        if (!isset($paymentInformation->credit_card_company)) {
+            $paymentInformation->credit_card_company = null;
+        }
+        if (!isset($paymentInformation->credit_card_bin)) {
+            $paymentInformation->credit_card_bin = null;
+        }
+
+        return $paymentInformation;
     }
 
     /**
-     * @return Model\ShippingLine
+     * @return Model\ShippingLine[]
      * @throws \Exception
      */
     public function getShippingLines()
     {
-        return [new Model\ShippingLine(array_filter(array(
+        return [new Model\ShippingLine(array_filter([
             'price' => $this->getOrder()->getShippingAmount(),
             'title' => strip_tags($this->getOrder()->getShippingDescription()),
             'code' => $this->getOrder()->getShippingMethod()
-        ), 'strlen'))];
+        ], 'strlen'))];
     }
 
     /**
@@ -588,7 +645,7 @@ class Helper
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
         foreach ($commentCollection as $comment) {
-            if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
+            if ($comment->getStatus() == Order::STATE_CANCELED) {
                 return 'now';
             }
         }
@@ -601,11 +658,11 @@ class Helper
      */
     public function getOrderCancellation()
     {
-        $orderCancellation = new Model\OrderCancellation(array_filter(array(
+        $orderCancellation = new Model\OrderCancellation(array_filter([
             'id' => $this->getOrderOrigId(),
             'cancelled_at' => $this->formatDateAsIso8601($this->getCancelledAt()),
             'cancel_reason' => 'Cancelled by merchant'
-        )));
+        ]));
         return $orderCancellation;
     }
 
@@ -615,13 +672,13 @@ class Helper
      */
     public function getOrderFulfillments($createdShipment = null)
     {
-        $fulfillments = array();
+        $fulfillments = [];
         $shipmentCollection = $this->getOrder()->getShipmentsCollection();
 
         foreach ($shipmentCollection as $shipment) {
             $tracking = $shipment->getTracksCollection()->getFirstItem();
             $comment = $shipment->getCommentsCollection()->getFirstItem();
-            $payload = array(
+            $payload = [
                 "fulfillment_id" => $shipment->getIncrementId(),
                 "created_at" => $this->formatDateAsIso8601($shipment->getCreatedAt()),
                 "status" => "success",
@@ -629,7 +686,7 @@ class Helper
                 "tracking_numbers" => $tracking->getTrackNumber(),
                 "message" => $comment->getComment(),
                 "line_items" => $this->getAllShipmentItems($shipment)
-            );
+            ];
             if ($shipment->getId() == $createdShipment->getId()) {
                 $payload['line_items'] = $this->getAllShipmentItems($createdShipment);
             }
@@ -637,10 +694,10 @@ class Helper
             $fulfillments[] = new Model\FulfillmentDetails(array_filter($payload));
         }
 
-        $orderFulfillments = new Model\Fulfillment(array_filter(array(
+        $orderFulfillments = new Model\Fulfillment(array_filter([
             'id' => $this->getOrderOrigId(),
             'fulfillments' => $fulfillments,
-        )));
+        ]));
 
         return $orderFulfillments;
     }
@@ -675,7 +732,7 @@ class Helper
     }
 
     /**
-     * @param $dateStr
+     * @param string $dateStr
      *
      * @return false|null|string
      */
@@ -686,6 +743,7 @@ class Helper
 
     /**
      * @return bool
+     * @throws LocalizedException
      */
     public function isAdmin()
     {
