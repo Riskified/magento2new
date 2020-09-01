@@ -13,8 +13,7 @@ class Env implements \Magento\Framework\Option\ArrayInterface
     {
         return [
             ['value' => 'PROD', 'label' => __('Production')],
-            ['value' => 'SANDBOX', 'label' => __('Sandbox')],
-            ['value' => 'DEV', 'label' => __('Dev')]
+            ['value' => 'SANDBOX', 'label' => __('Sandbox')]
         ];
     }
 }
