@@ -3,9 +3,10 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Model\Order as Order;
 use Riskified\Decider\Model\Api\Api;
-use Riskified\Decider\Model\Logger\Order as OrderLogger;
 use Riskified\Decider\Model\Api\Order as OrderApi;
+use Riskified\Decider\Model\Logger\Order as OrderLogger;
 
 class OrderSaveAfter implements ObserverInterface
 {
@@ -34,8 +35,7 @@ class OrderSaveAfter implements ObserverInterface
         OrderLogger $logger,
         OrderApi $orderApi,
         \Magento\Framework\Registry $registry
-    )
-    {
+    ) {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
         $this->_registry = $registry;
@@ -54,7 +54,7 @@ class OrderSaveAfter implements ObserverInterface
 
         $newState = $order->getState();
 
-        if((int)$order->dataHasChangedFor('state') === 1) {
+        if ((int)$order->dataHasChangedFor('state') === 1) {
             $oldState = $order->getOrigData('state');
 
             if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
@@ -71,7 +71,7 @@ class OrderSaveAfter implements ObserverInterface
             }
 
             try {
-                if(!$this->_registry->registry("riskified-order")) {
+                if (!$this->_registry->registry("riskified-order")) {
                     $this->_registry->register("riskified-order", $order);
                 }
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
@@ -81,7 +81,6 @@ class OrderSaveAfter implements ObserverInterface
                 // There is no need to do anything here. The exception has already been handled and a retry scheduled.
                 // We catch this exception so that the order is still saved in Magento.
             }
-
         } else {
             $this->_logger->debug(
                 sprintf(
