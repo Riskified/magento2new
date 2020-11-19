@@ -246,7 +246,6 @@ class Helper
             'first_name' => $this->getOrder()->getCustomerFirstname(),
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
-            'group_name' => $this->getOrder()->getCustomerGroupId()
         );
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
@@ -346,9 +345,7 @@ class Helper
      */
     protected function getPreparedLineItem($item)
     {
-        $prod_type = null;
-
-        $prod_type = null;
+        $prod_type = "physical";
         $category = null;
         $sub_categories = null;
         $brand = null;
@@ -379,6 +376,10 @@ class Helper
             }
         }
 
+        if ($item->getIsVirtual()) {
+            $prod_type = "digital";
+        }
+
         $line_item = new Model\LineItem(array_filter(array(
             'price' => floatval($item->getPrice()),
             'quantity' => intval($item->getQtyOrdered()),
@@ -389,7 +390,8 @@ class Helper
             'product_type' => $prod_type,
             'brand' => $brand,
             'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
-            'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
+            'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : '',
+            'required_shipping' => $item->getIsVirtual() ? true : false
         ), 'strlen'));
 
         return $line_item;
@@ -569,16 +571,18 @@ class Helper
     }
 
     /**
-     * @return Model\ShippingLine
+     * @return array
      * @throws \Exception
      */
     public function getShippingLines()
     {
-        return [new Model\ShippingLine(array_filter(array(
-            'price' => $this->getOrder()->getShippingAmount(),
-            'title' => strip_tags($this->getOrder()->getShippingDescription()),
-            'code' => $this->getOrder()->getShippingMethod()
-        ), 'strlen'))];
+        return [
+            [
+                'price' => floatval($this->getOrder()->getShippingAmount()),
+                'title' => strip_tags($this->getOrder()->getShippingDescription()),
+                'code' => $this->getOrder()->getShippingMethod()
+            ]
+        ];
     }
 
     /**
