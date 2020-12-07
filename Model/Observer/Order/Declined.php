@@ -146,7 +146,7 @@ class Declined implements ObserverInterface
             return $this;
         }
 
-        if (!$order->getDeclineNotificationSent()) {
+        if ($order->getDeclineNotificationSent()) {
             return $this;
         }
 
