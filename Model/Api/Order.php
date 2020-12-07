@@ -290,6 +290,8 @@ class Order
             'note' => $model->getCustomerNote(),
             'total_price' => floatval($model->getGrandTotal()),
             'total_discounts' => $model->getDiscountAmount(),
+            'financial_status' => $model->getState(),
+            'fulfillment_status' => $model->getStatus(),
             'discount_codes' => $this->_orderHelper->getDiscountCodes(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'vendor_id' => strval($model->getStoreId()),
