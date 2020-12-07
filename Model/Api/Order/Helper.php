@@ -438,24 +438,6 @@ class Helper
     }
 
     /**
-     * @param $payload
-     * @return Model\RefundDetails
-     * @throws \Exception
-     */
-    public function buildRefundDetailsObject($payload)
-    {
-        $refundObject = new Model\RefundDetails(array_filter(array(
-            'refund_id' => $payload->getIncrementId(),
-            'amount' => $payload->getSubtotal(),
-            'currency' => $payload->getBaseCurrencyCode(),
-            'refunded_at' => $payload->getCreatedAt(),
-            'reason' => $payload->getCustomerNote()
-        ), 'strlen'));
-
-        return $refundObject;
-    }
-
-    /**
      * @return array
      * @throws \Exception
      */
@@ -464,9 +446,16 @@ class Helper
         $order = $this->getOrder();
         $creditMemos = $order->getCreditmemosCollection();
         $refundObjectCollection = array();
-        if($creditMemos->getSize() > 0){
-            foreach($creditMemos as $memo){
-                array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
+        if ($creditMemos->getSize() > 0) {
+            foreach ($creditMemos->getData() as $memo) {
+                $refundObjectCollection[] = new Model\RefundDetails(array_filter([
+                    'refund_id' => $memo['increment_id'],
+                    'amount' => $memo['subtotal'],
+                    'currency' => $memo['base_currency_code'],
+                    'refunded_at' => $memo['created_at'],
+                    'reason' => $memo['customer_note']
+                ], 'strlen'));
+
             }
         }
 
