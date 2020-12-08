@@ -17,6 +17,11 @@ class UploadHistoricalOrders extends Command
     const BATCH_SIZE = 10;
 
     /**
+     * @var \Magento\Framework\App\State
+     */
+    protected $_state;
+
+    /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     protected $_scopeConfig;
@@ -72,7 +77,7 @@ class UploadHistoricalOrders extends Command
         \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder,
         Helper $helper
     ) {
-        $state->setAreaCode('adminhtml');
+        $this->_state = $state;
 
         $this->_scopeConfig             = $scopeConfig;
         $this->_orderRepository         = $orderRepository;
@@ -102,6 +107,10 @@ class UploadHistoricalOrders extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
+        if (!$this->_state->getAreaCode()) {
+            $this->_state->setAreaCode('adminhtml');
+        }
 
         $authToken = $this->_scopeConfig->getValue('riskified/riskified/key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $env = constant('\Riskified\Common\Env::' . $this->_scopeConfig->getValue('riskified/riskified/env'));
