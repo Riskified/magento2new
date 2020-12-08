@@ -26,7 +26,7 @@
         <plugin name="riskified_decider_sales_order_view_toolbar_send_button"
                 type="Riskified\Decider\Plugin\Widget\Context" sortOrder="1"/>
     </type>
-    <type name="Magento\Framework\Console\CommandList">
+    <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="riskfied_send_historical_orders" xsi:type="object">Riskified\Decider\Model\Command\UploadHistoricalOrders</item>
