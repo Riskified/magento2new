@@ -2,6 +2,13 @@
 
 namespace Riskified\Decider\Model\Command;
 
+use Magento\Framework\Api\SearchCriteria;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderSearchResultInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,17 +24,17 @@ class UploadHistoricalOrders extends Command
     const BATCH_SIZE = 10;
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     protected $_scopeConfig;
 
     /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     * @var OrderRepositoryInterface
      */
     protected $_orderRepository;
 
     /**
-     * @var \Magento\Framework\Api\SearchCriteria
+     * @var SearchCriteria
      */
     protected $_searchCriteriaBuilder;
 
@@ -52,33 +59,38 @@ class UploadHistoricalOrders extends Command
     protected $_currentPage = 1;
 
     /**
-     * @var
+     * @var OrderInterface[]
      */
     protected $_orders;
 
     /**
+     * @var State
+     */
+    private $state;
+
+    /**
      * UploadHistoricalOrders constructor.
      *
-     * @param \Magento\Framework\App\State $state
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder
+     * @param State $state
+     * @param ScopeConfigInterface $scopeConfig
+     * @param OrderRepositoryInterface $orderRepository
+     * @param SearchCriteria $searchCriteriaBuilder
      * @param Helper $helper
      */
     public function __construct(
-        \Magento\Framework\App\State $state,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Framework\Api\SearchCriteria $searchCriteriaBuilder,
+        State $state,
+        ScopeConfigInterface $scopeConfig,
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteria $searchCriteriaBuilder,
         Helper $helper
     ) {
-        $state->setAreaCode('adminhtml');
-
         $this->_scopeConfig             = $scopeConfig;
         $this->_orderRepository         = $orderRepository;
         $this->_searchCriteriaBuilder   = $searchCriteriaBuilder;
 
         $this->_orderHelper = $helper;
+
+        $this->state = $state;
 
         $this->_transport = new CurlTransport(new Signature\HttpDataSignature());
         $this->_transport->timeout = 15;
@@ -99,9 +111,11 @@ class UploadHistoricalOrders extends Command
 
     /**
      * @inheritdoc
+     * @throws LocalizedException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->state->setAreaCode('adminhtml');
 
         $authToken = $this->_scopeConfig->getValue('riskified/riskified/key', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
         $env = constant('\Riskified\Common\Env::' . $this->_scopeConfig->getValue('riskified/riskified/env'));
@@ -142,14 +156,13 @@ class UploadHistoricalOrders extends Command
     /**
      * Retrieve prepared order collection for counting values
      *
-     * @return \Magento\Sales\Api\Data\OrderSearchResultInterface
+     * @return OrderSearchResultInterface
      */
     protected function getEntireCollection()
     {
-        $orderResult = $this
+        return $this
             ->_orderRepository
             ->getList($this->_searchCriteriaBuilder);
-        return $orderResult;
     }
 
     /**
@@ -162,6 +175,7 @@ class UploadHistoricalOrders extends Command
         $this->_searchCriteriaBuilder
             ->setPageSize(self::BATCH_SIZE)
             ->setCurrentPage($this->_currentPage);
+
         $orderResult = $this->_orderRepository->getList($this->_searchCriteriaBuilder);
         $this->_orders = $orderResult->getItems();
     }
@@ -170,6 +184,7 @@ class UploadHistoricalOrders extends Command
      * Sends orders to endpoint
      *
      * @return void
+     * @throws \Exception
      */
     protected function postOrders()
     {
@@ -185,9 +200,10 @@ class UploadHistoricalOrders extends Command
     }
 
     /**
-     * @param Model\Order $model
+     * @param OrderInterface $model
      *
      * @return Model\Order
+     * @throws \Exception
      */
     protected function prepareOrder($model)
     {
@@ -211,7 +227,7 @@ class UploadHistoricalOrders extends Command
             'total_price' => $model->getGrandTotal(),
             'total_discounts' => $model->getDiscountAmount(),
             'subtotal_price' => $model->getBaseSubtotalInclTax(),
-            'discount_codes' => $this->_orderHelper->getDiscountCodes($model),
+            'discount_codes' => $this->_orderHelper->getDiscountCodes(),
             'taxes_included' => true,
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
