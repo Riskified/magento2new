@@ -391,7 +391,7 @@ class Helper
             'brand' => $brand,
             'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
             'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : '',
-            'required_shipping' => $item->getIsVirtual() ? true : false
+            'requires_shipping' => $item->getIsVirtual() ? false : true
         ), 'strlen'));
 
         return $line_item;
