@@ -39,6 +39,7 @@ class PaymentProcessorFactory
         'payflowpro' => Payflowpro::class,
         'adyen_oneclick' => Adyen::class,
         'adyen_cc' => Adyen::class,
+        'adyen_hpp' => Paypal::class,
         'cryozonic_stripe' => Cryozonic::class,
         'vantiv_cc' => Vantiv::class
     ];
