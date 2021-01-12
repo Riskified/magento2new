@@ -554,9 +554,6 @@ class Helper
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
             $paymentData['credit_card_bin'] = $this->registry->registry('riskified_cc_bin');
         }
-        if (isset($paymentData['credit_card_bin'])) {
-            $paymentData['credit_card_bin'] = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
-        }
     }
 
     /**
