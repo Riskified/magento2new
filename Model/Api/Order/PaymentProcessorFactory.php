@@ -4,23 +4,24 @@ namespace Riskified\Decider\Model\Api\Order;
 
 use Magento\Framework\ObjectManagerInterface;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\DirectPost;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Adyen;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Authcim;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Braintree;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Cryozonic;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\DefaultPaymentProcessor;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\DirectPost;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\OptimalHosted;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Payflowpro;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Paypal;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\PaypalDirect;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\SagePay;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Transarmor;
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\Braintree;
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\Payflowpro;
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\Adyen;
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\Cryozonic;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Vantiv;
 
 class PaymentProcessorFactory
 {
     const GATEWAY_INSTANCE = [
-        'default' => Paypal::class,
+        'default' => DefaultPaymentProcessor::class,
         'authorizenet_directpost' => DirectPost::class,
         'authnetcim' => Authcim::class,
         'optimal_hosted' => OptimalHosted::class,
@@ -38,6 +39,7 @@ class PaymentProcessorFactory
         'payflowpro' => Payflowpro::class,
         'adyen_oneclick' => Adyen::class,
         'adyen_cc' => Adyen::class,
+        'adyen_hpp' => Paypal::class,
         'cryozonic_stripe' => Cryozonic::class,
         'vantiv_cc' => Vantiv::class
     ];

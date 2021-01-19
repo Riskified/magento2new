@@ -146,6 +146,10 @@ class Declined implements ObserverInterface
             return $this;
         }
 
+        if ($order->getDeclineNotificationSent()) {
+            return $this;
+        }
+
         $subject = $this->apiConfig->getDeclineNotificationSubject();
         $content = $this->apiConfig->getDeclineNotificationContent();
 
@@ -219,6 +223,8 @@ class Declined implements ObserverInterface
             $order
                 ->addStatusHistoryComment($orderComment)
                 ->setIsCustomerNotified(true);
+
+            $order->setDeclineNotificationSent(true);
 
             $this->orderRepository->save($order);
         } catch (\Exception $e) {

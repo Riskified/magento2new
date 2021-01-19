@@ -246,7 +246,6 @@ class Helper
             'first_name' => $this->getOrder()->getCustomerFirstname(),
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
-            'group_name' => $this->getOrder()->getCustomerGroupId()
         );
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
@@ -346,9 +345,7 @@ class Helper
      */
     protected function getPreparedLineItem($item)
     {
-        $prod_type = null;
-
-        $prod_type = null;
+        $prod_type = "physical";
         $category = null;
         $sub_categories = null;
         $brand = null;
@@ -379,6 +376,10 @@ class Helper
             }
         }
 
+        if ($item->getIsVirtual()) {
+            $prod_type = "digital";
+        }
+
         $line_item = new Model\LineItem(array_filter(array(
             'price' => floatval($item->getPrice()),
             'quantity' => intval($item->getQtyOrdered()),
@@ -389,7 +390,8 @@ class Helper
             'product_type' => $prod_type,
             'brand' => $brand,
             'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
-            'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : ''
+            'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : '',
+            'requires_shipping' => (bool)!$item->getIsVirtual()
         ), 'strlen'));
 
         return $line_item;
@@ -436,24 +438,6 @@ class Helper
     }
 
     /**
-     * @param $payload
-     * @return Model\RefundDetails
-     * @throws \Exception
-     */
-    public function buildRefundDetailsObject($payload)
-    {
-        $refundObject = new Model\RefundDetails(array_filter(array(
-            'refund_id' => $payload->getIncrementId(),
-            'amount' => $payload->getSubtotal(),
-            'currency' => $payload->getBaseCurrencyCode(),
-            'refunded_at' => $payload->getCreatedAt(),
-            'reason' => $payload->getCustomerNote()
-        ), 'strlen'));
-
-        return $refundObject;
-    }
-
-    /**
      * @return array
      * @throws \Exception
      */
@@ -462,9 +446,16 @@ class Helper
         $order = $this->getOrder();
         $creditMemos = $order->getCreditmemosCollection();
         $refundObjectCollection = array();
-        if($creditMemos->getSize() > 0){
-            foreach($creditMemos as $memo){
-                array_push($refundObjectCollection, $this->buildRefundDetailsObject($memo));
+        if ($creditMemos->getSize() > 0) {
+            foreach ($creditMemos->getData() as $memo) {
+                $refundObjectCollection[] = new Model\RefundDetails(array_filter([
+                    'refund_id' => $memo['increment_id'],
+                    'amount' => $memo['subtotal'],
+                    'currency' => $memo['base_currency_code'],
+                    'refunded_at' => $memo['created_at'],
+                    'reason' => $memo['customer_note']
+                ], 'strlen'));
+
             }
         }
 
@@ -563,22 +554,21 @@ class Helper
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
             $paymentData['credit_card_bin'] = $this->registry->registry('riskified_cc_bin');
         }
-        if (isset($paymentData['credit_card_bin'])) {
-            $paymentData['credit_card_bin'] = "XXXX-XXXX-XXXX-" . $paymentData['credit_card_bin'];
-        }
     }
 
     /**
-     * @return Model\ShippingLine
+     * @return array
      * @throws \Exception
      */
     public function getShippingLines()
     {
-        return [new Model\ShippingLine(array_filter(array(
-            'price' => $this->getOrder()->getShippingAmount(),
-            'title' => strip_tags($this->getOrder()->getShippingDescription()),
-            'code' => $this->getOrder()->getShippingMethod()
-        ), 'strlen'))];
+        return [
+            [
+                'price' => floatval($this->getOrder()->getShippingAmount()),
+                'title' => strip_tags($this->getOrder()->getShippingDescription()),
+                'code' => $this->getOrder()->getShippingMethod()
+            ]
+        ];
     }
 
     /**
