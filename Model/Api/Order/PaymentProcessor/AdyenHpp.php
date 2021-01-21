@@ -13,7 +13,7 @@ class AdyenHpp extends AbstractPayment
 
         if (strtolower($this->payment->getCcType()) == "paypal") {
             $details['payer_email'] = $this->payment->getAdditionalInformation('paypal_payer_email');
-            $details['payer_statis'] = $this->payment->getAdditionalInformation('paypal_payer_status');
+            $details['payer_status'] = $this->payment->getAdditionalInformation('paypal_payer_status');
             $details['payer_address_status'] = $this->payment->getAdditionalInformation('paypal_address_status');
             $details['protection_eligibility'] = $this->payment->getAdditionalInformation('paypal_protection_eligibility');
             $details['payment_status'] = $this->payment->getAdditionalInformation('paypal_payment_status');
