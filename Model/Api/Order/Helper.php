@@ -251,7 +251,8 @@ class Helper
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
-            $customer_props['account_type'] = $this->getCustomerGroupCode($customer_details->getGroupId());
+            // Need to send '1' as account_type for registered users
+            $customer_props['account_type'] = 1;
             try {
                 $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
@@ -502,9 +503,9 @@ class Helper
                 'pending_reason' => $paymentData['pending_reason']
             ), 'strlen'));
         }
-        
+
           if (isset($paymentProcessor)
-            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal" 
+            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal"
         ) {
             return new Model\PaymentDetails(array_filter(array(
                 'authorization_id' => $paymentData['transaction_id'],
