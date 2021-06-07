@@ -18,7 +18,10 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Ui/js/model/messages',
     'uiLayout',
-    'Magento_Checkout/js/action/redirect-on-success'
+    'Magento_Checkout/js/action/redirect-on-success',
+    'mage/storage'
+
+    pub/static/frontend/Magento/luma/en_US/Riskified_Decider/js/
 ], function (
     ko,
     $,
@@ -34,7 +37,8 @@ define([
     additionalValidators,
     Messages,
     layout,
-    redirectOnSuccessAction
+    redirectOnSuccessAction,
+    storage
 ) {
     'use strict';
 
