@@ -20,8 +20,6 @@ define([
     'uiLayout',
     'Magento_Checkout/js/action/redirect-on-success',
     'mage/storage'
-
-    pub/static/frontend/Magento/luma/en_US/Riskified_Decider/js/
 ], function (
     ko,
     $,
@@ -80,7 +78,7 @@ define([
         triggerCheckoutDeniedCall: function()
         {
             storage.post(
-                'decider/checkout/checkoutDenied',
+                'decider/checkout/deny',
                 JSON.stringify({
                     quote_id: quote.getQuoteId()
                 }),
