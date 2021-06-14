@@ -571,15 +571,23 @@ class Helper
         ];
     }
 
+    public function getCustomerSession()
+    {
+        return false;
+    }
+
     /**
      * @return null|string
      */
     public function getCancelledAt()
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
-        foreach ($commentCollection as $comment) {
-            if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                return 'now';
+
+        if ($commentCollection) {
+            foreach ($commentCollection as $comment) {
+                if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
+                    return 'now';
+                }
             }
         }
         return null;
