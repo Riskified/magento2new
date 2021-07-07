@@ -502,6 +502,20 @@ class Helper
                 'pending_reason' => $paymentData['pending_reason']
             ), 'strlen'));
         }
+        
+          if (isset($paymentProcessor)
+            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal" 
+        ) {
+            return new Model\PaymentDetails(array_filter(array(
+                'authorization_id' => $paymentData['transaction_id'],
+                'payer_email' => $paymentData['payer_email'],
+                'payer_status' => isset($paymentData['payer_status']) ? $paymentData['payer_status'] : '',
+                'payer_address_status' => $paymentData['payer_address_status'],
+                'protection_eligibility' => $paymentData['protection_eligibility'],
+                'payment_status' => $paymentData['payment_status'],
+                'pending_reason' => $paymentData['pending_reason']
+            ), 'strlen'));
+        }
 
         return new Model\PaymentDetails(array_filter(array(
             'authorization_id' => $paymentData['transaction_id'],

@@ -150,8 +150,8 @@ class Declined implements ObserverInterface
             return $this;
         }
 
-        $subject = $this->apiConfig->getDeclineNotificationSubject();
-        $content = $this->apiConfig->getDeclineNotificationContent();
+        $subject = $this->apiConfig->getDeclineNotificationSubject($order->getStoreId());
+        $content = $this->apiConfig->getDeclineNotificationContent($order->getStoreId());
 
         $shortCodes = [
             "{{customer_name}}",
