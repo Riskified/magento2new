@@ -195,9 +195,7 @@ class AutoInvoice implements ObserverInterface
         }
         try {
             $this->invoiceRepository->save($invoice);
-            if($order->getState() != OrderEntity::STATE_PROCESSING) {
-                $this->orderRepository->save($invoice->getOrder());
-            }
+            $this->orderRepository->save($invoice->getOrder());
         } catch (\Exception $e) {
             $this->logger->addCritical(
                 sprintf(
