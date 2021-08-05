@@ -382,7 +382,7 @@ class Helper
 
         $line_item = new Model\LineItem(array_filter(array(
             'price' => floatval($item->getPrice()),
-            'quantity' => intval($item->getQtyOrdered()),
+            'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
             'product_id' => $item->getItemId(),

@@ -179,6 +179,7 @@ class Order
                     break;
                 case Api::ACTION_CHECKOUT_DENIED:
                     $checkoutForTransport = $this->loadQuote($order);
+                    $this->logger->log(serialize($checkoutForTransport));
                     $response = $transport->deniedCheckout($checkoutForTransport);
                     break;
             }
@@ -269,9 +270,8 @@ class Order
             $gateway = $model->getPayment()->getMethod();
         }
         $order_array = [
-            'id' => (int) $model->getQuoteId(),
-            'name' => $model->getIncrementId(),
-            'email' => $model->getCustomerEmail(),
+            'id' => (int) $model->getId(),
+            'email' => $model->getEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
             'currency' => $model->getOrderCurrencyCode(),
             'updated_at' => $this->_orderHelper->formatDateAsIso8601($model->getUpdatedAt()),
@@ -287,7 +287,6 @@ class Order
             'total_weight' => $model->getWeight(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'financial_status' => $model->getState(),
-            'fulfillment_status' => $model->getStatus(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
             'cart_token' => $this->session->getSessionId()
@@ -369,7 +368,6 @@ class Order
         $order->billing_address = $this->_orderHelper->getBillingAddress();
         $order->payment_details = $this->_orderHelper->getPaymentDetails();
         $order->line_items = $this->_orderHelper->getLineItems();
-        $order->shipping_lines = $this->_orderHelper->getShippingLines();
 
         if (!$this->_backendAuthSession->isLoggedIn()) {
             $order->client_details = $this->_orderHelper->getClientDetails();
