@@ -382,7 +382,7 @@ class Helper
 
         $line_item = new Model\LineItem(array_filter(array(
             'price' => floatval($item->getPrice()),
-            'quantity' => intval($item->getQtyOrdered()),
+            'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
             'product_id' => $item->getItemId(),
@@ -585,15 +585,23 @@ class Helper
         ];
     }
 
+    public function getCustomerSession()
+    {
+        return false;
+    }
+
     /**
      * @return null|string
      */
     public function getCancelledAt()
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
-        foreach ($commentCollection as $comment) {
-            if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                return 'now';
+
+        if ($commentCollection) {
+            foreach ($commentCollection as $comment) {
+                if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
+                    return 'now';
+                }
             }
         }
         return null;
