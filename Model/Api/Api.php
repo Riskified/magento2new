@@ -16,7 +16,6 @@ class Api
     const ACTION_CANCEL = 'cancel';
     const ACTION_REFUND = 'refund';
     const ACTION_FULFILL = 'fulfill';
-    const ACTION_CHECKOUT_DENIED = 'checkout_denied';
 
     /**
      * @var string
