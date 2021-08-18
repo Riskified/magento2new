@@ -49,7 +49,7 @@ class ThreeDSecureDetailsHandler implements HandlerInterface
         $info = $transaction->threeDSecureInfo;
 
         $payment->setAdditionalInformation(self::ECI, $info->eciFlag);
-        $payment->setAdditionalInformation(self::CAVV, $info->authentication->transStatus);
+        $payment->setAdditionalInformation(self::CAVV, $info->cavv);
         $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication->transStatus);
     }
 }
