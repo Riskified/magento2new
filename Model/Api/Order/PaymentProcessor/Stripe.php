@@ -22,14 +22,13 @@ class Stripe extends AbstractPayment
      */
     public function getDetails() : array
     {
-   
         $details = [];
         $jsonEncodedSource = $this->payment->getAdditionalInformation('source_info');
         $last4 = $this->payment->getCcLast4();
         $ccCompany = $this->payment->getCcType();
 
         if ($jsonEncodedSource) {
-            $sourceInfo = json_decode($jsonEncodedSource);
+            $sourceInfo = json_decode($jsonEncodedSource, true);
             $parts = explode(' ', $sourceInfo['Card']);
 
             $ccCompany = $parts[0];
