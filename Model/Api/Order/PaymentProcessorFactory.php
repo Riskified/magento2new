@@ -18,6 +18,7 @@ use Riskified\Decider\Model\Api\Order\PaymentProcessor\PaypalDirect;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\SagePay;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Transarmor;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Vantiv;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Stripe;
 
 class PaymentProcessorFactory
 {
@@ -42,7 +43,8 @@ class PaymentProcessorFactory
         'adyen_cc' => Adyen::class,
         'adyen_hpp' => AdyenHpp::class,
         'cryozonic_stripe' => Cryozonic::class,
-        'vantiv_cc' => Vantiv::class
+        'vantiv_cc' => Vantiv::class,
+        'stripe_payments' => Stripe::class
     ];
 
     /**
