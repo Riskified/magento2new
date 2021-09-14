@@ -343,7 +343,7 @@ class Order
             'browser_ip' => $this->_orderHelper->getRemoteIp(),
             'note' => $model->getCustomerNote(),
             'total_price' => floatval($model->getGrandTotal()),
-            'total_discounts' => $model->getDiscountAmount(),
+            'total_discounts' => abs($model->getDiscountAmount()),
             'financial_status' => $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'discount_codes' => $this->_orderHelper->getDiscountCodes(),
