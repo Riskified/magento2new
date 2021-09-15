@@ -32,12 +32,13 @@ class Deny extends Action
     public function execute()
     {
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
-
+        $postData = json_decode(file_get_contents('php://input'), true);
         try {
-            $this->logger->log('Checkout Denied request, quote_id: ' . $this->checkoutSession->getQuoteId());
-            $this->checkoutSession->getQuote()->setQuoteId($this->checkoutSession->getQuote()->getId());
+            $quote = $this->checkoutSession->getQuote();
+            $this->logger->log('Checkout Denied request, quote_id: ' . $quote->getId());
+            $quote->setCustomerEmail($postData['email']);
             $this->orderApi->post(
-                $this->checkoutSession->getQuote(),
+                $quote,
                 Api::ACTION_CHECKOUT_DENIED
             );
 
@@ -49,7 +50,8 @@ class Deny extends Action
             return $result->setData([
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+            ])
+            ->setHttpResponseCode(500);
         }
     }
 }

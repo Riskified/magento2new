@@ -80,7 +80,8 @@ define([
             storage.post(
                 'decider/checkout/deny',
                 JSON.stringify({
-                    quote_id: quote.getQuoteId()
+                    quote_id: quote.getQuoteId(),
+                    email: quote.shippingAddress._latestValue.email ? quote.shippingAddress._latestValue.email : quote.guestEmail
                 }),
                 true
             );

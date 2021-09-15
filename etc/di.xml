@@ -33,4 +33,9 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="riskified_3ds" xsi:type="object">Riskified\Decider\Model\Handler\Braintree3ds</argument>
+        </arguments>
+    </type>   
 </config>
