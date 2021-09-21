@@ -33,9 +33,18 @@
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Payment\Gateway\Response\HandlerChain">
+    <virtualType name="BraintreeAuthorizationHandler">
         <arguments>
-            <argument name="riskified_3ds" xsi:type="object">Riskified\Decider\Model\Handler\Braintree3ds</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="decider_3ds" xsi:type="string">Riskified\Decider\Model\Gateway\Braintree\Response\ThreeDSecureDetailsHandler</item>
+            </argument>
         </arguments>
-    </type>   
+    </virtualType>
+    <virtualType name="BraintreeVaultResponseHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="decider_3ds" xsi:type="string">Riskified\Decider\Model\Gateway\Braintree\Response\ThreeDSecureDetailsHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

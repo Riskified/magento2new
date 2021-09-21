@@ -383,7 +383,7 @@ class Helper
 
         $line_item = new Model\LineItem(array_filter(array(
             'price' => floatval($item->getPrice()),
-            'quantity' => intval($item->getQtyOrdered()),
+            'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
             'product_id' => $item->getItemId(),
@@ -503,9 +503,9 @@ class Helper
                 'pending_reason' => $paymentData['pending_reason']
             ), 'strlen'));
         }
-        
+
           if (isset($paymentProcessor)
-            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal" 
+            && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal"
         ) {
             return new Model\PaymentDetails(array_filter(array(
                 'authorization_id' => $paymentData['transaction_id'],
@@ -586,23 +586,15 @@ class Helper
         ];
     }
 
-    public function getCustomerSession()
-    {
-        return false;
-    }
-
     /**
      * @return null|string
      */
     public function getCancelledAt()
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
-
-        if ($commentCollection) {
-            foreach ($commentCollection as $comment) {
-                if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                    return 'now';
-                }
+        foreach ($commentCollection as $comment) {
+            if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
+                return 'now';
             }
         }
         return null;

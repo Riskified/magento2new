@@ -2,11 +2,8 @@
 
 namespace Riskified\Decider\Controller\Response;
 
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
-use Riskified\Decider\Model\Api\Log;
-use Riskified\Decider\Model\Api\Order;
 use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Order as OrderApi;
@@ -44,11 +41,29 @@ class Get extends \Magento\Framework\App\Action\Action
      * @param OrderApi $apiOrder
      * @param LogApi $apiLogger
      */
-    public function __construct(\Magento\Framework\App\Helper\Context $context, Log $logger, Session $checkoutSession, Order $orderApi)
-    {
-        $this->logger = $logger;
-        $this->checkoutSession = $checkoutSession;
-        $this->orderApi = $orderApi;
+    public function __construct(
+        Context $context,
+        Api $api,
+        OrderApi $apiOrder,
+        LogApi $apiLogger
+    ) {
+        parent::__construct($context);
+        $this->api = $api;
+        $this->apiLogger = $apiLogger;
+        $this->apiOrderLayer = $apiOrder;
+
+        // CsrfAwareAction Magento2.3 compatibility
+        if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
+            $request = $context->getRequest();
+            if ($request instanceof HttpRequest && $request->isPost()) {
+                $request->setParam('isAjax', true);
+                $headers = $request->getHeaders();
+                $headers->addHeaderLine('X_REQUESTED_WITH', 'XMLHttpRequest');
+                $request->setHeaders($headers);
+            }
+        }
+
+        parent::__construct($context);
     }
 
     /**
