@@ -269,9 +269,11 @@ class Order
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
         }
+
         $order_array = [
             'id' => (int) $model->getId(),
-            'email' => $model->getEmail(),
+            'name' => $model->getIncrementId(),
+            'email' => $model->getCustomerEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
             'currency' => $model->getOrderCurrencyCode(),
             'updated_at' => $this->_orderHelper->formatDateAsIso8601($model->getUpdatedAt()),
@@ -297,7 +299,7 @@ class Order
             unset($order_array['cart_token']);
         }
         $payload = array_filter($order_array, 'strlen');
-
+// var_dump($payload);
         $order = new Model\Checkout($payload);
 
         $order->customer = $this->_orderHelper->getCustomer();

@@ -247,6 +247,7 @@ class Helper
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
         );
+        
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
