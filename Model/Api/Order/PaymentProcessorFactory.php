@@ -5,6 +5,7 @@ namespace Riskified\Decider\Model\Api\Order;
 use Magento\Framework\ObjectManagerInterface;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Adyen;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Authcim;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Braintree;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Cryozonic;
@@ -17,6 +18,7 @@ use Riskified\Decider\Model\Api\Order\PaymentProcessor\PaypalDirect;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\SagePay;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Transarmor;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Vantiv;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Stripe;
 
 class PaymentProcessorFactory
 {
@@ -39,9 +41,10 @@ class PaymentProcessorFactory
         'payflowpro' => Payflowpro::class,
         'adyen_oneclick' => Adyen::class,
         'adyen_cc' => Adyen::class,
-        'adyen_hpp' => Paypal::class,
+        'adyen_hpp' => AdyenHpp::class,
         'cryozonic_stripe' => Cryozonic::class,
-        'vantiv_cc' => Vantiv::class
+        'vantiv_cc' => Vantiv::class,
+        'stripe_payments' => Stripe::class
     ];
 
     /**
