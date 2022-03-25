@@ -14,6 +14,9 @@
     <event name="riskified_decider_order_update_approved">
         <observer name="riskified_decider_order_update_approved" instance="Riskified\Decider\Model\Observer\AutoInvoice"/>
     </event>
+    <event name="sales_quote_payment_import_data_before">
+        <observer name="riskified_decider_sales_quote_payment_import_data_before" instance="Riskified\Decider\Model\Observer\ImportDataBefore"/>
+    </event>
     <event name="riskified_decider_order_update_captured">
         <observer name="riskified_decider_order_update_captured" instance="Riskified\Decider\Model\Observer\AutoInvoice"/>
     </event>
