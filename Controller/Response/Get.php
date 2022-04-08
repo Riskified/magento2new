@@ -6,6 +6,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
+use Riskified\Decider\Model\Api\Config;
 use Riskified\Decider\Model\Api\Order as OrderApi;
 use Riskified\Decider\Model\Api\Log as LogApi;
 use Magento\Framework\Controller\ResultFactory;
@@ -34,6 +35,11 @@ class Get extends \Magento\Framework\App\Action\Action
     private $apiLogger;
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
      * Get constructor.
      *
      * @param Context $context
@@ -45,12 +51,14 @@ class Get extends \Magento\Framework\App\Action\Action
         Context $context,
         Api $api,
         OrderApi $apiOrder,
-        LogApi $apiLogger
+        LogApi $apiLogger,
+        Config $config
     ) {
         parent::__construct($context);
         $this->api = $api;
         $this->apiLogger = $apiLogger;
         $this->apiOrderLayer = $apiOrder;
+        $this->config = $config;
 
         // CsrfAwareAction Magento2.3 compatibility
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
@@ -83,6 +91,16 @@ class Get extends \Magento\Framework\App\Action\Action
         try {
             $this->api->initSdk();
             $notification = $this->api->parseRequest($request);
+            $endpointDelay = $this->config->getDecisionEndpointDelay();
+
+            if ($endpointDelay > 0) {
+                $logger->log("Extension has set delay $endpointDelay sec.");
+
+                sleep($endpointDelay);
+
+                $logger->log("Continuing.");
+            }
+
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
                 $statusCode = 200;
