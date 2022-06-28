@@ -448,6 +448,7 @@ class Order
             $searchCriteria = $this->searchCriteriaBuilder
                 ->addFilter('increment_id', $increment_id, 'eq')
                 ->addFilter('entity_id', $order_id, 'eq')
+                ->setPageSize(1)
                 ->create();
 
             $orderSearchResultList = $this->orderRepository->getList($searchCriteria);
