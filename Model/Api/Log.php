@@ -75,7 +75,7 @@ class Log
      */
     public function log($message)
     {
-        $this->_logger->addInfo($message);
+        $this->_logger->info($message);
     }
 
     /**
