@@ -336,6 +336,7 @@ class Order
         }
         $order_array = [
             'id' => $this->_orderHelper->getOrderOrigId(),
+            'checkout_id' => $model->getQuoteId(),
             'name' => $model->getIncrementId(),
             'email' => $model->getCustomerEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
