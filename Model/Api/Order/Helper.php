@@ -2,20 +2,19 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
-use Riskified\Decider\Model\Api\Order\PaymentProcessor\AbstractPayment;
-use Riskified\OrderWebhook\Model;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\ResourceModel\GroupRepository;
 use Magento\Framework\App\State;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\HTTP\Header;
-use Magento\Framework\Registry;
-use Riskified\Decider\Model\Api\Config as ApiConfig;
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Message\ManagerInterface;
-use Magento\Customer\Model\Customer;
+use Magento\Framework\Registry;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Customer\Model\ResourceModel\GroupRepository;
+use Riskified\Decider\Model\Api\Config as ApiConfig;
+use Riskified\OrderWebhook\Model;
 
 class Helper
 {
@@ -195,10 +194,10 @@ class Helper
         $code = $this->getOrder()->getDiscountDescription();
         $amount = $this->getOrder()->getDiscountAmount();
         if ($amount && $code) {
-            return new Model\DiscountCode(array_filter(array(
+            return new Model\DiscountCode(array_filter([
                 'code' => $code,
                 'amount' => $amount
-            )));
+            ]));
         }
 
         return null;
@@ -227,10 +226,10 @@ class Helper
      */
     public function getClientDetails()
     {
-        return new Model\ClientDetails(array_filter(array(
+        return new Model\ClientDetails(array_filter([
             'accept_language' => $this->localeResolver->getLocale(),
             'user_agent' => $this->httpHeader->getHttpUserAgent()
-        ), 'strlen'));
+        ], fn ($val) => $val !== null || $val !== false));
     }
 
     /**
@@ -247,7 +246,7 @@ class Helper
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
         );
-        
+
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
@@ -269,7 +268,7 @@ class Helper
                 $this->_messageManager->addError('Riskified extension: ' . $e->getMessage());
             }
         }
-        return new Model\Customer(array_filter($customer_props, 'strlen'));
+        return new Model\Customer(array_filter($customer_props, fn ($val) => $val !== null || $val !== false));
     }
 
     /**
@@ -303,7 +302,7 @@ class Helper
      */
     public function getAllLineItems($object = null)
     {
-        $line_items = array();
+        $line_items = [];
 
         if ($object === null) {
             $object = $this->getOrder();
@@ -381,7 +380,7 @@ class Helper
             $prod_type = "digital";
         }
 
-        $line_item = new Model\LineItem(array_filter(array(
+        $lineItem = [
             'price' => floatval($item->getPrice()),
             'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
@@ -393,7 +392,9 @@ class Helper
             'category' => (isset($categories) && !empty($categories)) ? implode('|', $categories) : '',
             'sub_category' => (isset($sub_categories) && !empty($sub_categories)) ? implode('|', $sub_categories) : '',
             'requires_shipping' => (bool)!$item->getIsVirtual()
-        ), 'strlen'));
+        ];
+
+        $line_item = new Model\LineItem($lineItem, fn ($val) => $val !== null || $val !== false);
 
         return $line_item;
     }
@@ -430,12 +431,12 @@ class Helper
             'province' => $address->getRegion(),
             'zip' => $address->getPostcode(),
             'phone' => $address->getTelephone(),
-        ), 'strlen');
+        ), fn ($val) => $val !== null || $val !== false);
 
         if (!$addrArray) {
             return null;
         }
-        return new Model\Address($addrArray);
+        return new Model\Address(array_filter($addrArray, fn ($val) => $val !== null || $val !== false));
     }
 
     /**
@@ -455,8 +456,7 @@ class Helper
                     'currency' => $memo['base_currency_code'],
                     'refunded_at' => $memo['created_at'],
                     'reason' => $memo['customer_note']
-                ], 'strlen'));
-
+                ], fn ($val) => $val !== null || $val !== false));
             }
         }
 
@@ -493,7 +493,7 @@ class Helper
         if (isset($paymentProcessor)
             && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\Paypal
         ) {
-            return new Model\PaymentDetails(array_filter(array(
+            return new Model\PaymentDetails(array_filter([
                 'authorization_id' => $paymentData['transaction_id'],
                 'payer_email' => $paymentData['payer_email'],
                 'payer_status' => isset($paymentData['payer_status']) ? $paymentData['payer_status'] : '',
@@ -501,13 +501,13 @@ class Helper
                 'protection_eligibility' => $paymentData['protection_eligibility'],
                 'payment_status' => $paymentData['payment_status'],
                 'pending_reason' => $paymentData['pending_reason']
-            ), 'strlen'));
+            ], fn ($val) => $val !== null || $val !== false));
         }
 
-          if (isset($paymentProcessor)
+        if (isset($paymentProcessor)
             && $paymentProcessor instanceof \Riskified\Decider\Model\Api\Order\PaymentProcessor\AdyenHpp && strtolower($payment->getCcType()) == "paypal"
         ) {
-            return new Model\PaymentDetails(array_filter(array(
+            return new Model\PaymentDetails(array_filter([
                 'authorization_id' => $paymentData['transaction_id'],
                 'payer_email' => $paymentData['payer_email'],
                 'payer_status' => isset($paymentData['payer_status']) ? $paymentData['payer_status'] : '',
@@ -515,17 +515,17 @@ class Helper
                 'protection_eligibility' => $paymentData['protection_eligibility'],
                 'payment_status' => $paymentData['payment_status'],
                 'pending_reason' => $paymentData['pending_reason']
-            ), 'strlen'));
+            ], fn ($val) => $val !== null || $val !== false));
         }
 
-        return new Model\PaymentDetails(array_filter(array(
+        return new Model\PaymentDetails(array_filter([
             'authorization_id' => $paymentData['transaction_id'],
             'avs_result_code' => $paymentData['avs_result_code'],
             'cvv_result_code' => $paymentData['cvv_result_code'],
             'credit_card_number' => $paymentData['credit_card_number'],
             'credit_card_company' => $paymentData['credit_card_company'],
             'credit_card_bin' => $paymentData['credit_card_bin']
-        ), 'strlen'));
+        ], fn ($val) => $val !== null || $val !== false));
     }
 
     /**
@@ -659,6 +659,11 @@ class Helper
             ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
+
+        if (empty($forwardedIp)) {
+            return null;
+        }
+
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
             return trim($forwardeds[0]);
