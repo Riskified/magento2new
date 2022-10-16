@@ -296,10 +296,6 @@ class Order
             'cart_token' => $this->session->getSessionId()
         ];
 
-        if ($this->_orderHelper->getCustomerSession() && $this->_orderHelper->getCustomerSession()->isLoggedIn()) {
-            unset($order_array['browser_ip']);
-            unset($order_array['cart_token']);
-        }
         $payload = array_filter($order_array, fn ($val) => $val !== null || $val !== false);
 
         $order = new Model\Checkout($payload);

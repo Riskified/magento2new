@@ -13,6 +13,11 @@ class ThreeDSecureDetailsHandler implements HandlerInterface
     const ECI = "eci";
     const CAVV = "cavv";
     const TRANS_STATUS = "trans_status";
+
+    public const LIABILITY_SHIFTED = 'liabilityShifted';
+    public const LIABILITY_SHIFT_POSSIBLE = 'liabilityShiftPossible';
+    public const ECI_FLAG = 'eciFlag';
+
     /**
      * @var SubjectReader
      */

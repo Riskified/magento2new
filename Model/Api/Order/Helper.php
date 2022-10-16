@@ -592,11 +592,15 @@ class Helper
     public function getCancelledAt()
     {
         $commentCollection = $this->getOrder()->getStatusHistoryCollection();
-        foreach ($commentCollection as $comment) {
-            if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                return 'now';
+
+        if ($commentCollection) {
+            foreach ($commentCollection as $comment) {
+                if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
+                    return 'now';
+                }
             }
         }
+
         return null;
     }
 
