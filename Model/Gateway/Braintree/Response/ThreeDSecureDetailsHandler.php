@@ -4,9 +4,9 @@ namespace Riskified\Decider\Model\Gateway\Braintree\Response;
 use Braintree\ThreeDSecureInfo;
 use Braintree\Transaction;
 use Magento\Payment\Gateway\Helper\ContextHelper;
-use PayPal\Braintree\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use PayPal\Braintree\Gateway\Helper\SubjectReader;
 
 class ThreeDSecureDetailsHandler implements HandlerInterface
 {
@@ -50,6 +50,11 @@ class ThreeDSecureDetailsHandler implements HandlerInterface
 
         $payment->setAdditionalInformation(self::ECI, $info->eciFlag);
         $payment->setAdditionalInformation(self::CAVV, $info->cavv);
-        $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication->transStatus);
+
+        if (is_array($info->authentication)) {
+            $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication['transStatus'] ?? false);
+        } else {
+            $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication?->transStatus);
+        }
     }
 }
