@@ -38,6 +38,11 @@ class CollectPaymentInfo implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $payment = $observer->getQuote()->getPayment();
+
+        if (empty($payment->getCcNumber())) {
+            return;
+        }
+
         $cc_bin = substr($payment->getCcNumber(), 0, 6);
         if ($cc_bin) {
             $payment->setAdditionalInformation('riskified_cc_bin', $cc_bin);

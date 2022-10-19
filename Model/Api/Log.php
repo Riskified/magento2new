@@ -75,7 +75,7 @@ class Log
      */
     public function log($message)
     {
-        $this->_logger->addInfo($message);
+        $this->_logger->info($message);
     }
 
     /**
@@ -83,6 +83,6 @@ class Log
      */
     public function logException($message)
     {
-        $this->_logger->addCritical($message);
+        $this->_logger->critical($message);
     }
 }
