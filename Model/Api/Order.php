@@ -149,17 +149,17 @@ class Order
                     break;
                 case Api::ACTION_UPDATE:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
@@ -169,17 +169,17 @@ class Order
                     $order = $order->getOrder();
                     $eventData['order'] = $order->getOrder();
 
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->fulfillOrder($orderForTransport);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->refundOrder($orderForTransport);
                     break;
                 case Api::ACTION_CHECKOUT_DENIED:
                     $checkoutForTransport = $this->loadQuote($order);
-                    $this->logger->log(serialize($checkoutForTransport));
+                    $this->logger->log($checkoutForTransport->toJson());
                     $response = $transport->deniedCheckout($checkoutForTransport);
                     break;
             }
