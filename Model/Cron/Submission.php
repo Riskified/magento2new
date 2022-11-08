@@ -80,7 +80,7 @@ class Submission
             return;
         }
 
-        $this->logger->addInfo("Retrying failed order submissions");
+        $this->logger->info("Retrying failed order submissions");
 
         $retries = $this->queue->getCollection()
             ->addFieldToFilter(
@@ -111,7 +111,7 @@ class Submission
         $collection = $this->orderFactory->create()->addFieldToFilter('entity_id', array('in' => $orderIds));
 
         foreach ($collection as $order) {
-            $this->logger->addInfo("Retrying order " . $order->getId());
+            $this->logger->info("Retrying order " . $order->getId());
 
             try {
                 $this->api->post($order, $mapperOrder[$order->getId()]->getAction());
@@ -126,6 +126,6 @@ class Submission
             }
         }
 
-        $this->logger->addInfo("Done retrying failed order submissions");
+        $this->logger->info("Done retrying failed order submissions");
     }
 }

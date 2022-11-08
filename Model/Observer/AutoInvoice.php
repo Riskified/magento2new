@@ -137,7 +137,7 @@ class AutoInvoice implements ObserverInterface
         if (!$order || !$order->getId()) {
             return false;
         }
-        $this->logger->addInfo(
+        $this->logger->info(
             sprintf(
                 __('Auto-invoicing  order #%s'),
                 $order->getIncrementId()
@@ -147,7 +147,7 @@ class AutoInvoice implements ObserverInterface
         if (!$order->canInvoice()
             || $order->getState() != OrderEntity::STATE_PROCESSING
         ) {
-            $this->logger->addInfo('Order cannot be invoiced');
+            $this->logger->info('Order cannot be invoiced');
             if ($this->apiConfig->isLoggingEnabled()) {
                 $this->apiOrderLogger->logInvoice($order);
             }
@@ -162,7 +162,7 @@ class AutoInvoice implements ObserverInterface
         );
 
         if (!$invoice->getTotalQty()) {
-            $this->logger->addInfo(
+            $this->logger->info(
                 __('Cannot create an invoice without products')
             );
 
@@ -185,7 +185,7 @@ class AutoInvoice implements ObserverInterface
                 [$invoice, 'register']
             );
         } catch (\Exception $e) {
-            $this->logger->addInfo(
+            $this->logger->info(
                 sprintf(
                     __("Error creating invoice: %s"),
                     $e->getMessage()
@@ -208,7 +208,7 @@ class AutoInvoice implements ObserverInterface
 
             return false;
         }
-        $this->logger->addInfo(
+        $this->logger->info(
             __("Transaction saved")
         );
     }

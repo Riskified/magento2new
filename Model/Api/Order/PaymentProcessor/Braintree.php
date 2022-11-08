@@ -2,8 +2,8 @@
 
 namespace Riskified\Decider\Model\Api\Order\PaymentProcessor;
 
-use \PayPal\Braintree\Gateway\Response\ThreeDSecureDetailsHandler;
-use \Riskified\Decider\Model\Gateway\Braintree\Response\ThreeDSecureDetailsHandler as DeciderThreeDSecureDetails;
+use Riskified\Decider\Model\Gateway\Braintree\Response\ThreeDSecureDetailsHandler as DeciderThreeDSecureDetails;
+
 class Braintree extends AbstractPayment
 {
     /**
@@ -18,7 +18,7 @@ class Braintree extends AbstractPayment
         if ($this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::ECI)) {
             $details['eci'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::ECI);
             $details['trans_status'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::TRANS_STATUS);
-            $details['liability_shift'] = $this->payment->getAdditionalInformation(ThreeDSecureDetailsHandler::LIABILITY_SHIFTED);
+            $details['liability_shift'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::LIABILITY_SHIFTED);
         }
 
         $houseVerification = $this->payment->getAdditionalInformation('avsStreetAddressResponseCode');

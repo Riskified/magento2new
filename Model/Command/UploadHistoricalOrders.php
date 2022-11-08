@@ -238,7 +238,7 @@ class UploadHistoricalOrders extends Command
             'vendor_name' => $model->getStoreName(),
         );
 
-        $order = new Model\Order(array_filter($order_array, 'strlen'));
+        $order = new Model\Order($order_array, fn ($val) => $val !== null || $val !== false);
         $order->customer = $this->_orderHelper->getCustomer();
         $order->shipping_address = $this->_orderHelper->getShippingAddress();
         $order->billing_address = $this->_orderHelper->getBillingAddress();
