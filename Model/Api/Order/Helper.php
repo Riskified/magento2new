@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\ResourceModel\GroupRepository;
@@ -187,7 +188,7 @@ class Helper
 
     /**
      * @return null|Model\DiscountCode
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDiscountCodes()
     {
@@ -234,7 +235,7 @@ class Helper
 
     /**
      * @return Model\Customer
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCustomer()
     {
@@ -263,7 +264,7 @@ class Helper
                         ->fetchItem()->getSumTotal();
                     $customer_props['total_spent'] = $total_spent;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->_logger->critical($e);
                 $this->_messageManager->addError('Riskified extension: ' . $e->getMessage());
             }
@@ -402,7 +403,7 @@ class Helper
     /**
      * @param $address
      * @return null|Model\Address
-     * @throws \Exception
+     * @throws Exception
      */
     public function getAddress($address)
     {
@@ -441,7 +442,7 @@ class Helper
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getRefundDetails()
     {
@@ -465,7 +466,7 @@ class Helper
 
     /**
      * @return null|Model\PaymentDetails
-     * @throws \Exception
+     * @throws Exception
      */
     public function getPaymentDetails()
     {
@@ -481,7 +482,7 @@ class Helper
         try {
             $paymentProcessor = $this->getPaymentProcessor($this->getOrder());
             $paymentData = $paymentProcessor->getDetails();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_apiLogger->log(__(
                 'Riskified: %1',
                 $e->getMessage()
@@ -573,15 +574,17 @@ class Helper
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getShippingLines()
+    public function getShippingLines(): array
     {
+        $order = $this->getOrder();
+
         return [
             [
-                'price' => floatval($this->getOrder()->getShippingAmount()),
-                'title' => strip_tags($this->getOrder()->getShippingDescription()),
-                'code' => $this->getOrder()->getShippingMethod()
+                'price' => floatval($order->getShippingAmount()),
+                'title' => $order->getShippingDescription() ? strip_tags($order->getShippingDescription()) : null,
+                'code' => $order->getShippingMethod()
             ]
         ];
     }
@@ -606,7 +609,7 @@ class Helper
 
     /**
      * @return Model\OrderCancellation
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrderCancellation()
     {
@@ -620,7 +623,7 @@ class Helper
 
     /**
      * @return Model\Fulfillment
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrderFulfillments($createdShipment = null)
     {
