@@ -2,7 +2,7 @@ define([
     'jquery',
     'mage/utils/wrapper',
     'mage/storage',
-    'Magento_Braintree/js/view/payment/3d-secure',
+    'PayPal_Braintree/js/view/payment/3d-secure',
     'Magento_Checkout/js/model/quote',
     'Riskified_Decider/js/model/advice',
 ], function ($, wrapper, storage, verify3DSecure, quote, advice) {

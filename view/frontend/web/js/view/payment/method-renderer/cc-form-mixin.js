@@ -1,8 +1,8 @@
 define([
     'jquery',
     'Riskified_Decider/js/model/advice',
-    'Magento_Braintree/js/view/payment/3d-secure',
-    'Magento_Braintree/js/view/payment/validator-handler',
+    'PayPal_Braintree/js/view/payment/3d-secure',
+    'PayPal_Braintree/js/view/payment/validator-handler',
 ], function($, advice, verify3DSecure, validator){
     'use strict';
 
@@ -34,7 +34,7 @@ define([
                 advice.additionalPayload.exp_month = data.details.expirationMonth;
                 advice.additionalPayload.exp_year = data.details.expirationYear;
                 advice.additionalPayload.last4 = data.details.lastFour;
-                
+
                 advice
                     .setGateway('braintree_cc')
                     .registerSuccessCallback(generalCallback)
