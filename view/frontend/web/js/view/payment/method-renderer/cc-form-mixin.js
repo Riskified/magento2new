@@ -7,8 +7,7 @@ define([
     'use strict';
 
     var mixin = {
-         beforePlaceOrder: function (data) {
-            console.log(data.details);
+         handleNonce: function (data) {
             var self = this;
 
             let generalCallback = function () {
@@ -24,8 +23,6 @@ define([
                 window.checkoutConfig.payment[verify3DSecure.getCode()].enabled = true;
                 verify3DSecure.setConfig(config[verify3DSecure.getCode()]);
                 self.validatorManager.add(verify3DSecure);
-
-                self._super();
             };
 
             try {
@@ -45,7 +42,9 @@ define([
             } catch (e) {
                 return false;
             }
-        }
+
+             this._super(data);
+         }
     };
 
     return function (target) {
