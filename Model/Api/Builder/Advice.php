@@ -1,11 +1,16 @@
 <?php
 namespace Riskified\Decider\Model\Api\Builder;
+
+use Magento\Checkout\Model\Session;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\QuoteIdMaskFactory;
+use Riskified\Decider\Model\Api\Order\Helper;
 use Riskified\Decider\Model\Api\Request\Advice as AdviceRequest;
-use \Magento\Checkout\Model\Session;
-use \Magento\Framework\Serialize\Serializer\Json;
-use \Magento\Quote\Api\CartRepositoryInterface;
-use \Magento\Quote\Model\QuoteIdMaskFactory;
-class Advice {
+use Riskified\OrderWebhook\Model\Checkout;
+use Riskified\OrderWebhook\Model\PaymentDetails;
+
+class Advice
+{
     /**
      * @var AdviceRequest
      */
@@ -19,10 +24,6 @@ class Advice {
      */
     private $json;
     /**
-     * @var Json
-     */
-    private $serializer;
-    /**
      * @var QuoteIdMaskFactory
      */
     private $quoteIdMaskFactory;
@@ -30,30 +31,33 @@ class Advice {
      * @var CartRepositoryInterface
      */
     protected $cartRepository;
+    protected $helper;
     /**
      * Advice constructor.
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param CartRepositoryInterface $cartRepository
      * @param AdviceRequest $requestAdvice
      * @param Session $checkoutSession
-     * @param Json $serializer
      */
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         CartRepositoryInterface $cartRepository,
+        Helper $helper,
         AdviceRequest $requestAdvice,
-        Session $checkoutSession,
-        Json $serializer
-    ){
+        Session $checkoutSession
+    ) {
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->adviceRequestModel = $requestAdvice;
         $this->checkoutSession = $checkoutSession;
         $this->cartRepository = $cartRepository;
-        $this->serializer = $serializer;
+        $this->helper = $helper;
     }
-    /**Magento\Quote\Model\Quote\Interceptor
+
+    /**
+     * Magento\Quote\Model\Quote\Interceptor
      * @param $params
-     * @return $this
+     * @return Advice
+     * @throws \Exception
      */
     public function build($params)
     {
@@ -65,41 +69,58 @@ class Advice {
             } else {
                 $cart = $this->cartRepository->get($quoteId);
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $stdClass = new \stdClass();
             $checkout = new \stdClass();
             $checkout->status = 'notcaptured';
             $stdClass->checkout = $checkout;
+
             return $stdClass;
         }
-        $currencyObject = $cart->getCurrency();
-        $customerObject = $cart->getCustomer();
-        $paymentObject = $cart->getPayment();
-        $ccCompany = $paymentObject->getCcType() ? $paymentObject->getCcType() : 'Visa';
-        $gateway = $paymentObject->getMethod() ? $paymentObject->getMethod() : 'Braintree';
-        $email = isset($params['email']) ? $params['email'] : $customerObject->getEmail();
 
-        $this->json = $this->serializer->serialize(
-            [
-                "checkout" => [
-                    "id" => $cart->getId(),
-                    "cart_token" => $cart->getId(),
-                    "email" => $email,
-                    "currency" => $currencyObject->getQuoteCurrencyCode(),
-                    "total_price" => (float) $cart->getGrandTotal(),
-                    "total_discounts" => (float) $cart->getDiscountAmount(),
-                    "payment_details" => [
-                        [
-                            "credit_card_company" => $params['type'],
-                            "credit_card_number" => "XXXX-XXXX-XXXX-" . $params['last4'],
-                            "credit_card_bin" => $params['bin'],
-                            "acquirer_bin" => $params['bin'],
-                        ]
-                    ],
-                    "gateway" => $gateway,
-                ]
-            ]
-        );
+        $currencyObject = $cart->getCurrency();
+        $gateway = 'unavailable';
+
+        $order_array = [
+            'id' => $cart->getId(),
+            'email' => $cart->getCustomerEmail(),
+            'created_at' => $this->helper->formatDateAsIso8601($cart->getCreatedAt()),
+            'currency' => $currencyObject,
+            'updated_at' => $this->helper->formatDateAsIso8601($cart->getUpdatedAt()),
+            'gateway' => $gateway,
+            'note' => $cart->getCustomerNote(),
+            'total_price' => $cart->getGrandTotal(),
+            'total_discounts' => $cart->getDiscountAmount(),
+            'subtotal_price' => $cart->getSubtotal(),
+            'discount_codes' => null,
+            'taxes_included' => true,
+            'vendor_id' => $cart->getStoreId(),
+            'vendor_name' => $cart->getStoreName(),
+            'cart_token' => $this->checkoutSession->getSessionId()
+        ];
+
+        $this->helper->setOrder($cart);
+
+        $payload = array_filter($order_array, fn ($val) => $val !== null || $val !== false);
+        $checkoutData = new Checkout($payload);
+
+        if (!$cart->getCustomerIsGuest()) {
+            $checkoutData->customer = $this->helper->getCustomer();
+        }
+
+        $checkoutData->shipping_address = $this->helper->getShippingAddress();
+        $checkoutData->billing_address = $this->helper->getBillingAddress();
+        $checkoutData->payment_details = $this->helper->getPaymentDetails();
+        $checkoutData->line_items = $this->helper->getLineItems();
+        $checkoutData->client_details = $this->helper->getClientDetails();
+
+        $checkoutData->payment_details = new PaymentDetails(array_filter([
+            "credit_card_company" => $params['type'],
+            "credit_card_number" => "XXXX-XXXX-XXXX-" . $params['last4'],
+            "credit_card_bin" => $params['bin'],
+        ], fn ($val) => $val !== null || $val !== false));
+
+        $this->json = $checkoutData;
 
         return $this;
     }
@@ -110,6 +131,6 @@ class Advice {
      */
     public function request()
     {
-        return $this->adviceRequestModel->call($this->json);
+        return $this->adviceRequestModel->call($this->json->toJson());
     }
 }
