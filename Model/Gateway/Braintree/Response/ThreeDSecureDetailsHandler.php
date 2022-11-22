@@ -59,7 +59,9 @@ class ThreeDSecureDetailsHandler implements HandlerInterface
         if (is_array($info->authentication)) {
             $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication['transStatus'] ?? false);
         } else {
-            $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication?->transStatus);
+            if ($info->authentication && is_object($info->authentication)) {
+                $payment->setAdditionalInformation(self::TRANS_STATUS, $info->authentication->transStatus);
+            }
         }
     }
 }
