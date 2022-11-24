@@ -9,8 +9,10 @@ define([
     'PayPal_Braintree/js/view/payment/adapter',
     'Magento_Checkout/js/model/quote',
     'Riskified_Decider/js/model/advice',
+    'Magento_Checkout/js/model/full-screen-loader',
+    'braintreeThreeDSecure',
     'mage/translate'
-], function ($, braintree, quote, advice, $t) {
+], function ($, braintree, quote, advice, fullScreenLoader, threeDSecure, $t) {
     'use strict';
 
         return function (braintreeThreedSecure) {
