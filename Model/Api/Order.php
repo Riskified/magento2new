@@ -149,17 +149,17 @@ class Order
                     break;
                 case Api::ACTION_UPDATE:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
@@ -169,17 +169,17 @@ class Order
                     $order = $order->getOrder();
                     $eventData['order'] = $order->getOrder();
 
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->fulfillOrder($orderForTransport);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
-                    $this->logger->log(serialize($orderForTransport));
+                    $this->logger->log($orderForTransport->toJson());
                     $response = $transport->refundOrder($orderForTransport);
                     break;
                 case Api::ACTION_CHECKOUT_DENIED:
                     $checkoutForTransport = $this->loadQuote($order);
-                    $this->logger->log(serialize($checkoutForTransport));
+                    $this->logger->log($checkoutForTransport->toJson());
                     $response = $transport->deniedCheckout($checkoutForTransport);
                     break;
             }
@@ -258,7 +258,7 @@ class Order
         $refund = new Model\Refund();
         $refund->id = strval($this->_orderHelper->getOrderOrigId());
         $refundDetails = $this->_orderHelper->getRefundDetails();
-        $refund->refunds = array_filter($refundDetails, 'strlen');
+        $refund->refunds = array_filter($refundDetails, fn ($val) => $val !== null || $val !== false);
 
         return $refund;
     }
@@ -294,12 +294,8 @@ class Order
             'cart_token' => $this->session->getSessionId()
         ];
 
-        if ($this->_orderHelper->getCustomerSession() && $this->_orderHelper->getCustomerSession()->isLoggedIn()) {
-            unset($order_array['browser_ip']);
-            unset($order_array['cart_token']);
-        }
-        $payload = array_filter($order_array, 'strlen');
-// var_dump($payload);
+        $payload = array_filter($order_array, fn ($val) => $val !== null || $val !== false);
+
         $order = new Model\Checkout($payload);
 
         $order->customer = $this->_orderHelper->getCustomer();
@@ -323,6 +319,7 @@ class Order
     {
         /** @var \Magento\Sales\Api\Data\OrderInterface $model */
         $gateway = 'unavailable';
+
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
         }
@@ -363,7 +360,9 @@ class Order
             $order_array['source'] = 'desktop_web';
         }
 
-        $order = new Model\Order(array_filter($order_array, 'strlen'));
+        $order = new Model\Order(
+            array_filter($order_array, fn ($val) => $val !== null || $val !== false)
+        );
         $order->customer = $this->_orderHelper->getCustomer();
         $order->shipping_address = $this->_orderHelper->getShippingAddress();
         $order->billing_address = $this->_orderHelper->getBillingAddress();

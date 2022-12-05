@@ -4,10 +4,10 @@ namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
-use Riskified\Decider\Model\Api\Log as LogApi;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
-use Riskified\Decider\Model\Api\Order\Config as OrderConfig;
+use Riskified\Decider\Model\Api\Log as LogApi;
 use Riskified\Decider\Model\Api\Order as OrderApi;
+use Riskified\Decider\Model\Api\Order\Config as OrderConfig;
 
 class UpdateOrderState implements ObserverInterface
 {
@@ -143,8 +143,8 @@ class UpdateOrderState implements ObserverInterface
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
-
         $changed = false;
+
         if ($newState
             && ($newState != $currentState || $newStatus != $currentStatus)
             && $this->apiConfig->getConfigStatusControlActive()
@@ -207,6 +207,7 @@ class UpdateOrderState implements ObserverInterface
 
         if ($changed) {
             try {
+                $this->logger->log("Changing order status #" . $order->getIncrementId());
                 $this->orderRepository->save($order);
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
@@ -253,7 +254,7 @@ class UpdateOrderState implements ObserverInterface
                         \Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION
                     );
                     $tableOrderStatuses = $connection->getTableName('sales_order_status_state');
-                    $result = $connection->fetchRow('SELECT state FROM `'.$tableOrderStatuses.'` WHERE status="' . $status.'"');
+                    $result = $connection->fetchRow('SELECT state FROM `' . $tableOrderStatuses . '` WHERE status="' . $status . '"');
                     $state = $result['state'];
 
                     $order->setHoldBeforeState($state);
