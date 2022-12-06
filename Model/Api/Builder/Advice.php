@@ -78,7 +78,7 @@ class Advice
             return $stdClass;
         }
 
-        $currencyObject = $cart->getCurrency();
+        $currencyObject = $cart->getCurrency()->getStoreCurrencyCode();
         $gateway = 'unavailable';
 
         $order_array = [
@@ -90,12 +90,10 @@ class Advice
             'gateway' => $gateway,
             'note' => $cart->getCustomerNote(),
             'total_price' => $cart->getGrandTotal(),
-            'total_discounts' => $cart->getDiscountAmount(),
             'subtotal_price' => $cart->getSubtotal(),
             'discount_codes' => null,
             'taxes_included' => true,
             'vendor_id' => $cart->getStoreId(),
-            'vendor_name' => $cart->getStoreName(),
             'cart_token' => $this->checkoutSession->getSessionId()
         ];
 
