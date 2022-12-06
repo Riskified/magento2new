@@ -78,8 +78,8 @@ class Advice
             return $stdClass;
         }
 
-        $currencyObject = $cart->getCurrency()->getStoreCurrencyCode();
-        $gateway = 'unavailable';
+        $currencyObject = $cart->getCurrency()->getQuoteCurrencyCode();
+        $gateway = $params['gateway'] ? $params['gateway'] : 'unavailable';
 
         $order_array = [
             'id' => $cart->getId(),
