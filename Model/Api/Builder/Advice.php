@@ -4,6 +4,7 @@ namespace Riskified\Decider\Model\Api\Builder;
 use Magento\Checkout\Model\Session;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use Riskified\Decider\Model\Api\Log;
 use Riskified\Decider\Model\Api\Order\Helper;
 use Riskified\Decider\Model\Api\Request\Advice as AdviceRequest;
 use Riskified\OrderWebhook\Model\Checkout;
@@ -31,6 +32,7 @@ class Advice
      * @var CartRepositoryInterface
      */
     protected $cartRepository;
+    protected $logger;
     protected $helper;
     /**
      * Advice constructor.
@@ -43,6 +45,7 @@ class Advice
         QuoteIdMaskFactory $quoteIdMaskFactory,
         CartRepositoryInterface $cartRepository,
         Helper $helper,
+        Log $logger,
         AdviceRequest $requestAdvice,
         Session $checkoutSession
     ) {
@@ -50,6 +53,7 @@ class Advice
         $this->adviceRequestModel = $requestAdvice;
         $this->checkoutSession = $checkoutSession;
         $this->cartRepository = $cartRepository;
+        $this->logger = $logger;
         $this->helper = $helper;
     }
 
@@ -93,7 +97,6 @@ class Advice
             'subtotal_price' => $cart->getSubtotal(),
             'discount_codes' => null,
             'taxes_included' => true,
-            'vendor_id' => $cart->getStoreId(),
             'cart_token' => $this->checkoutSession->getSessionId()
         ];
 
@@ -129,6 +132,7 @@ class Advice
      */
     public function request()
     {
+        $this->logger->log("Calling advice endpoint: " . $this->json->toJson());
         return $this->adviceRequestModel->call($this->json->toJson());
     }
 }

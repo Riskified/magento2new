@@ -23,6 +23,7 @@ class Advice extends CurlTransport
      */
     public function call($json)
     {
+        $json = '{"checkout":' . $json . '}';
         return $this->send_json_request($json, 'advise');
     }
 }
