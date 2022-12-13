@@ -49,7 +49,8 @@ class ProcessSuccessfulPost implements ObserverInterface
             }
 
             if ($orderId && $status) {
-                $this->orderApi->update($order, $status, $oldStatus, $description);
+                // prevent sending order update.
+//                $this->orderApi->update($order, $status, $oldStatus, $description);
             }
         }
     }

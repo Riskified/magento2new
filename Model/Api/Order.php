@@ -131,6 +131,12 @@ class Order
             return $this;
         }
 
+        if ($order->getSentToRiskified()) {
+            $this->logger->log(sprintf("Order #%s was already sent.", $order->getIncrementId()));
+
+            return $this;
+        }
+
         $transport = $this->_api->getTransport();
 
         if (!$order) {
