@@ -239,19 +239,21 @@ class Helper
     public function getCustomer()
     {
         $customer_id = strval($this->getOrder()->getCustomerId());
-        $customer_props = array(
+        $customer_props = [
             'id' => $customer_id,
             'email' => $this->getOrder()->getCustomerEmail(),
             'first_name' => $this->getOrder()->getCustomerFirstname(),
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
-        );
+            'account_type' => 'guest'
+        ];
 
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
-            $customer_props['account_type'] = $this->getCustomerGroupCode($customer_details->getGroupId());
+            $customer_props['account_type'] = "registered";
+
             try {
                 $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
