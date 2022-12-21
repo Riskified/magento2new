@@ -4,6 +4,7 @@ namespace Riskified\Decider\Controller\Response;
 
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Riskified\Decider\Api\DecisionRepositoryInterface;
 use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Config;
@@ -38,6 +39,8 @@ class Get extends \Magento\Framework\App\Action\Action
      * @var Config
      */
     private $config;
+    private $decisionFactory;
+    private $decisionRepository;
 
     /**
      * Get constructor.
@@ -52,13 +55,17 @@ class Get extends \Magento\Framework\App\Action\Action
         Api $api,
         OrderApi $apiOrder,
         LogApi $apiLogger,
-        Config $config
+        Config $config,
+        DecisionFactory $decisionFactory,
+        DecisionRepositoryInterface $decisionRepository,
     ) {
         parent::__construct($context);
         $this->api = $api;
         $this->apiLogger = $apiLogger;
         $this->apiOrderLayer = $apiOrder;
         $this->config = $config;
+        $this->decisionFactory = $decisionFactory;
+        $this->decisionRepository = $decisionRepository;
 
         // CsrfAwareAction Magento2.3 compatibility
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
@@ -109,14 +116,13 @@ class Get extends \Magento\Framework\App\Action\Action
                 $logger->log(
                     sprintf(
                         __("Test Notification received: %s"),
-                        serialize($notification)
+                        json_encode($notification)
                     )
                 );
             } else {
                 $logger->log(
                     sprintf(
-                        __("Notification received: %s"),
-                        serialize($notification)
+                        __("Notification received: %s"), json_encode($notification)
                     )
                 );
 
@@ -125,10 +131,7 @@ class Get extends \Magento\Framework\App\Action\Action
 
                 if (!$order || !$order->getId()) {
                     $logger->log(
-                        sprintf(
-                            "ERROR: Unable to load order (%s)",
-                            $id
-                        )
+                        sprintf("ERROR: Unable to load order (%s)", $id)
                     );
                     $statusCode = self::STATUS_BAD;
                     $msg = 'Could not find order to update.';
