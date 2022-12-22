@@ -195,12 +195,12 @@ class Config
             $this->getStore()
         );
 
-        $avialableStatuses =  [
+        $availableStatuses =  [
             \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE,
             \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE
         ];
 
-        if (!in_array($captureCase, $avialableStatuses)) {
+        if (!in_array($captureCase, $availableStatuses)) {
             $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
         }
 
@@ -209,7 +209,7 @@ class Config
 
     /**
      * Return delay neeeded for decision endpoint.
-     * 
+     *
      * @return bool
      */
     public function getDecisionEndpointDelay($scopeId = 0)
