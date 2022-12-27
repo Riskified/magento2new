@@ -47,6 +47,7 @@ class OrderPlacedAfter implements ObserverInterface
         if ($order->dataHasChangedFor('state')) {
             try {
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
+                $order->setSentToRiskified(1);
             } catch (\Exception $e) {
                 $this->_logger->critical($e);
             }
