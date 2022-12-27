@@ -44,9 +44,21 @@ class UpgradeSchema implements UpgradeSchemaInterface
             )->addColumn(
                 'decision',
                 \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-                null,
+                255,
                 ['nullable' => false],
                 'Decision'
+            )->addColumn(
+                'description',
+                \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                null,
+                ['nullable' => false],
+                'Description'
+            )->addColumn(
+                'created_at',
+                \Magento\Framework\DB\Ddl\Table::TYPE_DATETIME,
+                null,
+                ['nullable' => false],
+                'Created At'
             );
             $installer->getConnection()->createTable($table);
         }

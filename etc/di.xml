@@ -47,4 +47,8 @@
             </argument>
         </arguments>
     </virtualType>
+    <preference for="Riskified\Decider\Api\DecisionRepositoryInterface"
+                type="Riskified\Decider\Model\DecisionRepository"/>
+    <preference for="Riskified\Decider\Api\Data\DecisionInterface"
+                type="Riskified\Decider\Data\DecisionInterface"/>
 </config>

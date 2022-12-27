@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Riskified\Decider\Model\Cron;
 
-use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Framework\Api\Search\SearchCriteriaBuilder;
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
@@ -14,25 +16,33 @@ use Riskified\Decider\Model\Observer\UpdateOrderState;
 class ReleaseOnHoldOrders
 {
     private OrderRepositoryInterface $orderRepository;
-    private SearchCriteriaInterface $searchCriteria;
+    private SearchCriteriaBuilder $searchCriteria;
     private DecisionRepositoryInterface $decisionRepository;
+    private FilterBuilder $filterBuilder;
     private Config $config;
     private UpdateOrderState $updateOrderStateObserver;
+    private CacheInterface $cache;
     private Log $log;
 
+    const CACHE_KEY = "prevent_overlapping_cron";
+
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaInterface $searchCriteria,
-        DecisionRepositoryInterface $decisionRepository,
-        UpdateOrderState $updateOrderStateObserver,
+        CacheInterface $cache,
         Config $config,
-        Log $log
+        DecisionRepositoryInterface $decisionRepository,
+        FilterBuilder $filterBuilder,
+        Log $log,
+        OrderRepositoryInterface $orderRepository,
+        SearchCriteriaBuilder $searchCriteria,
+        UpdateOrderState $updateOrderStateObserver,
     ) {
         $this->orderRepository = $orderRepository;
         $this->searchCriteria = $searchCriteria;
+        $this->filterBuilder = $filterBuilder;
         $this->decisionRepository = $decisionRepository;
         $this->updateOrderStateObserver = $updateOrderStateObserver;
         $this->config = $config;
+        $this->cache = $cache;
         $this->log = $log;
     }
 
@@ -41,7 +51,19 @@ class ReleaseOnHoldOrders
      */
     public function execute()
     {
-        $searchCriteria = $this->searchCriteria->addFilter('status', '1')->setSortOrders()->create();
+        if ($this->cache->load(self::CACHE_KEY)) {
+            return;
+        }
+
+        $this->cache->save(1, self::CACHE_KEY, [], 15);
+
+        $orderStatusFilter = $this->filterBuilder
+            ->setField('state')
+            ->setValue('holded')
+            ->setConditionType('eq')
+            ->create();
+
+        $searchCriteria = $this->searchCriteria->addFilter($orderStatusFilter)->create();
         $orderList = $this->orderRepository->getList($searchCriteria);
 
         if ($orderList->getTotalCount() == 0) {
@@ -52,7 +74,7 @@ class ReleaseOnHoldOrders
 
         foreach ($orderList->getItems() as $order) {
             $this->log("ReleaseOnHoldOrders: Checking #{$order->getIncrementId()}.");
-            $decision = $this->decisionRepository->getByOrderId($order->getId());
+            $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
             if ($decision && $decision->getOrderId()) {
                 $this->log(
@@ -74,7 +96,7 @@ class ReleaseOnHoldOrders
     private function log(string $message) : void
     {
         if ($this->config->isLoggingEnabled()) {
-            $this->log($message);
+            $this->log->log($message);
         }
     }
 }

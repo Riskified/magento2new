@@ -4,17 +4,16 @@ namespace Riskified\Decider\Controller\Response;
 
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\Controller\ResultFactory;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
-use \Riskified\DecisionNotification;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Config;
-use Riskified\Decider\Model\Api\Order as OrderApi;
+use Riskified\Decider\Model\Api\DecisionFactory;
 use Riskified\Decider\Model\Api\Log as LogApi;
-use Magento\Framework\Controller\ResultFactory;
+use Riskified\Decider\Model\Api\Order as OrderApi;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
-
     const STATUS_OK = 200;
     const STATUS_BAD = 400;
     const STATUS_UNAUTHORIZED = 401;
@@ -39,7 +38,6 @@ class Get extends \Magento\Framework\App\Action\Action
      * @var Config
      */
     private $config;
-    private $decisionFactory;
     private $decisionRepository;
 
     /**
@@ -122,7 +120,8 @@ class Get extends \Magento\Framework\App\Action\Action
             } else {
                 $logger->log(
                     sprintf(
-                        __("Notification received: %s"), json_encode($notification)
+                        __("Notification received: %s"),
+                        json_encode($notification)
                     )
                 );
 
@@ -136,6 +135,14 @@ class Get extends \Magento\Framework\App\Action\Action
                     $statusCode = self::STATUS_BAD;
                     $msg = 'Could not find order to update.';
                 } else {
+                    $decision = $this->decisionFactory->create();
+                    $decision->setOrderId($order->getId());
+                    $decision->setDecision($notification->status);
+                    $decision->setDescription($notification->description);
+                    $decision->setCreatedAt(date("Y-m-d H:i:s"));
+
+                    $this->decisionRepository->save($decision);
+
                     $this->apiOrderLayer->update(
                         $order,
                         $notification->status,

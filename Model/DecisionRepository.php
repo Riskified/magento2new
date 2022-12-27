@@ -4,15 +4,18 @@ namespace Riskified\Decider\Model;
 
 use Riskified\Decider\Api\Data\DecisionInterface as Decision;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
+use Riskified\Decider\Model\Api\DecisionFactory;
 use Riskified\Decider\Model\Resource\Decision as DecisionResourceModel;
 
 class DecisionRepository implements DecisionRepositoryInterface
 {
     private DecisionResourceModel $resourceModel;
+    private DecisionFactory $decisionFactory;
 
-    public function __construct(DecisionResourceModel $resourceModel)
+    public function __construct(DecisionResourceModel $resourceModel, DecisionFactory $decisionFactory)
     {
         $this->resourceModel = $resourceModel;
+        $this->decisionFactory = $decisionFactory;
     }
 
     public function save(Decision $decision)
@@ -22,12 +25,16 @@ class DecisionRepository implements DecisionRepositoryInterface
 
     public function getById(int $decisionId) : Decision
     {
-        return $this->resourceModel->load(Decision::class, $decisionId);
+        $decision = $this->decisionFactory->create();
+
+        return $decision->load($decisionId);
     }
 
     public function getByOrderId(int $orderId) : Decision
     {
-        return $this->resourceModel->load(Decision::class, $orderId, 'order_id');
+        $decision = $this->decisionFactory->create();
+
+        return $decision->load($orderId, 'order_id');
     }
 
     public function deleteById(int $decisionId) : void
