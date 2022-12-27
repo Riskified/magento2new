@@ -162,7 +162,6 @@
                 <field id="debug_logs" translate="label" type="select" sortOrder="150" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
-                    <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="*/riskified_general/enabled">1</field>
