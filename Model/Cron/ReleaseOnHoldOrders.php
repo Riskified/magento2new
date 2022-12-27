@@ -73,22 +73,26 @@ class ReleaseOnHoldOrders
         $this->log("ReleaseOnHoldOrders: Found {$orderList->getTotalCount()} in hold state.");
 
         foreach ($orderList->getItems() as $order) {
-            $this->log("ReleaseOnHoldOrders: Checking #{$order->getIncrementId()}.");
-            $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
+            try {
+                $this->log("ReleaseOnHoldOrders: Checking #{$order->getIncrementId()}.");
+                $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
-            if ($decision && $decision->getOrderId()) {
-                $this->log(
-                    "ReleaseOnHoldOrders: Found decision {$decision->getDecision()} for order #{$order->getIncrementId()}.
-                    Triggering update state object."
-                );
+                if ($decision && $decision->getOrderId()) {
+                    $this->log(
+                        "ReleaseOnHoldOrders: Found decision {$decision->getDecision()} for order #{$order->getIncrementId()}.
+                        Triggering update state object."
+                    );
 
-                $observer = new Observer();
-                $observer->setOrder($order);
-                $observer->setStatus($decision->getDecision());
+                    $observer = new Observer();
+                    $observer->setOrder($order);
+                    $observer->setStatus($decision->getDecision());
 
-                $this->updateOrderStateObserver->execute($observer);
-            } else {
-                $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} was not found.");
+                    $this->updateOrderStateObserver->execute($observer);
+                } else {
+                    $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} was not found.");
+                }
+            } catch (\Exception $e) {
+                $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} cannot be processed.");
             }
         }
     }
