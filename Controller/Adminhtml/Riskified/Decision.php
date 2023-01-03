@@ -64,7 +64,7 @@ class Decision extends \Magento\Backend\App\Action
                     __('Updated order status base on Riskified decision.')
                 );
             } else {
-                $this->messageManager->addErrorMessage(
+                $this->messageManager->addNoticeMessage(
                     __('Decision was not found or not passing validation')
                 );
             }
