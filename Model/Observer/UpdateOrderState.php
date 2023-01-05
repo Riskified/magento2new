@@ -254,7 +254,11 @@ class UpdateOrderState implements ObserverInterface
                         \Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION
                     );
                     $tableOrderStatuses = $connection->getTableName('sales_order_status_state');
-                    $result = $connection->fetchRow('SELECT state FROM `' . $tableOrderStatuses . '` WHERE status="' . $status . '"');
+
+                    $result = $connection->fetchRow(
+                        'SELECT state FROM `' . $tableOrderStatuses . '` WHERE status = ?',
+                        [$status]
+                    );
                     $state = $result['state'];
 
                     $order->setHoldBeforeState($state);

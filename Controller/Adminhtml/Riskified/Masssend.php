@@ -6,6 +6,8 @@ use Riskified\Decider\Model\Api\Order as OrderApi;
 
 class Masssend extends \Magento\Backend\App\Action
 {
+    public const ADMIN_RESOURCE = 'Magento_Sales::sales_order';
+
     /**
      * @var OrderApi
      */
