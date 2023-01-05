@@ -70,4 +70,21 @@ class Decision extends AbstractExtensibleModel implements DecisionInterface
     {
         return $this->setData('created_at', $datetime);
     }
+
+    /**
+     * @param int $attemptsCount
+     * @return mixed
+     */
+    public function setAttemptsCount(int $attemptsCount): mixed
+    {
+        return $this->setData('attempts_count', $attemptsCount);
+    }
+
+    /**
+     * @return int
+     */
+    public function getAttemptsCount(): int
+    {
+        return (int) $this->getAttemptsCount();
+    }
 }

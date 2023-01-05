@@ -70,14 +70,21 @@ class ReleaseOnHoldOrders
             return;
         }
 
-        $this->log("ReleaseOnHoldOrders: Found {$orderList->getTotalCount()} in hold state.");
+        $maxAttemptsCount = $this->config->getCronMaxAttemptsCount();
 
+        $this->log("ReleaseOnHoldOrders: Found {$orderList->getTotalCount()} in hold state.");
+        $failedOrders = [];
         foreach ($orderList->getItems() as $order) {
             try {
                 $this->log("ReleaseOnHoldOrders: Checking #{$order->getIncrementId()}.");
                 $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
                 if ($decision && $decision->getOrderId()) {
+                    if ($maxAttemptsCount <= $decision->getAttemptsCount()) {
+                        $this->log("There's a problem with updating order {$order->getIncrementId()}. Reached too many attempts.");
+                        $failedOrders[] = $order->getIncrementId();
+                    }
+
                     $this->log(
                         "ReleaseOnHoldOrders: Found decision {$decision->getDecision()} for order #{$order->getIncrementId()}.
                         Triggering update state object."
@@ -89,9 +96,16 @@ class ReleaseOnHoldOrders
 
                     $this->updateOrderStateObserver->execute($observer);
                 } else {
+                    $decision->setAttemptsCount($decision->getAttemptsCount() + 1);
+                    $this->decisionRepository->save($decision);
+                    $failedOrders[] = $order->getIncrementId();
                     $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} was not found.");
                 }
             } catch (\Exception $e) {
+                $failedOrders[] = $order->getIncrementId();
+                $decision->setAttemptsCount($decision->getAttemptsCount() + 1);
+                $this->decisionRepository->save($decision);
+
                 $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} cannot be processed.");
             }
         }

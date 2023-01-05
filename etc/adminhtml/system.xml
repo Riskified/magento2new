@@ -159,6 +159,14 @@
                         <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="cron_max_attempts" translate="label" type="text" sortOrder="140" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Max Attempts Count</label>
+                    <comment><![CDATA[Define how many times cron will try to update order when it's on hold.]]></comment>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="debug_logs" translate="label" type="select" sortOrder="150" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>

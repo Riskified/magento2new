@@ -2,7 +2,7 @@
 namespace Riskified\Decider\Model\Api;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use \Magento\Store\Model\ScopeInterface as ScopeInterface;
+use Magento\Store\Model\ScopeInterface as ScopeInterface;
 
 class Config
 {
@@ -62,10 +62,10 @@ class Config
     public function getConfigEnv()
     {
         return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue(
-                'riskified/riskified/env',
-                ScopeInterface::SCOPE_STORES,
-                $this->getStore()
-            );
+            'riskified/riskified/env',
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
+        );
     }
 
     public function getSessionId()
@@ -305,5 +305,13 @@ class Config
     public function getStore()
     {
         return (!is_null($this->store)) ? $this->store : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCronMaxAttemptsCount() : int
+    {
+        return (int) $this->_scopeConfig->getValue('riskified/riskified/cron_max_attempts');
     }
 }

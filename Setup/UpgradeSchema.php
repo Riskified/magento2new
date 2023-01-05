@@ -63,6 +63,34 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $installer->getConnection()->createTable($table);
         }
 
+        if (version_compare($context->getVersion(), '1.2.1', '<')) {
+            $installer->getConnection()->addColumn(
+                $installer->getTable('riskified_decision_queue'),
+                'attempts_count',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                    'nullable' => false,
+                    'default' => 0,
+                    'length' => 1,
+                    'comment' => "Number of attempts allowed to be processed",
+                ]
+            );
+        }
+
+        if (version_compare($context->getVersion(), '1.2.2', '<')) {
+            $installer->getConnection()->addColumn(
+                $installer->getTable('sales_order'),
+                'riskified_admin_notified',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
+                    'nullable' => false,
+                    'length' => 1,
+                    'default' => 0,
+                    'comment' => 'Prevent processing order on Riskified decision',
+                ]
+            );
+        }
+
         $installer->endSetup();
     }
 }

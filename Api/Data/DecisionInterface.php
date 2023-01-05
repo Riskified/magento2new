@@ -41,4 +41,15 @@ interface DecisionInterface
      * @return mixed
      */
     public function setCreatedAt(string $datetime);
+
+    /**
+     * @param int $attemptsCount
+     * @return mixed
+     */
+    public function setAttemptsCount(int $attemptsCount): mixed;
+
+    /**
+     * @return int
+     */
+    public function getAttemptsCount() : int;
 }
