@@ -208,20 +208,6 @@ class Config
     }
 
     /**
-     * Return delay neeeded for decision endpoint.
-     *
-     * @return bool
-     */
-    public function getDecisionEndpointDelay($scopeId = 0)
-    {
-        return (int)$this->_scopeConfig->getValue(
-            'riskified/riskified/delay',
-            ScopeInterface::SCOPE_STORES,
-            $scopeId
-        );
-    }
-
-    /**
      * When scopeId is not defined checks if Decline Notification is enabled for Default Store View.
      * @return bool
      */

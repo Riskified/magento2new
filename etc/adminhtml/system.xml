@@ -151,14 +151,6 @@
                         <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="delay" translate="label" type="text" sortOrder="140" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Decision delay</label>
-                    <comment><![CDATA[Value in seconds. <br> Add delay to processing decision endpoint to overcome issues with overlapping databasa transactions. DEV ONLY.]]></comment>
-                    <depends>
-                        <field id="*/riskified_general/enabled">1</field>
-                    </depends>
-                </field>
                 <field id="cron_max_attempts" translate="label" type="text" sortOrder="140" showInDefault="1"
                        showInWebsite="0" showInStore="0">
                     <label>Max Attempts Count</label>

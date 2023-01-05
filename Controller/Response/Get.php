@@ -96,15 +96,6 @@ class Get extends \Magento\Framework\App\Action\Action
         try {
             $this->api->initSdk();
             $notification = $this->api->parseRequest($request);
-            $endpointDelay = $this->config->getDecisionEndpointDelay();
-
-            if ($endpointDelay > 0) {
-                $logger->log("Extension has set delay $endpointDelay sec.");
-
-                sleep($endpointDelay);
-
-                $logger->log("Continuing.");
-            }
 
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
