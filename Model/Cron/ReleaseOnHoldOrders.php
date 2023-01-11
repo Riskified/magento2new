@@ -153,7 +153,7 @@ class ReleaseOnHoldOrders
 
         // delete old entries
         foreach ($this->decisionRepository->getOldDecisionEntries() as $decisionEntry) {
-            $this->decisionRepository->getById((int)$decisionEntry->getId());
+            $this->decisionRepository->deleteById((int)$decisionEntry->getId());
         }
     }
 
