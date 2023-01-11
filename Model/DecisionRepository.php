@@ -60,13 +60,12 @@ class DecisionRepository implements DecisionRepositoryInterface
         $currentDateTime = new \DateTime();
         $currentDateTime->modify("-90 days");
 
-        $collection = $this->decisionCollection
+        return $this
+            ->decisionCollection
             ->addFieldToFilter(
                 'created_at',
                 ['lteq' => $currentDateTime->format("Y-m-d H:i:s")]
             )
             ->getItems();
-
-        return $collection;
     }
 }
