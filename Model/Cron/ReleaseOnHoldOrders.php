@@ -7,6 +7,7 @@ use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Registry;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
 use Riskified\Decider\Model\Api\Config;
@@ -23,6 +24,7 @@ class ReleaseOnHoldOrders
     private UpdateOrderState $updateOrderStateObserver;
     private CacheInterface $cache;
     private Log $log;
+    private Registry $registry;
 
     const CACHE_KEY = "prevent_overlapping_cron";
 
@@ -35,6 +37,7 @@ class ReleaseOnHoldOrders
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteria,
         UpdateOrderState $updateOrderStateObserver,
+        Registry $registry
     ) {
         $this->orderRepository = $orderRepository;
         $this->searchCriteria = $searchCriteria;
@@ -44,6 +47,7 @@ class ReleaseOnHoldOrders
         $this->config = $config;
         $this->cache = $cache;
         $this->log = $log;
+        $this->registry = $registry;
     }
 
     /**
@@ -70,11 +74,15 @@ class ReleaseOnHoldOrders
             return;
         }
 
+        $orders = $orderList->getItems();
         $maxAttemptsCount = $this->config->getCronMaxAttemptsCount();
+        $failedOrders = [];
+
+        $this->registry->register("riskified-order", $orders[0], true);
 
         $this->log("ReleaseOnHoldOrders: Found {$orderList->getTotalCount()} in hold state.");
-        $failedOrders = [];
-        foreach ($orderList->getItems() as $order) {
+
+        foreach ($orders as $order) {
             try {
                 $this->log("ReleaseOnHoldOrders: Checking #{$order->getIncrementId()}.");
                 $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
