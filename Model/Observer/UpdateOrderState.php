@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
 use Riskified\Decider\Model\Api\Log as LogApi;
@@ -73,6 +74,7 @@ class UpdateOrderState implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        /** @var OrderInterface $order */
         $order = $observer->getOrder();
         $riskifiedStatus = (string)$observer->getStatus();
         $riskifiedOldStatus = (string)$observer->getOldStatus();
@@ -83,8 +85,9 @@ class UpdateOrderState implements ObserverInterface
 
         $this->logger->log(
             sprintf(
-                "Checking if should update order '%s' from state: '%s' and status: '%s'",
+                "Checking if should update order '%s' (#%s) from state: '%s' and status: '%s'",
                 $order->getId(),
+                $order->getIncrementId(),
                 $currentState,
                 $currentStatus
             )
@@ -99,14 +102,15 @@ class UpdateOrderState implements ObserverInterface
             )
         );
 
-        $this->logger->log(
-            sprintf(
-                "On Hold Status Code : %s and Transport Error Status Code : %s",
-                $this->apiOrderConfig->getOnHoldStatusCode(),
-                $this->apiOrderConfig->getTransportErrorStatusCode()
-            )
-        );
-
+        if ($this->apiConfig->isLoggingEnabled()) {
+            $this->logger->log(
+                sprintf(
+                    "On Hold Status Code : %s and Transport Error Status Code : %s",
+                    $this->apiOrderConfig->getOnHoldStatusCode(),
+                    $this->apiOrderConfig->getTransportErrorStatusCode()
+                )
+            );
+        }
         switch ($riskifiedStatus) {
             case 'approved':
                 if ($currentState == Order::STATE_HOLDED
@@ -161,16 +165,20 @@ class UpdateOrderState implements ObserverInterface
 
                 $order->unhold();
 
-                $order->addStatusHistoryComment(
-                    __("Order was unholded manually")
+                $order->addCommentToStatusHistory(
+                    __("Order was unhold manually")
                 );
 
+                if (!$order->canCancel()) {
+                    $this->logger->log("Order #{$order->getIncrementId()} cannot be cancelled.");
+                }
+
                 $order->cancel();
-                $order->addStatusHistoryComment($description, $newStatus);
+                $order->addCommentToStatusHistory($description, $newStatus);
             } else {
-                $order->setState($newState, $newStatus, $description);
+                $order->setState($newState);
                 $order->setStatus($newStatus);
-                $order->addStatusHistoryComment($description, $newStatus);
+                $order->addCommentToStatusHistory($description, $newStatus);
 
                 $this->logger->log(
                     sprintf(
@@ -193,7 +201,7 @@ class UpdateOrderState implements ObserverInterface
                         $description
                     )
                 );
-                $order->addStatusHistoryComment($description);
+                $order->addCommentToStatusHistory($description);
                 $changed = true;
             }
         } else {

@@ -4,5 +4,8 @@
         <job name="riskified_decider_retry_submission" instance="Riskified\Decider\Model\Cron\Submission" method="execute">
             <schedule>*/5 * * * *</schedule>
         </job>
+        <job instance="Riskified\Decider\Model\Cron\ReleaseOnHoldOrders" method="execute" name="riskified_decider_release_on_hold_orders">
+            <schedule>*/10 * * * *</schedule>
+        </job>
     </group>
 </config>
