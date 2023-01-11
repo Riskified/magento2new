@@ -85,6 +85,6 @@ class Decision extends AbstractExtensibleModel implements DecisionInterface
      */
     public function getAttemptsCount(): int
     {
-        return (int) $this->getAttemptsCount();
+        return (int) $this->getData('attemps_count');
     }
 }

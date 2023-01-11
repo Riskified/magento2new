@@ -16,16 +16,46 @@ use Riskified\Decider\Model\Observer\UpdateOrderState;
 
 class ReleaseOnHoldOrders
 {
+    /**
+     * @var OrderRepositoryInterface
+     */
     private OrderRepositoryInterface $orderRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
     private SearchCriteriaBuilder $searchCriteria;
+    /**
+     * @var DecisionRepositoryInterface
+     */
     private DecisionRepositoryInterface $decisionRepository;
+    /**
+     * @var FilterBuilder
+     */
     private FilterBuilder $filterBuilder;
+    /**
+     * @var Config
+     */
     private Config $config;
+    /**
+     * @var UpdateOrderState
+     */
     private UpdateOrderState $updateOrderStateObserver;
+    /**
+     * @var CacheInterface
+     */
     private CacheInterface $cache;
+    /**
+     * @var Log
+     */
     private Log $log;
+    /**
+     * @var Registry
+     */
     private Registry $registry;
 
+    /**
+     *
+     */
     const CACHE_KEY = "prevent_overlapping_cron";
 
     public function __construct(
@@ -78,7 +108,7 @@ class ReleaseOnHoldOrders
         $maxAttemptsCount = $this->config->getCronMaxAttemptsCount();
         $failedOrders = [];
 
-        $this->registry->register("riskified-order", $orders[0], true);
+        $this->registry->register("riskified-order", array_values($orders)[0], true);
 
         $this->log("ReleaseOnHoldOrders: Found {$orderList->getTotalCount()} in hold state.");
 
@@ -101,6 +131,7 @@ class ReleaseOnHoldOrders
                     $observer = new Observer();
                     $observer->setOrder($order);
                     $observer->setStatus($decision->getDecision());
+                    $observer->setDescription($decision->getDescription());
 
                     $this->updateOrderStateObserver->execute($observer);
                 } else {
@@ -116,6 +147,13 @@ class ReleaseOnHoldOrders
 
                 $this->log("ReleaseOnHoldOrders: Decision for order #{$order->getIncrementId()} cannot be processed.");
             }
+        }
+
+        $this->cache->remove(self::CACHE_KEY);
+
+        // delete old entries
+        foreach ($this->decisionRepository->getOldDecisionEntries() as $decisionEntry) {
+            $this->decisionRepository->getById($decisionEntry->getId());
         }
     }
 

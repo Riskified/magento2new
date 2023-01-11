@@ -2,20 +2,28 @@
 
 namespace Riskified\Decider\Model;
 
+use _PHPStan_3bfe2e67c\Nette\Utils\DateTime;
 use Riskified\Decider\Api\Data\DecisionInterface as Decision;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
 use Riskified\Decider\Model\Api\DecisionFactory;
 use Riskified\Decider\Model\Resource\Decision as DecisionResourceModel;
+use Riskified\Decider\Model\Resource\Decision\Collection as DecisionCollectionResourceModel;
 
 class DecisionRepository implements DecisionRepositoryInterface
 {
     private DecisionResourceModel $resourceModel;
     private DecisionFactory $decisionFactory;
+    private DecisionCollectionResourceModel $decisionCollection;
 
-    public function __construct(DecisionResourceModel $resourceModel, DecisionFactory $decisionFactory)
+    public function __construct(
+        DecisionResourceModel $resourceModel,
+        DecisionFactory $decisionFactory,
+        DecisionCollectionResourceModel $decisionCollection
+    )
     {
         $this->resourceModel = $resourceModel;
         $this->decisionFactory = $decisionFactory;
+        $this->decisionCollection = $decisionCollection;
     }
 
     public function save(Decision $decision)
@@ -47,5 +55,21 @@ class DecisionRepository implements DecisionRepositoryInterface
     {
         $decision = $this->getByOrderId($orderId);
         $decision->delete();
+    }
+
+    public function getOldDecisionEntries() : array
+    {
+        $currentDateTime = new \DateTime();
+        $currentDateTime->modify("-90 days");
+
+        $collection = $this->decisionCollection
+            ->addFieldToFilter(
+                'created_at',
+                '<=',
+                $currentDateTime->format("Y-m-d H:i:s")
+            )
+            ->getItems();
+
+        return $collection;
     }
 }
