@@ -63,7 +63,7 @@ class DecisionRepository implements DecisionRepositoryInterface
         $collection = $this->decisionCollection
             ->addFieldToFilter(
                 'created_at',
-                ['gteq' => $currentDateTime->format("Y-m-d H:i:s")]
+                ['lteq' => $currentDateTime->format("Y-m-d H:i:s")]
             )
             ->getItems();
 
