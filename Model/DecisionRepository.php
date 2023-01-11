@@ -2,7 +2,6 @@
 
 namespace Riskified\Decider\Model;
 
-use _PHPStan_3bfe2e67c\Nette\Utils\DateTime;
 use Riskified\Decider\Api\Data\DecisionInterface as Decision;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
 use Riskified\Decider\Model\Api\DecisionFactory;
@@ -19,8 +18,7 @@ class DecisionRepository implements DecisionRepositoryInterface
         DecisionResourceModel $resourceModel,
         DecisionFactory $decisionFactory,
         DecisionCollectionResourceModel $decisionCollection
-    )
-    {
+    ) {
         $this->resourceModel = $resourceModel;
         $this->decisionFactory = $decisionFactory;
         $this->decisionCollection = $decisionCollection;
