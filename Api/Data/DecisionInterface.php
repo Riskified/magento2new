@@ -46,7 +46,7 @@ interface DecisionInterface
      * @param int $attemptsCount
      * @return mixed
      */
-    public function setAttemptsCount(int $attemptsCount): mixed;
+    public function setAttemptsCount(int $attemptsCount);
 
     /**
      * @return int
