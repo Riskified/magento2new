@@ -38,7 +38,15 @@ class Get extends \Magento\Framework\App\Action\Action
      * @var Config
      */
     private $config;
+    /**
+     * @var DecisionRepositoryInterface
+     */
     private $decisionRepository;
+
+    /**
+     * @var DecisionFactory
+     */
+    private DecisionFactory $decisionFactory;
 
     /**
      * Get constructor.
@@ -55,7 +63,7 @@ class Get extends \Magento\Framework\App\Action\Action
         LogApi $apiLogger,
         Config $config,
         DecisionFactory $decisionFactory,
-        DecisionRepositoryInterface $decisionRepository,
+        DecisionRepositoryInterface $decisionRepository
     ) {
         parent::__construct($context);
         $this->api = $api;
