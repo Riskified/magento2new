@@ -49,7 +49,7 @@ class Context
     public function afterGetButtonList(
         \Magento\Backend\Block\Widget\Context $subject,
         $buttonList
-    ): mixed {
+    ) {
         $request = $this->context->getRequest();
         if ($request->getFullActionName() == 'sales_order_view' && $this->config->isEnabled()) {
             $order = $this->registry->registry('current_order');
