@@ -182,7 +182,8 @@ class Helper
         if (!$this->getOrder()) {
             return null;
         }
-        return $this->getOrder()->getId() . '_' . $this->getOrder()->getIncrementId();
+
+        return $this->getOrder()->getIncrementId();
     }
 
     /**

@@ -339,8 +339,6 @@ class Order
             $cartToken = $this->session->getSessionId();
             //save card_token into db
             $model->setRiskifiedCartToken($cartToken);
-            $model->setIsSavedInRiskified(1);
-            $model->save();
         } else {
             $cartToken = $model->getRiskifiedCartToken();
         }
@@ -490,7 +488,17 @@ class Order
         }
 
         if ($order_id) {
-            return $this->orderRepository->get($order_id);
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('increment_id', $order_id, 'eq')->create();
+
+            $orderSearchResultList = $this->orderRepository->getList($searchCriteria);
+            $orderList = $orderSearchResultList->getItems();
+
+            if (is_array($orderList) && count($orderList) === 1) {
+                return reset($orderList);
+            } else {
+                return false;
+            }
         }
 
         return null;

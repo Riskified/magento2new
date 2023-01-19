@@ -150,7 +150,7 @@ class AutoInvoice implements ObserverInterface
 
         $this->logger->info(
             sprintf(
-                __('Auto-invoicing  order #%s'),
+                __('Auto-invoicing order #%s'),
                 $order->getIncrementId()
             )
         );
@@ -183,10 +183,7 @@ class AutoInvoice implements ObserverInterface
             $invoice
                 ->setRequestedCaptureCase($this->apiConfig->getCaptureCase())
                 ->addComment(
-                    __(
-                        'Invoice automatically created by '
-                        . 'Riskified when order was approved'
-                    ),
+                    __('Invoice automatically created by Riskified when order was approved'),
                     false,
                     false
                 );
@@ -204,10 +201,10 @@ class AutoInvoice implements ObserverInterface
             );
             return false;
         }
+
         try {
             $this->invoiceRepository->save($invoice);
             $this->orderRepository->save($invoice->getOrder());
-
         } catch (\Exception $e) {
             $this->logger->log(
                 'critical',

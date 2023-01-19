@@ -224,10 +224,12 @@ class UpdateOrderState implements ObserverInterface
         if ($changed) {
             try {
                 $this->logger->log("Changing order status #" . $order->getIncrementId());
-
                 $this->registry->register("riskified-order", $order, true);
+                $placeOrderAfter = $this->registry->registry("riskified-place-order-after");
 
-                $this->orderRepository->save($order);
+                if (!$this->apiConfig->isAutoInvoiceEnabled() && !$placeOrderAfter) {
+                    $this->orderRepository->save($order);
+                }
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
 

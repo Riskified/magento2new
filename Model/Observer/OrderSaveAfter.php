@@ -79,7 +79,7 @@ class OrderSaveAfter implements ObserverInterface
                 $this->_logger->log(__("Order #" . $order->getIncrementId() . " processing action update from riskified."));
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
 
-//                $this->_registry->unregister("riskified-order");
+                $this->_registry->unregister("riskified-order");
             } catch (\Exception $e) {
                 // There is no need to do anything here. The exception has already been handled and a retry scheduled.
                 // We catch this exception so that the order is still saved in Magento.
