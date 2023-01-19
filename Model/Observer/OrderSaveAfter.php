@@ -8,7 +8,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\Event\Observer;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Order as OrderApi;
-use Riskified\Decider\Model\Logger\Order as OrderLogger;
+use Riskified\Decider\Model\Api\Order\Log as OrderLogger;
 
 class OrderSaveAfter implements ObserverInterface
 {
@@ -60,15 +60,15 @@ class OrderSaveAfter implements ObserverInterface
             $oldState = $order->getOrigData('state');
 
             if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
-                $this->_logger->debug(__("Order : " . $order->getId() . " not notifying on unhold action"));
+                $this->_logger->log(__("Order #" . $order->getIncrementId() . " not notifying on unhold action"));
                 return;
             }
 
-            $this->_logger->debug(__("Order: " . $order->getId() . " state changed from: " . $oldState . " to: " . $newState));
+            $this->_logger->log(__("Order #" . $order->getIncrementId() . " state changed from: " . $oldState . " to: " . $newState));
 
             // if we posted we should not re post
             if ($this->_registry->registry("riskified-order")) {
-                $this->_logger->debug(__("Order : " . $order->getId() . " is already riskifiedInSave"));
+                $this->_logger->log(__("Order #" . $order->getIncrementId() . " is already riskifiedInSave"));
                 return;
             }
 
@@ -76,6 +76,7 @@ class OrderSaveAfter implements ObserverInterface
                 if (!$this->_registry->registry("riskified-order")) {
                     $this->_registry->register("riskified-order", $order);
                 }
+                $this->_logger->log(__("Order #" . $order->getIncrementId() . " processing action update from riskified."));
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
 
                 $this->_registry->unregister("riskified-order");
@@ -84,9 +85,9 @@ class OrderSaveAfter implements ObserverInterface
                 // We catch this exception so that the order is still saved in Magento.
             }
         } else {
-            $this->_logger->debug(
+            $this->_logger->log(
                 sprintf(
-                    __("Order: %s state didn't change on save - not posting again: %s"),
+                    __("Order #%s state didn't change on save - not posting again: %s"),
                     $order->getIncrementId(),
                     $newState
                 )

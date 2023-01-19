@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Api;
 
 use Riskified\OrderWebhook\Model;
+use Magento\Framework\Registry;
 
 class Order
 {
@@ -67,6 +68,11 @@ class Order
     private $session;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * Order constructor.
      *
      * @param Api $api
@@ -94,7 +100,8 @@ class Order
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Session\SessionManager $sessionManager,
-        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        Registry $registry
     ) {
         $this->_api = $api;
         $this->_orderHelper = $orderHelper;
@@ -109,6 +116,7 @@ class Order
         $this->queueFactory = $queueFactory;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->registry = $registry;
 
         $this->_orderHelper->setCheckoutSession($checkoutSession);
 
@@ -139,6 +147,8 @@ class Order
         $transport = $this->_api->getTransport();
 
         $this->_orderHelper->setOrder($order);
+        $this->registry->register("riskified-order", $order, true);
+
         $eventData = [
             'order' => $order,
             'action' => $action
@@ -329,7 +339,6 @@ class Order
             $cartToken = $this->session->getSessionId();
             //save card_token into db
             $model->setRiskifiedCartToken($cartToken);
-            $model->save();
         } else {
             $cartToken = $model->getRiskifiedCartToken();
         }
@@ -396,6 +405,8 @@ class Order
         if (!$order) {
             return;
         }
+
+        $this->registry->register("riskified-order", $order, true);
 
         $this->logger->log('Dispatching event for order ' . $order->getId() . ' with status "' . $status .
             '" old status "' . $oldStatus . '" and description "' . $description . '"');
@@ -477,7 +488,17 @@ class Order
         }
 
         if ($order_id) {
-            return $this->orderRepository->get($order_id);
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('increment_id', $order_id, 'eq')->create();
+
+            $orderSearchResultList = $this->orderRepository->getList($searchCriteria);
+            $orderList = $orderSearchResultList->getItems();
+
+            if (is_array($orderList) && count($orderList) === 1) {
+                return reset($orderList);
+            } else {
+                return false;
+            }
         }
 
         return null;

@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Registry;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Logger\Order as OrderLogger;
 use Riskified\Decider\Model\Api\Order as OrderApi;
@@ -20,6 +21,11 @@ class OrderPlacedAfter implements ObserverInterface
     private $_orderApi;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * OrderPlacedAfter constructor.
      *
      * @param OrderLogger $logger
@@ -27,10 +33,12 @@ class OrderPlacedAfter implements ObserverInterface
      */
     public function __construct(
         OrderLogger $logger,
-        OrderApi $orderApi
+        OrderApi $orderApi,
+        Registry $registry
     ) {
         $this->_logger = $logger;
         $this->_orderApi = $orderApi;
+        $this->registry = $registry;
     }
 
     /**
@@ -46,8 +54,10 @@ class OrderPlacedAfter implements ObserverInterface
 
         if ($order->dataHasChangedFor('state')) {
             try {
+                $this->registry->register("riskified-order", $order);
+                $this->registry->register("riskified-place-order-after", true, true);
+
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
-                $order->setSentToRiskified(1);
             } catch (\Exception $e) {
                 $this->_logger->critical($e);
             }

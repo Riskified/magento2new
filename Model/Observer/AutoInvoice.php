@@ -6,6 +6,7 @@ use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
+use Magento\Framework\Registry;
 use Magento\Sales\Model\Order as OrderEntity;
 use Magento\Sales\Model\Service\InvoiceService;
 use Riskified\Decider\Model\Api\Config;
@@ -86,6 +87,11 @@ class AutoInvoice implements ObserverInterface
     private $invoiceRepository;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * AutoInvoice constructor.
      *
      * @param Log                  $apiOrderLogger
@@ -105,7 +111,8 @@ class AutoInvoice implements ObserverInterface
         InvoiceService $invoiceService,
         Context $context,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository
+        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
+        Registry $registry
     ) {
         $this->logger = $logger;
         $this->context = $context;
@@ -116,6 +123,7 @@ class AutoInvoice implements ObserverInterface
         $this->state = $context->getAppState();
         $this->orderRepository = $orderRepository;
         $this->invoiceRepository = $invoiceRepository;
+        $this->registry = $registry;
     }
 
     /**
@@ -137,9 +145,12 @@ class AutoInvoice implements ObserverInterface
         if (!$order || !$order->getId()) {
             return false;
         }
+
+        $this->registry->register("riskified-order", $order, true);
+
         $this->logger->info(
             sprintf(
-                __('Auto-invoicing  order #%s'),
+                __('Auto-invoicing order #%s'),
                 $order->getIncrementId()
             )
         );
@@ -172,10 +183,7 @@ class AutoInvoice implements ObserverInterface
             $invoice
                 ->setRequestedCaptureCase($this->apiConfig->getCaptureCase())
                 ->addComment(
-                    __(
-                        'Invoice automatically created by '
-                        . 'Riskified when order was approved'
-                    ),
+                    __('Invoice automatically created by Riskified when order was approved'),
                     false,
                     false
                 );
@@ -193,10 +201,10 @@ class AutoInvoice implements ObserverInterface
             );
             return false;
         }
+
         try {
             $this->invoiceRepository->save($invoice);
             $this->orderRepository->save($invoice->getOrder());
-
         } catch (\Exception $e) {
             $this->logger->log(
                 'critical',
