@@ -225,7 +225,7 @@ class UpdateOrderState implements ObserverInterface
             try {
                 $this->logger->log("Changing order status #" . $order->getIncrementId());
 
-                $this->registry->register("riskified-order", $order);
+                $this->registry->register("riskified-order", $order, true);
 
                 $this->orderRepository->save($order);
             } catch (\Exception $e) {
