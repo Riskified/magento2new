@@ -4,9 +4,6 @@
         <observer name="riskified_decider_sales_model_service_quote_submit_success"
                   instance="\Riskified\Decider\Model\Observer\OrderPlacedAfter"/>
     </event>
-    <event name="riskified_decider_order_update">
-        <observer name="riskified_decider_handle_order_update" instance="Riskified\Decider\Model\Observer\UpdateOrderState"/>
-    </event>
     <event name="riskified_decider_order_update_approved">
         <observer name="riskified_decider_order_update_approved" instance="Riskified\Decider\Model\Observer\AutoInvoice"/>
     </event>
@@ -23,8 +20,5 @@
     <event name="riskified_decider_post_order_success">
         <observer name="riskified_decider_post_order_success"
                   instance="Riskified\Decider\Model\Observer\ProcessSuccessfulPost"/>
-    </event>
-    <event name="sales_order_save_after">
-        <observer name="riskified_decider_sales_order_save_after" instance="Riskified\Decider\Model\Observer\OrderSaveAfter"/>
     </event>
 </config>

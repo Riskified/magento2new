@@ -17,6 +17,10 @@
         <observer name="riskified_decider_sales_order_save_after"
                   instance="Riskified\Decider\Model\Observer\OrderSaveAfter"/>
     </event>
+    <event name="sales_order_place_after">
+        <observer name="riskified_decider_sales_order_place_after"
+                  instance="Riskified\Decider\Model\Observer\OrderPlacedAfter"/>
+    </event>
     <event name="sales_quote_payment_import_data_before">
         <observer name="riskified_decider_sales_quote_payment_import_data_before" instance="Riskified\Decider\Model\Observer\ImportDataBefore"/>
     </event>

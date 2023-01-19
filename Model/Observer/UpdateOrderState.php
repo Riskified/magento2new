@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Registry;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
@@ -43,6 +44,11 @@ class UpdateOrderState implements ObserverInterface
     private $orderRepository;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * UpdateOrderState constructor.
      *
      * @param LogApi $logger
@@ -58,7 +64,8 @@ class UpdateOrderState implements ObserverInterface
         OrderConfig $apiOrderConfig,
         OrderApi $orderApi,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Framework\App\ResourceConnection $resource
+        \Magento\Framework\App\ResourceConnection $resource,
+        Registry $registry
     ) {
         $this->logger = $logger;
         $this->apiOrderConfig = $apiOrderConfig;
@@ -66,6 +73,7 @@ class UpdateOrderState implements ObserverInterface
         $this->apiConfig = $config;
         $this->resource = $resource;
         $this->orderRepository = $orderRepository;
+        $this->registry = $registry;
     }
 
     /**
@@ -216,6 +224,9 @@ class UpdateOrderState implements ObserverInterface
         if ($changed) {
             try {
                 $this->logger->log("Changing order status #" . $order->getIncrementId());
+
+                $this->registry->register("riskified-order", $order);
+
                 $this->orderRepository->save($order);
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
