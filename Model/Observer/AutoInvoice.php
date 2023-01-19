@@ -146,7 +146,7 @@ class AutoInvoice implements ObserverInterface
             return false;
         }
 
-        $this->registry->register("riskified-order", $order);
+        $this->registry->register("riskified-order", $order, true);
 
         $this->logger->info(
             sprintf(
