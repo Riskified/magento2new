@@ -230,6 +230,8 @@ class UpdateOrderState implements ObserverInterface
 
                 if (!$this->apiConfig->isAutoInvoiceEnabled() && !$placeOrderAfter) {
                     $this->orderRepository->save($order);
+                } else if ($newState != "processing") {
+                    $this->orderRepository->save($order);
                 }
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
