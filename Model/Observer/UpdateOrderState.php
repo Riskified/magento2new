@@ -140,6 +140,7 @@ class UpdateOrderState implements ObserverInterface
                 break;
             case 'submitted':
                 if ($currentState == Order::STATE_PROCESSING
+                    || $currentState == Order::STATE_PENDING_PAYMENT
                     || ($currentState == Order::STATE_HOLDED
                         && $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
