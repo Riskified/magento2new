@@ -259,11 +259,12 @@ class UpdateOrderState implements ObserverInterface
                     $this->apiOrderConfig->getSelectedApprovedStatus(),
                     $this->apiOrderConfig->getTransportErrorStatusCode(),
                     $this->apiOrderConfig->getSelectedDeclinedStatus(),
-                    "holded",
                     "riskified_holded",
                     "riskified_approved",
                     "riskified_declined",
                     "riskified_approved",
+                    Order::STATE_HOLDED,
+                    Order::STATE_PENDING_PAYMENT
                 ];
 
                 $status = false;
