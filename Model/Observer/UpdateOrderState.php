@@ -140,6 +140,7 @@ class UpdateOrderState implements ObserverInterface
                 break;
             case 'submitted':
                 if ($currentState == Order::STATE_PROCESSING
+                    || $currentState == Order::STATE_PENDING_PAYMENT
                     || ($currentState == Order::STATE_HOLDED
                         && $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
@@ -229,6 +230,8 @@ class UpdateOrderState implements ObserverInterface
 
                 if (!$this->apiConfig->isAutoInvoiceEnabled() && !$placeOrderAfter) {
                     $this->orderRepository->save($order);
+                } else if ($newState != "processing") {
+                    $this->orderRepository->save($order);
                 }
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
@@ -256,11 +259,12 @@ class UpdateOrderState implements ObserverInterface
                     $this->apiOrderConfig->getSelectedApprovedStatus(),
                     $this->apiOrderConfig->getTransportErrorStatusCode(),
                     $this->apiOrderConfig->getSelectedDeclinedStatus(),
-                    "holded",
                     "riskified_holded",
                     "riskified_approved",
                     "riskified_declined",
                     "riskified_approved",
+                    Order::STATE_HOLDED,
+                    Order::STATE_PENDING_PAYMENT
                 ];
 
                 $status = false;
