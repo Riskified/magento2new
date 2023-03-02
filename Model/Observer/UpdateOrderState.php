@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
@@ -47,6 +48,7 @@ class UpdateOrderState implements ObserverInterface
      * @var Registry
      */
     private $registry;
+    private $state;
 
     /**
      * UpdateOrderState constructor.
@@ -62,6 +64,7 @@ class UpdateOrderState implements ObserverInterface
         LogApi $logger,
         ApiConfig $config,
         OrderConfig $apiOrderConfig,
+        Context $context,
         OrderApi $orderApi,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\App\ResourceConnection $resource,
@@ -71,6 +74,7 @@ class UpdateOrderState implements ObserverInterface
         $this->apiOrderConfig = $apiOrderConfig;
         $this->apiOrderLayer = $orderApi;
         $this->apiConfig = $config;
+        $this->state = $context->getAppState();
         $this->resource = $resource;
         $this->orderRepository = $orderRepository;
         $this->registry = $registry;
@@ -182,7 +186,11 @@ class UpdateOrderState implements ObserverInterface
                     $this->logger->log("Order #{$order->getIncrementId()} cannot be cancelled.");
                 }
 
-                $order->cancel();
+                $this->state->emulateAreaCode(
+                    'adminhtml',
+                    [$order, 'cancel']
+                );
+
                 $order->addCommentToStatusHistory($description, $newStatus);
             } else {
                 $order->setState($newState);
