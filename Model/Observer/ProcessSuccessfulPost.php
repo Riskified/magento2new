@@ -41,8 +41,8 @@ class ProcessSuccessfulPost implements ObserverInterface
         if (isset($response->order)) {
             $orderId = $response->order->id;
             $status = $response->order->status;
-            $oldStatus = isset($response->order->old_status) ? $response->order->old_status : null;
-            $description = isset($response->order->description) ? $response->order->description : null;
+            $oldStatus = $response->order->old_status ?? null;
+            $description = $response->order->description ?? null;
 
             if (!$description) {
                 $description = "Riskified Status: $status";
