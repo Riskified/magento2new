@@ -90,6 +90,11 @@ class UpdateOrderState implements ObserverInterface
         $newState = $newStatus = null;
         $currentState = $order->getState();
         $currentStatus = $order->getStatus();
+        $preventSavingStatuses = false;
+
+        if ($order->getPayment()->getMethod() == "flxpayment") {
+            $preventSavingStatuses = true;
+        }
 
         $this->logger->log(
             sprintf(
@@ -158,7 +163,27 @@ class UpdateOrderState implements ObserverInterface
         }
         $changed = false;
 
-        if ($newState
+        if ($preventSavingStatuses) {
+            if ($this->apiConfig->isLoggingEnabled()) {
+                $this->logger->log(
+                    "Order #{$order->getIncrementId()} prevented saving order. Saving comment '$description'"
+                );
+            }
+            $placeOrderAfter = $this->registry->registry("riskified-place-order-after");
+            $order->addCommentToStatusHistory($description);
+
+            try {
+                if (!$placeOrderAfter) {
+                    $this->orderRepository->save($order);
+                }
+            } catch (\Exception $e) {
+                if ($this->apiConfig->isLoggingEnabled()) {
+                    $this->logger->log("Error saving order #{$order->getIncrementId()}: " . $e->getMessage());
+                }
+            }
+
+            return;
+        } else if ($newState
             && ($newState != $currentState || $newStatus != $currentStatus)
             && $this->apiConfig->getConfigStatusControlActive()
         ) {
