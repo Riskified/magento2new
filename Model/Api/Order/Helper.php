@@ -580,11 +580,12 @@ class Helper
      */
     public function getShippingLines()
     {
+        $order = $this->getOrder();
         return [
             [
-                'price' => floatval($this->getOrder()->getShippingAmount()),
-                'title' => strip_tags($this->getOrder()->getShippingDescription()),
-                'code' => $this->getOrder()->getShippingMethod()
+                'price' => floatval($order->getShippingAmount()),
+                'title' => $order->getShippingDescription() ? strip_tags($order->getShippingDescription()) : null,
+                'code' => $order->getShippingMethod()
             ]
         ];
     }
