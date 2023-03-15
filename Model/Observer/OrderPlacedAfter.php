@@ -4,6 +4,7 @@ namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Registry;
+use Magento\Sales\Api\Data\OrderInterface;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Logger\Order as OrderLogger;
 use Riskified\Decider\Model\Api\Order as OrderApi;
@@ -48,7 +49,12 @@ class OrderPlacedAfter implements ObserverInterface
     {
         $order = $observer->getOrder();
 
+        /** @var $order OrderInterface */
         if (!$order) {
+            return;
+        }
+
+        if ($order->getPayment()->getMethod() == "flxpayment") {
             return;
         }
 

@@ -155,6 +155,12 @@ class AutoInvoice implements ObserverInterface
             )
         );
 
+        if ($order->getPayment()->getMethod() == "flxpayment") {
+            $this->logger->info('Order cannot be invoiced. Flexiti process.');
+
+            return;
+        }
+
         if (!$order->canInvoice()
             || $order->getState() != OrderEntity::STATE_PROCESSING
         ) {

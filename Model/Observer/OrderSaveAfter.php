@@ -59,6 +59,10 @@ class OrderSaveAfter implements ObserverInterface
         if ((int)$order->dataHasChangedFor('state') === 1) {
             $oldState = $order->getOrigData('state');
 
+            if ($oldState != Order::STATE_PAYMENT_REVIEW || $newState != Order::STATE_PROCESSING) {
+                return;
+            }
+
             if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
                 $this->_logger->log(__("Order #" . $order->getIncrementId() . " not notifying on unhold action"));
                 return;
