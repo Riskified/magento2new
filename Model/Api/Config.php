@@ -8,7 +8,6 @@ class Config
 {
     private $version;
     private $_scopeConfig;
-    private $cookieManager;
     private $fullModuleList;
     private $checkoutSession;
     private $store;
@@ -17,19 +16,21 @@ class Config
 
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
         \Magento\Framework\Module\FullModuleList $fullModuleList,
         \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->_scopeConfig     = $scopeConfig;
-        $this->cookieManager    = $cookieManager;
         $this->fullModuleList   = $fullModuleList;
         $this->checkoutSession  = $checkoutSession;
     }
 
-    public function isEnabled()
+    public function isEnabled($storeId = null)
     {
-        return $this->_scopeConfig->getValue('riskified/riskified_general/enabled');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified_general/enabled',
+            ScopeInterface::SCOPE_STORES,
+            $storeId ? $storeId : $this->getStore()
+        );
     }
 
     public function getHeaders()

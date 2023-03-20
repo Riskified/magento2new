@@ -135,7 +135,7 @@ class Order
      */
     public function post($order, $action)
     {
-        if (!$this->_apiConfig->isEnabled()) {
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return $this;
         }
 
@@ -398,7 +398,7 @@ class Order
      */
     public function update($order, $status, $oldStatus, $description)
     {
-        if (!$this->_apiConfig->isEnabled()) {
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return;
         }
 
