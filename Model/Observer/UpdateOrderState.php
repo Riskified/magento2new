@@ -128,11 +128,12 @@ class UpdateOrderState implements ObserverInterface
                 )
             );
         }
+        
         switch ($riskifiedStatus) {
             case 'approved':
-                if ($currentState == Order::STATE_HOLDED
-                    && ($currentStatus == $this->apiOrderConfig->getOnHoldStatusCode()
-                        || $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
+                if (($currentState == Order::STATE_HOLDED
+                        || $currentState == Order::STATE_PAYMENT_REVIEW
+                        || $currentState == Order::STATE_PENDING_PAYMENT)
                 ) {
                     $newState = $this->apiOrderConfig->getSelectedApprovedState();
                     $newStatus = $this->apiOrderConfig->getSelectedApprovedStatus();
@@ -165,6 +166,7 @@ class UpdateOrderState implements ObserverInterface
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
+        
         $changed = false;
 
         if ($preventSavingStatuses) {

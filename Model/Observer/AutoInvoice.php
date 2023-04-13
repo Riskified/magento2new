@@ -7,6 +7,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order as OrderEntity;
 use Magento\Sales\Model\Service\InvoiceService;
 use Riskified\Decider\Model\Api\Config;
@@ -135,12 +136,12 @@ class AutoInvoice implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if (!$this->canRun()) {
-            return false;
-        }
-
         /** @var \Magento\Sales\Api\Data\OrderInterface $order */
         $order = $observer->getOrder();
+
+        if (!$this->canRun($order)) {
+            return false;
+        }
 
         if (!$order || !$order->getId()) {
             return false;
@@ -162,13 +163,15 @@ class AutoInvoice implements ObserverInterface
         }
 
         if (!$order->canInvoice()
-            || $order->getState() != OrderEntity::STATE_PROCESSING
+            || ($order->getState() != OrderEntity::STATE_PROCESSING && $order->getState() != "pending_payment")
         ) {
             $this->logger->info('Order cannot be invoiced');
             if ($this->apiConfig->isLoggingEnabled()) {
                 $this->apiOrderLogger->logInvoice($order);
             }
 
+            $this->orderRepository->save($order);
+            $this->logger->info("Saved order #{$order->getIncrementId()}");
             return false;
         }
 
@@ -232,12 +235,12 @@ class AutoInvoice implements ObserverInterface
      *
      * @return bool
      */
-    private function canRun()
+    private function canRun(OrderInterface $order)
     {
         if (!$this->apiConfig->isAutoInvoiceEnabled()) {
             return false;
         }
-        if (!$this->apiConfig->isEnabled()) {
+        if (!$this->apiConfig->isEnabled($order->getStoreId())) {
             return false;
         }
 
