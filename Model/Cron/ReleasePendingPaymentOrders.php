@@ -108,9 +108,8 @@ class ReleasePendingPaymentOrders
 
         $orders = $orderList->getItems();
         $maxAttemptsCount = $this->config->getCronMaxAttemptsCount();
-        $failedOrders = [];
-
         $this->registry->register("riskified-order", array_values($orders)[0], true);
+        $toRemove = [];
 
         foreach ($orders as $order) {
             try {
@@ -128,15 +127,14 @@ class ReleasePendingPaymentOrders
 
                     $this->updateOrderStateObserver->execute($observer);
                     $this->autoInvoiceObserver->execute($observer);
+                    $toRemove[] = $decision;
                 }
             } catch (\Exception $e) {
             }
         }
 
-        $this->cache->remove(self::CACHE_KEY);
-
         // delete old entries
-        foreach ($this->decisionRepository->getOldDecisionEntries() as $decisionEntry) {
+        foreach ($toRemove as $decisionEntry) {
             $this->decisionRepository->deleteById((int)$decisionEntry->getId());
         }
     }
