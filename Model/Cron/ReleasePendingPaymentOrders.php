@@ -84,8 +84,6 @@ class ReleasePendingPaymentOrders
         $this->registry = $registry;
         $this->state = $state;
         $this->autoInvoiceObserver = $autoInvoiceObserver;
-
-        parent::__construct();
     }
 
     /**
