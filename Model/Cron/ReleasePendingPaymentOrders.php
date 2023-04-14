@@ -107,7 +107,6 @@ class ReleasePendingPaymentOrders
         }
 
         $orders = $orderList->getItems();
-        $maxAttemptsCount = $this->config->getCronMaxAttemptsCount();
         $this->registry->register("riskified-order", array_values($orders)[0], true);
         $toRemove = [];
 
@@ -116,17 +115,16 @@ class ReleasePendingPaymentOrders
                 $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
                 if ($decision && $decision->getOrderId()) {
-                    if ($maxAttemptsCount <= $decision->getAttemptsCount()) {
-                        $failedOrders[] = $order->getIncrementId();
-                    }
-
                     $observer = new Observer();
                     $observer->setOrder($order);
                     $observer->setStatus($decision->getDecision());
                     $observer->setDescription($decision->getDescription());
 
                     $this->updateOrderStateObserver->execute($observer);
-                    $this->autoInvoiceObserver->execute($observer);
+
+                    if ($decision->getDecision() == "approved" && $this->config->isAutoInvoiceEnabled()) {
+                        $this->autoInvoiceObserver->execute($observer);
+                    }
                     $toRemove[] = $decision;
                 }
             } catch (\Exception $e) {

@@ -8,7 +8,7 @@
             <schedule>*/10 * * * *</schedule>
         </job>
         <job instance="Riskified\Decider\Model\Cron\ReleasePendingPaymentOrders" method="execute" name="riskified_decider_release_pending_payment_orders">
-            <schedule>*/15 * * * *</schedule>
+            <schedule>*/5 * * * *</schedule>
         </job>
     </group>
 </config>
