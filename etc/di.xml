@@ -34,10 +34,6 @@
             </argument>
         </arguments>
     </type>
-    <type name="Adyen\Payment\Gateway\Response\PaymentAuthorisationDetailsHandler">
-        <plugin name="adyen_authorize_after"
-            type="Riskified\Decider\Model\Gateway\Adyen\Response\PaymentAuthorisationDetailsHandler" sortOrder="10" />
-    </type>
     <virtualType name="BraintreeAuthorizationHandler">
         <arguments>
             <argument name="handlers" xsi:type="array">
