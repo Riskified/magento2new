@@ -71,8 +71,7 @@ class ReleasePendingPaymentOrders
         SearchCriteriaBuilder $searchCriteria,
         UpdateOrderState $updateOrderStateObserver,
         AutoInvoice $autoInvoiceObserver,
-        Registry $registry,
-        \Magento\Framework\App\State $state
+        Registry $registry
     ) {
         $this->orderRepository = $orderRepository;
         $this->searchCriteria = $searchCriteria;
@@ -82,7 +81,6 @@ class ReleasePendingPaymentOrders
         $this->config = $config;
         $this->cache = $cache;
         $this->registry = $registry;
-        $this->state = $state;
         $this->autoInvoiceObserver = $autoInvoiceObserver;
     }
 
@@ -91,8 +89,6 @@ class ReleasePendingPaymentOrders
      */
     public function execute()
     {
-        $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
-
         $orderStatusFilter = $this->filterBuilder
             ->setField('state')
             ->setValue('pending_payment')
