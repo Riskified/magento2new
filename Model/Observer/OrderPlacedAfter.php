@@ -54,7 +54,7 @@ class OrderPlacedAfter implements ObserverInterface
             return;
         }
 
-        if ($order->getPayment()->getMethod() == "flxpayment") {
+        if ($order->getPayment()->getMethod() == "flxpayment" || $order->getPayment()->getMethod() == "adyen_cc") {
             return;
         }
 
