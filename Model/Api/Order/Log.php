@@ -31,12 +31,12 @@ class Log
         try {
             $payment = $model->getPayment();
             $gateway_name = $payment->getMethod();
-            $this->_logger->info("Payment Gateway: " . $gateway_name);
-            $this->_logger->info("payment->getCcLast4(): " . $payment->getCcLast4());
-            $this->_logger->info("payment->getCcType(): " . $payment->getCcType());
-            $this->_logger->info("payment->getCcCidStatus(): " . $payment->getCcCidStatus());
-            $this->_logger->info("payment->getCcAvsStatus(): " . $payment->getCcAvsStatus());
-            $this->_logger->info("payment->getAdditionalInformation(): " . PHP_EOL . var_export($payment->getAdditionalInformation(), 1));
+            $this->_logger->info("#{$model->getIncrementId()} Payment Gateway: " . $gateway_name);
+            $this->_logger->info("#{$model->getIncrementId()} payment->getCcLast4(): " . $payment->getCcLast4());
+            $this->_logger->info("#{$model->getIncrementId()} payment->getCcType(): " . $payment->getCcType());
+            $this->_logger->info("#{$model->getIncrementId()} payment->getCcCidStatus(): " . $payment->getCcCidStatus());
+            $this->_logger->info("#{$model->getIncrementId()} payment->getCcAvsStatus(): " . $payment->getCcAvsStatus());
+            $this->_logger->info("#{$model->getIncrementId()} payment->getAdditionalInformation(): " . PHP_EOL . json_encode($payment->getAdditionalInformation()));
             $sage = $model->getSagepayInfo();
 
             if (is_object($sage)) {

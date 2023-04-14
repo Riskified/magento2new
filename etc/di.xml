@@ -30,6 +30,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="riskfied_send_historical_orders" xsi:type="object">Riskified\Decider\Model\Command\UploadHistoricalOrders</item>
+                <item name="release_on_hold_orders" xsi:type="object">Riskified\Decider\Model\Command\ReleaseOnHoldOrders</item>
             </argument>
         </arguments>
     </type>
