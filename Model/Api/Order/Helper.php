@@ -370,8 +370,11 @@ class Helper
 
             if (empty($category_ids)) {
                 $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                $root_category = $this->categoryRepository->get($store_root_category_id);
-                $categories[] = $root_category->getName();
+
+                if ($store_root_category_id) {
+                    $root_category = $this->categoryRepository->get($store_root_category_id);
+                    $categories[] = $root_category->getName();
+                }
             }
 
             if ($product->getManufacturer()) {
