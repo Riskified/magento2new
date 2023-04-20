@@ -11,6 +11,7 @@ use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Registry;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
@@ -294,6 +295,7 @@ class Helper
         $line_items = array();
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
+            /** @var $item OrderItemInterface */
             $line_items[] = $this->getPreparedLineItem($item);
 
         }
@@ -369,9 +371,12 @@ class Helper
             }
 
             if (empty($category_ids)) {
-                $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                $root_category = $this->categoryRepository->get($store_root_category_id);
-                $categories[] = $root_category->getName();
+                $store_root_category_id = $this->_storeManager->getStore($item->getStoreId())->getRootCategoryId();
+
+                if ($store_root_category_id) {
+                    $root_category = $this->categoryRepository->get($store_root_category_id);
+                    $categories[] = $root_category->getName();
+                }
             }
 
             if ($product->getManufacturer()) {
