@@ -163,13 +163,15 @@ class AutoInvoice implements ObserverInterface
         }
 
         if (!$order->canInvoice()
-            || $order->getState() != OrderEntity::STATE_PROCESSING
+            || ($order->getState() != OrderEntity::STATE_PROCESSING && $order->getState() != "pending_payment")
         ) {
             $this->logger->info('Order cannot be invoiced');
             if ($this->apiConfig->isLoggingEnabled()) {
                 $this->apiOrderLogger->logInvoice($order);
             }
 
+            $this->orderRepository->save($order);
+            $this->logger->info("Saved order #{$order->getIncrementId()}");
             return false;
         }
 
