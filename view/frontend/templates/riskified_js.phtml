@@ -1,8 +1,14 @@
-<?php if ($block->isEnabled()) : ?>
+<?php
+/**
+ * @var \Riskified\Decider\Block\Js $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php if ($block->isEnabled()): ?>
     <script type="text/javascript">
         function riskifiedBeaconLoad() {
             jQuery.ajax(
-                "<?php echo $block->getUrl("decider/response/session"); ?>", {
+                "<?= $escaper->escapeUrl($block->getUrl('decider/response/session')); ?>", {
                     success : function(response) {
                         var session_id = response.session_id;
 
@@ -10,11 +16,11 @@
                             return false;
                         }
 
-                        var store_domain = "<?php echo $block->getShopDomain() ?>";
-                        var version = "<?php echo $block->getExtensionVersion() ?>";
+                        var store_domain = "<?= $escaper->escapeJs($block->getShopDomain()) ?>";
+                        var version = "<?= $escaper->escapeJs($block->getExtensionVersion()) ?>";
 
                         var url = ('https:' == document.location.protocol ? 'https://' : 'http://')
-                            + "<?php echo $block->getConfigBeaconUrl()?>?shop=" + store_domain
+                            + "<?= $escaper->escapeUrl($block->getConfigBeaconUrl()) ?>?shop=" + store_domain
                             + "&sid=" + session_id
                             + "&v=" + version;
 
