@@ -78,7 +78,7 @@ class OrderSaveAfter implements ObserverInterface
 
             try {
                 if (!$this->_registry->registry("riskified-order")) {
-                    $this->_registry->register("riskified-order", $order);
+                    $this->_registry->register("riskified-order", $order, true);
                 }
                 $this->_logger->log(__("Order #" . $order->getIncrementId() . " processing action update from riskified."));
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
