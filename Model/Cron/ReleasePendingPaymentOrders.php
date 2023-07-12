@@ -56,6 +56,11 @@ class ReleasePendingPaymentOrders
      */
     private Registry $registry;
 
+    /*
+     * @var AutoInvoice
+     */
+    private AutoInvoice $autoInvoiceObserver
+
     /**
      *
      */
