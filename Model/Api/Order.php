@@ -135,12 +135,12 @@ class Order
      */
     public function post($order, $action)
     {
-        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
-            return $this;
-        }
-
         if (!$order) {
             throw new \Exception("Order doesn't not exists");
+        }
+        
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
+            return $this;
         }
 
         $this->_api->initSdk($order);
@@ -398,11 +398,11 @@ class Order
      */
     public function update($order, $status, $oldStatus, $description)
     {
-        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
+        if (!$order) {
             return;
         }
 
-        if (!$order) {
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return;
         }
 
