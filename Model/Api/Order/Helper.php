@@ -672,16 +672,17 @@ class Helper
             ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
-
+        $remoteIp = $this->getOrder()->getRemoteIp();
+        
         if (empty($forwardedIp)) {
-            return null;
+            return $remoteIp;
         }
 
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
             return trim($forwardeds[0]);
         }
-        $remoteIp = $this->getOrder()->getRemoteIp();
+        
         $remotes = preg_split("/,/", $remoteIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($remotes)) {
             if (is_array($remotes) && count($remotes) > 1) {
