@@ -2,7 +2,7 @@
     "name": "riskified/magento2new",
     "type": "magento2-module",
     "description": "Riskified decider module for Magento 2",
-    "version": "1.12.11",
+    "version": "1.12.12",
     "require": {
         "php": ">=7.4",
         "magento/framework": ">=100.1.0",
