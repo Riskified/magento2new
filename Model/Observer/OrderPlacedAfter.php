@@ -58,9 +58,12 @@ class OrderPlacedAfter implements ObserverInterface
             return;
         }
 
-        if ($order->dataHasChangedFor('state')) {
+        if (
+            $order->dataHasChangedFor('state')
+            || ($order->getPayment()->getMethod() == "worldpay_cc")
+        ) {
             try {
-                $this->registry->register("riskified-order", $order);
+                $this->registry->register("riskified-order", $order, true);
                 $this->registry->register("riskified-place-order-after", true, true);
 
                 $this->_orderApi->post($order, Api::ACTION_UPDATE);
