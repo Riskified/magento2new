@@ -128,7 +128,7 @@ class UpdateOrderState implements ObserverInterface
                 )
             );
         }
-        
+
         switch ($riskifiedStatus) {
             case 'approved':
                 if (($currentState == Order::STATE_HOLDED
@@ -157,6 +157,10 @@ class UpdateOrderState implements ObserverInterface
                     $newState = Order::STATE_HOLDED;
                     $newStatus = $this->apiOrderConfig->getOnHoldStatusCode();
                 }
+                if ($currentStatus == "pending" && $order->getPayment()->getMethod() == "worldpay_cc") {
+                    $newState = Order::STATE_HOLDED;
+                    $newStatus = $this->apiOrderConfig->getOnHoldStatusCode();
+                }
                 break;
             case 'error':
                 if ($currentState == Order::STATE_PROCESSING
@@ -166,7 +170,7 @@ class UpdateOrderState implements ObserverInterface
                     $newStatus = $this->apiOrderConfig->getTransportErrorStatusCode();
                 }
         }
-        
+
         $changed = false;
 
         if ($preventSavingStatuses) {
