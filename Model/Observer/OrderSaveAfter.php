@@ -59,6 +59,14 @@ class OrderSaveAfter implements ObserverInterface
         if ((int)$order->dataHasChangedFor('state') === 1) {
             $oldState = $order->getOrigData('state');
 
+            // processing order for worldpay
+            if ($oldState == 'new' && $newState == Order::STATE_PROCESSING) {
+                if ($order->getPayment()->getMethod() == "worldpay_cc") {
+                    $this->_logger->log("Order #{$order->getIncrementId()} changed status from pending to processing and paid with worldpay. Attempting to send to Riskified.");
+                    $this->submitOrder($order);
+                }
+            }
+
             if ($oldState != Order::STATE_PAYMENT_REVIEW || $newState != Order::STATE_PROCESSING) {
                 return;
             }
@@ -69,25 +77,7 @@ class OrderSaveAfter implements ObserverInterface
             }
 
             $this->_logger->log(__("Order #" . $order->getIncrementId() . " state changed from: " . $oldState . " to: " . $newState));
-
-            // if we posted we should not re post
-            if ($this->_registry->registry("riskified-order")) {
-                $this->_logger->log(__("Order #" . $order->getIncrementId() . " is already riskifiedInSave"));
-                return;
-            }
-
-            try {
-                if (!$this->_registry->registry("riskified-order")) {
-                    $this->_registry->register("riskified-order", $order, true);
-                }
-                $this->_logger->log(__("Order #" . $order->getIncrementId() . " processing action update from riskified."));
-                $this->_orderApi->post($order, Api::ACTION_UPDATE);
-
-                $this->_registry->unregister("riskified-order");
-            } catch (\Exception $e) {
-                // There is no need to do anything here. The exception has already been handled and a retry scheduled.
-                // We catch this exception so that the order is still saved in Magento.
-            }
+            $this->submitOrder($order);
         } else {
             $this->_logger->log(
                 sprintf(
@@ -96,6 +86,28 @@ class OrderSaveAfter implements ObserverInterface
                     $newState
                 )
             );
+        }
+    }
+
+    private function submitOrder($order)
+    {
+        // if we posted we should not re post
+        if ($this->_registry->registry("riskified-order")) {
+            $this->_logger->log(__("Order #" . $order->getIncrementId() . " is already riskifiedInSave"));
+            return;
+        }
+
+        try {
+            if (!$this->_registry->registry("riskified-order")) {
+                $this->_registry->register("riskified-order", $order, true);
+            }
+            $this->_logger->log(__("Order #" . $order->getIncrementId() . " processing action update from riskified."));
+            $this->_orderApi->post($order, Api::ACTION_UPDATE);
+
+            $this->_registry->unregister("riskified-order");
+        } catch (\Exception $e) {
+            // There is no need to do anything here. The exception has already been handled and a retry scheduled.
+            // We catch this exception so that the order is still saved in Magento.
         }
     }
 }
