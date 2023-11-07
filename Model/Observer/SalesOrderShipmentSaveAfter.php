@@ -57,6 +57,7 @@ class SalesOrderShipmentSaveAfter implements ObserverInterface
 
         try {
             $this->registry->register("riskified-order", $shipment->getOrder(), true);
+            $this->registry->register("post-fullfillment", true, true);
 
             $this->apiOrderLayer->post($shipment, Api::ACTION_FULFILL);
         } catch (\Exception $e) {
