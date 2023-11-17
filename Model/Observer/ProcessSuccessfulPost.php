@@ -18,6 +18,10 @@ class ProcessSuccessfulPost implements ObserverInterface
      * @var OrderApi
      */
     private $orderApi;
+
+    /**
+     * @var Registry
+     */
     private $registry;
 
     /**
@@ -32,6 +36,7 @@ class ProcessSuccessfulPost implements ObserverInterface
     ) {
         $this->logger = $logger;
         $this->orderApi = $orderApi;
+        $this->registry = $registry;
     }
 
     /**
