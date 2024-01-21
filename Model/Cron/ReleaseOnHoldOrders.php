@@ -92,12 +92,18 @@ class ReleaseOnHoldOrders
         $this->cache->save(1, self::CACHE_KEY, [], 15);
 
         $orderStatusFilter = $this->filterBuilder
-            ->setField('state')
-            ->setValue('holded')
+            ->setField('status')
+            ->setValue('riskified_holded')
             ->setConditionType('eq')
             ->create();
 
-        $searchCriteria = $this->searchCriteria->addFilter($orderStatusFilter)->create();
+        $searchCriteria = $this->searchCriteria
+            ->addFilter($orderStatusFilter)
+            ->addSortOrder('entity_id', 'DESC')
+            ->setPageSize(10)
+            ->setCurrentPage(1)
+            ->create();
+
         $orderList = $this->orderRepository->getList($searchCriteria);
 
         if ($orderList->getTotalCount() == 0) {
