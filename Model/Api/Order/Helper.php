@@ -5,6 +5,7 @@ namespace Riskified\Decider\Model\Api\Order;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\ResourceModel\GroupRepository;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\State;
 use Magento\Framework\HTTP\Header;
 use Magento\Framework\Locale\ResolverInterface;
@@ -99,6 +100,7 @@ class Helper
      * @var CustomerGroupFactory
      */
     private $_groupRepository;
+    private $request;
 
     /**
      * Helper constructor.
@@ -132,6 +134,7 @@ class Helper
         State $state,
         ResolverInterface $localeResolver,
         Header $httpHeader,
+        RequestInterface $request,
         Registry $registry
     ) {
         $this->_customerFactory = $customerFactory;
@@ -149,6 +152,7 @@ class Helper
         $this->localeResolver = $localeResolver;
         $this->httpHeader = $httpHeader;
         $this->registry = $registry;
+        $this->request = $request;
     }
 
     /**
@@ -638,13 +642,25 @@ class Helper
 
         foreach ($shipmentCollection as $shipment) {
             $tracking = $shipment->getTracksCollection()->getFirstItem();
+
+            if ($tracking->getId()) {
+                $title = $tracking->getTitle();
+                $trackingNumber = $tracking->getTrackNumber();
+            } else {
+                $tracking = $this->request->getParam('tracking');
+
+                if (!empty($tracking)) {
+                    $title = $tracking[1]['title'];
+                    $trackingNumber = $tracking[1]['number'];
+                }
+            }
             $comment = $shipment->getCommentsCollection()->getFirstItem();
             $payload = array(
                 "fulfillment_id" => $shipment->getIncrementId(),
                 "created_at" => $this->formatDateAsIso8601($shipment->getCreatedAt()),
                 "status" => "success",
-                "tracking_company" => $tracking->getTitle(),
-                "tracking_numbers" => $tracking->getTrackNumber(),
+                "tracking_company" => $title,
+                "tracking_numbers" => $trackingNumber,
                 "message" => $comment->getComment(),
                 "line_items" => $this->getAllShipmentItems($shipment)
             );
