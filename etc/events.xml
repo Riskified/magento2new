@@ -24,4 +24,7 @@
     <event name="sales_quote_payment_import_data_before">
         <observer name="riskified_decider_sales_quote_payment_import_data_before" instance="Riskified\Decider\Model\Observer\ImportDataBefore"/>
     </event>
+    <event name="payment_method_assign_data_rootways_authorizecim_option">
+        <observer name="riskified_decider_gateway_data_assign" instance="Riskified\Decider\Model\Observer\RootwaysAuthorizecimDataAssignObserver" />
+    </event>
 </config>
