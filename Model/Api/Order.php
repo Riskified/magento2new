@@ -73,11 +73,6 @@ class Order
     private $registry;
 
     /**
-     * @var QuoteIdToMaskedQuoteIdInterface
-     */
-    private QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedId;
-
-    /**
      * @var Config
      */
     private Config $_apiConfig;
