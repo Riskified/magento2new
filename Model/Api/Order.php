@@ -73,6 +73,16 @@ class Order
     private $registry;
 
     /**
+     * @var QuoteIdToMaskedQuoteIdInterface
+     */
+    private QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedId;
+
+    /**
+     * @var Config
+     */
+    private Config $_apiConfig;
+
+    /**
      * Order constructor.
      *
      * @param Api $api
@@ -322,6 +332,18 @@ class Order
         return $order;
     }
 
+    public function getCartToken($model): string
+    {
+        if (is_null($model->getRiskifiedCartToken())) {
+            $cartToken = $this->session->getSessionId();
+            $model->setRiskifiedCartToken($cartToken);
+        } else {
+            $cartToken = $model->getRiskifiedCartToken();
+        }
+
+        return $cartToken;
+    }
+
     /**
      * @param $model
      *
@@ -335,13 +357,7 @@ class Order
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
         }
-        if (is_null($model->getRiskifiedCartToken())) {
-            $cartToken = $this->session->getSessionId();
-            //save card_token into db
-            $model->setRiskifiedCartToken($cartToken);
-        } else {
-            $cartToken = $model->getRiskifiedCartToken();
-        }
+
         $order_array = [
             'id' => $this->_orderHelper->getOrderOrigId(),
             'name' => $model->getIncrementId(),
@@ -360,7 +376,7 @@ class Order
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'vendor_id' => strval($model->getStoreId()),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $cartToken
+            'cart_token' => $this->getCartToken($model)
         ];
 
         if ($this->_orderHelper->isAdmin()) {
