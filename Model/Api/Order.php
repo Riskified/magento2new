@@ -71,6 +71,7 @@ class Order
      * @var Registry
      */
     private $registry;
+    private $_apiConfig;
 
     /**
      * @var Config
@@ -305,7 +306,7 @@ class Order
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
-            'financial_status' => $model->getState(),
+            'financial_status' => $model->getState() == "adyen_authorized" ? "processing" : $model->getState(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
             'cart_token' => $this->session->getSessionId()
@@ -365,7 +366,7 @@ class Order
             'note' => $model->getCustomerNote(),
             'total_price' => floatval($model->getGrandTotal()),
             'total_discounts' => $model->getDiscountAmount(),
-            'financial_status' => $model->getState(),
+            'financial_status' => $model->getState() == "adyen_authorized" ? "processing" : $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'discount_codes' => $this->_orderHelper->getDiscountCodes(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
