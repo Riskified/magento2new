@@ -49,6 +49,7 @@ class UpdateOrderState implements ObserverInterface
      */
     private $registry;
     private $state;
+    private $autoInvoiceProcessor;
 
     /**
      * UpdateOrderState constructor.
@@ -68,7 +69,8 @@ class UpdateOrderState implements ObserverInterface
         OrderApi $orderApi,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Framework\App\ResourceConnection $resource,
-        Registry $registry
+        Registry $registry,
+        AutoInvoice $autoInvoiceProcessor
     ) {
         $this->logger = $logger;
         $this->apiOrderConfig = $apiOrderConfig;
@@ -78,6 +80,7 @@ class UpdateOrderState implements ObserverInterface
         $this->resource = $resource;
         $this->orderRepository = $orderRepository;
         $this->registry = $registry;
+        $this->autoInvoiceProcessor = $autoInvoiceProcessor;
     }
 
     /**
@@ -133,6 +136,7 @@ class UpdateOrderState implements ObserverInterface
             case 'approved':
                 if (($currentState == Order::STATE_HOLDED
                         || $currentState == Order::STATE_PAYMENT_REVIEW
+                        || $currentState == "adyen_authorized"
                         || $currentState == Order::STATE_PENDING_PAYMENT)
                 ) {
                     $newState = $this->apiOrderConfig->getSelectedApprovedState();
@@ -268,9 +272,14 @@ class UpdateOrderState implements ObserverInterface
                 $placeOrderAfter = $this->registry->registry("riskified-place-order-after");
 
                 if (!$this->apiConfig->isAutoInvoiceEnabled() && !$placeOrderAfter) {
+                    $this->logger->log("auto invoice disabled and order was not placed. saving order object" . $order->getIncrementId());
                     $this->orderRepository->save($order);
                 } else if ($newState != "processing") {
+                    $this->logger->log("new state different than processing" . $order->getIncrementId());
                     $this->orderRepository->save($order);
+                } else if ($currentStatus == "adyen_authorized"){
+                    $this->logger->log("Adyen approved " . $order->getIncrementId());
+                    $this->autoInvoiceProcessor->execute($observer);
                 }
             } catch (\Exception $e) {
                 $this->logger->log("Error saving order: " . $e->getMessage());
@@ -302,6 +311,7 @@ class UpdateOrderState implements ObserverInterface
                     "riskified_approved",
                     "riskified_declined",
                     "riskified_approved",
+                    "adyen_authorized",
                     Order::STATE_HOLDED,
                     Order::STATE_PENDING_PAYMENT
                 ];

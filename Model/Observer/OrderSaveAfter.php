@@ -77,13 +77,15 @@ class OrderSaveAfter implements ObserverInterface
                 }
             }
 
-            if ($oldState != Order::STATE_PAYMENT_REVIEW || $newState != Order::STATE_PROCESSING) {
-                return;
-            }
+            if ($newState != "adyen_authorized") {
+                if ($oldState != Order::STATE_PAYMENT_REVIEW || $newState != Order::STATE_PROCESSING) {
+                    return;
+                }
 
-            if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
-                $this->_logger->log(__("Order #" . $order->getIncrementId() . " not notifying on unhold action"));
-                return;
+                if ($oldState == Order::STATE_HOLDED and $newState == Order::STATE_PROCESSING) {
+                    $this->_logger->log(__("Order #" . $order->getIncrementId() . " not notifying on unhold action"));
+                    return;
+                }
             }
 
             $this->_logger->log(__("Order #" . $order->getIncrementId() . " state changed from: " . $oldState . " to: " . $newState));

@@ -138,7 +138,12 @@ class AutoInvoice implements ObserverInterface
     {
         /** @var \Magento\Sales\Api\Data\OrderInterface $order */
         $order = $observer->getOrder();
-
+        $this->logger->info(
+            sprintf(
+                __('Auto-invoicing order #%s. Begging of execute.'),
+                $order->getIncrementId()
+            )
+        );
         if (!$this->canRun($order)) {
             return false;
         }
@@ -163,7 +168,7 @@ class AutoInvoice implements ObserverInterface
         }
 
         if (!$order->canInvoice()
-            || ($order->getState() != OrderEntity::STATE_PROCESSING && $order->getState() != "pending_payment")
+            || ($order->getState() != OrderEntity::STATE_PROCESSING && $order->getState() != "pending_payment" && $order->getState() != "adyen_authorized")
         ) {
             $this->logger->info('Order cannot be invoiced');
             if ($this->apiConfig->isLoggingEnabled()) {
