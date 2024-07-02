@@ -155,6 +155,7 @@ class UpdateOrderState implements ObserverInterface
             case 'submitted':
                 if ($currentState == Order::STATE_PROCESSING
                     || $currentState == Order::STATE_PENDING_PAYMENT
+                    || $currentState == "adyen_authorized"
                     || ($currentState == Order::STATE_HOLDED
                         && $currentStatus == $this->apiOrderConfig->getTransportErrorStatusCode())
                 ) {
