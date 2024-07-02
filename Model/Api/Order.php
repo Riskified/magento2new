@@ -71,7 +71,6 @@ class Order
      * @var Registry
      */
     private $registry;
-    private $_apiConfig;
 
     /**
      * @var Config
