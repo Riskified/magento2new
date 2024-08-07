@@ -1,7 +1,7 @@
 <?php /** @var \Riskified\Decider\Block\Js $block */ ?>
 <?php /** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */ ?>
 <?php if ($block->isEnabled()) : ?>
-<?= $secureRenderer->renderEventListenerAsTag('onmousedown', 'var value = jQuery(".payment-methods input[type="radio"]:checked").parent().next().find("input[name=\'payment[cc_number]\']").val();
+<?= $secureRenderer->renderEventListenerAsTag('onmousedown', 'var value = jQuery(".payment-methods input[type=\'radio\']:checked").parent().next().find("input[name=\'payment[cc_number]\']").val();
             if (value && value.length > 0) {
                 $.ajax({url: "/decider/response/bin", data: {card: value.substr(0, 6)}});
             }
