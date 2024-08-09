@@ -91,6 +91,31 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        if (version_compare($context->getVersion(), '1.2.3', '<')) {
+            $installer->getConnection()->addColumn(
+                $installer->getTable('sales_order'),
+                'accept_language',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'length' => 5,
+                    'default' => null,
+                    'comment' => 'Accepted language',
+                ]
+            );
+            $installer->getConnection()->addColumn(
+                $installer->getTable('sales_order'),
+                'user_agent',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'length' => 256,
+                    'default' => null,
+                    'comment' => 'Customer user-agent',
+                ]
+            );
+        }
+
         $installer->endSetup();
     }
 }
