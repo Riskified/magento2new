@@ -13,5 +13,15 @@
                 <content><![CDATA[We regret to inform you that your recent order #{{order_increment_id}} for {{products}}  has been declined by Riskified service.]]></content>
             </decline_notification>
         </riskified>
+        <csp>
+            <mode>
+                <storefront>
+                    <report_only>0</report_only>
+                </storefront>
+                <admin>
+                    <report_only>0</report_only>
+                </admin>
+            </mode>
+        </csp>
     </default>
 </config>

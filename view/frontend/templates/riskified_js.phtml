@@ -1,38 +1,38 @@
-<?php if ($block->isEnabled()) : ?>
-    <script type="text/javascript">
-        function riskifiedBeaconLoad() {
-            jQuery.ajax(
-                "<?php echo $block->getUrl("decider/response/session"); ?>", {
-                    success : function(response) {
-                        var session_id = response.session_id;
+<?php
+/** @var \Riskified\Decider\Block\Js $block */ ?>
+<?php
+if ($block->isEnabled()) : ?>
+    <?php $url = $block->getUrl('decider/response/session'); ?>
+    <?php $shopDomain = $block->getShopDomain(); ?>
+    <?php $version = $block->getExtensionVersion(); ?>
+    <?php $beaconUrl = $block->getConfigBeaconUrl() ?>
+    <?= $secureRenderer->renderTag(
+        'script',
+        ['type' => 'text/javascript'],
+        "\nrequire(['jquery','domReady!'], function ($) {
+        $.ajax(
+            '$url', {
+    success : function(response) {
+    var session_id = response.session_id;
 
-                        if(!session_id) {
-                            return false;
-                        }
+    if(!session_id) {
+        return false;
+    }
 
-                        var store_domain = "<?php echo $block->getShopDomain() ?>";
-                        var version = "<?php echo $block->getExtensionVersion() ?>";
+    var url = ('https:' == document.location.protocol ? 'https://' : 'http://')
+    + '$beaconUrl?shop=$shopDomain&sid=' + session_id + '&v=$version';
 
-                        var url = ('https:' == document.location.protocol ? 'https://' : 'http://')
-                            + "<?php echo $block->getConfigBeaconUrl()?>?shop=" + store_domain
-                            + "&sid=" + session_id
-                            + "&v=" + version;
-
-                        var s = document.createElement('script');
-                        s.type = 'text/javascript';
-                        s.async = true;
-                        s.src = url;
-                        var x = document.getElementsByTagName('script')[0];
-                        x.parentNode.insertBefore(s, x);
-                    }
-                }
-            );
-        }
-
-        if(window.attachEvent) {
-            window.attachEvent('onload', riskifiedBeaconLoad)
-        } else{
-            window.addEventListener('load', riskifiedBeaconLoad, false);
-        }
-    </script>
-<?php endif; ?>
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = url;
+    var x = document.getElementsByTagName('script')[0];
+    x.parentNode.insertBefore(s, x);
+    }
+    }
+    );
+    });\n",
+        false
+    ); ?>
+<?php
+endif; ?>
