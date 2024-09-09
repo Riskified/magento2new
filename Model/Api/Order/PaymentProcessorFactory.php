@@ -19,6 +19,8 @@ use Riskified\Decider\Model\Api\Order\PaymentProcessor\SagePay;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Transarmor;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Vantiv;
 use Riskified\Decider\Model\Api\Order\PaymentProcessor\Stripe;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\Checkoutcom;
+use Riskified\Decider\Model\Api\Order\PaymentProcessor\RootwaysAuthorizenet;
 
 class PaymentProcessorFactory
 {
@@ -44,7 +46,9 @@ class PaymentProcessorFactory
         'adyen_hpp' => AdyenHpp::class,
         'cryozonic_stripe' => Cryozonic::class,
         'vantiv_cc' => Vantiv::class,
-        'stripe_payments' => Stripe::class
+        'stripe_payments' => Stripe::class,
+        'checkoutcom_card_payment' => Checkoutcom::class,
+        'rootways_authorizecim_option' => RootwaysAuthorizenet::class
     ];
 
     /**

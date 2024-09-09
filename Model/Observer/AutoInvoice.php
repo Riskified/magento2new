@@ -6,6 +6,8 @@ use Magento\Framework\App\State;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\Context;
+use Magento\Framework\Registry;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order as OrderEntity;
 use Magento\Sales\Model\Service\InvoiceService;
 use Riskified\Decider\Model\Api\Config;
@@ -86,6 +88,11 @@ class AutoInvoice implements ObserverInterface
     private $invoiceRepository;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * AutoInvoice constructor.
      *
      * @param Log                  $apiOrderLogger
@@ -105,7 +112,8 @@ class AutoInvoice implements ObserverInterface
         InvoiceService $invoiceService,
         Context $context,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository
+        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
+        Registry $registry
     ) {
         $this->logger = $logger;
         $this->context = $context;
@@ -116,6 +124,7 @@ class AutoInvoice implements ObserverInterface
         $this->state = $context->getAppState();
         $this->orderRepository = $orderRepository;
         $this->invoiceRepository = $invoiceRepository;
+        $this->registry = $registry;
     }
 
     /**
@@ -127,31 +136,47 @@ class AutoInvoice implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if (!$this->canRun()) {
-            return false;
-        }
-
         /** @var \Magento\Sales\Api\Data\OrderInterface $order */
         $order = $observer->getOrder();
+        $this->logger->info(
+            sprintf(
+                __('Auto-invoicing order #%s. Begging of execute.'),
+                $order->getIncrementId()
+            )
+        );
+        if (!$this->canRun($order)) {
+            return false;
+        }
 
         if (!$order || !$order->getId()) {
             return false;
         }
+
+        $this->registry->register("riskified-order", $order, true);
+
         $this->logger->info(
             sprintf(
-                __('Auto-invoicing  order #%s'),
+                __('Auto-invoicing order #%s'),
                 $order->getIncrementId()
             )
         );
 
+        if ($order->getPayment()->getMethod() == "flxpayment") {
+            $this->logger->info('Order cannot be invoiced. Flexiti process.');
+
+            return;
+        }
+
         if (!$order->canInvoice()
-            || $order->getState() != OrderEntity::STATE_PROCESSING
+            || ($order->getState() != OrderEntity::STATE_PROCESSING && $order->getState() != "pending_payment" && $order->getState() != "adyen_authorized")
         ) {
             $this->logger->info('Order cannot be invoiced');
             if ($this->apiConfig->isLoggingEnabled()) {
                 $this->apiOrderLogger->logInvoice($order);
             }
 
+            $this->orderRepository->save($order);
+            $this->logger->info("Saved order #{$order->getIncrementId()}");
             return false;
         }
 
@@ -172,10 +197,7 @@ class AutoInvoice implements ObserverInterface
             $invoice
                 ->setRequestedCaptureCase($this->apiConfig->getCaptureCase())
                 ->addComment(
-                    __(
-                        'Invoice automatically created by '
-                        . 'Riskified when order was approved'
-                    ),
+                    __('Invoice automatically created by Riskified when order was approved'),
                     false,
                     false
                 );
@@ -193,13 +215,13 @@ class AutoInvoice implements ObserverInterface
             );
             return false;
         }
+
         try {
             $this->invoiceRepository->save($invoice);
-            if($order->getState() != OrderEntity::STATE_PROCESSING) {
-                $this->orderRepository->save($invoice->getOrder());
-            }
+            $this->orderRepository->save($invoice->getOrder());
         } catch (\Exception $e) {
-            $this->logger->addCritical(
+            $this->logger->log(
+                'critical',
                 sprintf(
                     __('Error creating transaction: %s'),
                     $e->getMessage()
@@ -218,12 +240,12 @@ class AutoInvoice implements ObserverInterface
      *
      * @return bool
      */
-    private function canRun()
+    private function canRun(OrderInterface $order)
     {
         if (!$this->apiConfig->isAutoInvoiceEnabled()) {
             return false;
         }
-        if (!$this->apiConfig->isEnabled()) {
+        if (!$this->apiConfig->isEnabled($order->getStoreId())) {
             return false;
         }
 

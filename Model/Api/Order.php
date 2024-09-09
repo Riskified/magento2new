@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Api;
 
 use Riskified\OrderWebhook\Model;
+use Magento\Framework\Registry;
 
 class Order
 {
@@ -67,6 +68,16 @@ class Order
     private $session;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
+     * @var Config
+     */
+    private Config $_apiConfig;
+
+    /**
      * Order constructor.
      *
      * @param Api $api
@@ -94,7 +105,8 @@ class Order
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Session\SessionManager $sessionManager,
-        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+        \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        Registry $registry
     ) {
         $this->_api = $api;
         $this->_orderHelper = $orderHelper;
@@ -109,6 +121,7 @@ class Order
         $this->queueFactory = $queueFactory;
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->registry = $registry;
 
         $this->_orderHelper->setCheckoutSession($checkoutSession);
 
@@ -127,16 +140,20 @@ class Order
      */
     public function post($order, $action)
     {
-        if (!$this->_apiConfig->isEnabled()) {
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return $this;
         }
-
-        $transport = $this->_api->getTransport();
 
         if (!$order) {
             throw new \Exception("Order doesn't not exists");
         }
+
+        $this->_api->initSdk($order);
+        $transport = $this->_api->getTransport();
+
         $this->_orderHelper->setOrder($order);
+        $this->registry->register("riskified-order", $order, true);
+
         $eventData = [
             'order' => $order,
             'action' => $action
@@ -288,7 +305,7 @@ class Order
             'total_tax' => $model->getBaseTaxAmount(),
             'total_weight' => $model->getWeight(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
-            'financial_status' => $model->getState(),
+            'financial_status' => $model->getState() == "adyen_authorized" ? "processing" : $model->getState(),
             'vendor_id' => $model->getStoreId(),
             'vendor_name' => $model->getStoreName(),
             'cart_token' => $this->session->getSessionId()
@@ -310,6 +327,18 @@ class Order
         return $order;
     }
 
+    public function getCartToken($model): string
+    {
+        if (is_null($model->getRiskifiedCartToken())) {
+            $cartToken = $this->session->getSessionId();
+            $model->setRiskifiedCartToken($cartToken);
+        } else {
+            $cartToken = $model->getRiskifiedCartToken();
+        }
+
+        return $cartToken;
+    }
+
     /**
      * @param $model
      *
@@ -323,14 +352,7 @@ class Order
         if ($model->getPayment()) {
             $gateway = $model->getPayment()->getMethod();
         }
-        if (is_null($model->getRiskifiedCartToken())) {
-            $cartToken = $this->session->getSessionId();
-            //save card_token into db
-            $model->setRiskifiedCartToken($cartToken);
-            $model->save();
-        } else {
-            $cartToken = $model->getRiskifiedCartToken();
-        }
+
         $order_array = [
             'id' => $this->_orderHelper->getOrderOrigId(),
             'name' => $model->getIncrementId(),
@@ -343,13 +365,13 @@ class Order
             'note' => $model->getCustomerNote(),
             'total_price' => floatval($model->getGrandTotal()),
             'total_discounts' => $model->getDiscountAmount(),
-            'financial_status' => $model->getState(),
+            'financial_status' => $model->getState() == "adyen_authorized" ? "processing" : $model->getState(),
             'fulfillment_status' => $model->getStatus(),
             'discount_codes' => $this->_orderHelper->getDiscountCodes(),
             'cancelled_at' => $this->_orderHelper->formatDateAsIso8601($this->_orderHelper->getCancelledAt()),
             'vendor_id' => strval($model->getStoreId()),
             'vendor_name' => $model->getStoreName(),
-            'cart_token' => $cartToken
+            'cart_token' => $this->getCartToken($model)
         ];
 
         if ($this->_orderHelper->isAdmin()) {
@@ -387,13 +409,15 @@ class Order
      */
     public function update($order, $status, $oldStatus, $description)
     {
-        if (!$this->_apiConfig->isEnabled()) {
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return;
         }
 
         if (!$order) {
             return;
         }
+
+        $this->registry->register("riskified-order", $order, true);
 
         $this->logger->log('Dispatching event for order ' . $order->getId() . ' with status "' . $status .
             '" old status "' . $oldStatus . '" and description "' . $description . '"');
@@ -475,7 +499,17 @@ class Order
         }
 
         if ($order_id) {
-            return $this->orderRepository->get($order_id);
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter('increment_id', $order_id, 'eq')->create();
+
+            $orderSearchResultList = $this->orderRepository->getList($searchCriteria);
+            $orderList = $orderSearchResultList->getItems();
+
+            if (is_array($orderList) && count($orderList) === 1) {
+                return reset($orderList);
+            } else {
+                return false;
+            }
         }
 
         return null;

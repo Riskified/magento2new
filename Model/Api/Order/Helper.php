@@ -12,6 +12,7 @@ use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Registry;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Riskified\Decider\Model\Api\Config as ApiConfig;
@@ -183,7 +184,8 @@ class Helper
         if (!$this->getOrder()) {
             return null;
         }
-        return $this->getOrder()->getId() . '_' . $this->getOrder()->getIncrementId();
+
+        return $this->getOrder()->getIncrementId();
     }
 
     /**
@@ -240,19 +242,21 @@ class Helper
     public function getCustomer()
     {
         $customer_id = strval($this->getOrder()->getCustomerId());
-        $customer_props = array(
+        $customer_props = [
             'id' => $customer_id,
             'email' => $this->getOrder()->getCustomerEmail(),
             'first_name' => $this->getOrder()->getCustomerFirstname(),
             'last_name' => $this->getOrder()->getCustomerLastname(),
             'note' => $this->getOrder()->getCustomerNote(),
-        );
+            'account_type' => 'guest'
+        ];
 
         if ($customer_id) {
             $customer_details = $this->customer->load($customer_id);
             $customer_props['created_at'] = $this->formatDateAsIso8601($customer_details->getCreatedAt());
             $customer_props['updated_at'] = $this->formatDateAsIso8601($customer_details->getUpdatedAt());
-            $customer_props['account_type'] = $this->getCustomerGroupCode($customer_details->getGroupId());
+            $customer_props['account_type'] = "registered";
+
             try {
                 $customer_orders = $this->_orderFactory->create()->addFieldToFilter('customer_id', $customer_id);
                 $customer_orders_count = $customer_orders->getSize();
@@ -292,6 +296,7 @@ class Helper
         $line_items = array();
 
         foreach ($this->getOrder()->getAllVisibleItems() as $key => $item) {
+            /** @var $item OrderItemInterface */
             $line_items[] = $this->getPreparedLineItem($item);
 
         }
@@ -367,9 +372,12 @@ class Helper
             }
 
             if (empty($category_ids)) {
-                $store_root_category_id = $this->_storeManager->getStore()->getRootCategoryId();
-                $root_category = $this->categoryRepository->get($store_root_category_id);
-                $categories[] = $root_category->getName();
+                $store_root_category_id = $this->_storeManager->getStore($item->getStoreId())->getRootCategoryId();
+
+                if ($store_root_category_id) {
+                    $root_category = $this->categoryRepository->get($store_root_category_id);
+                    $categories[] = $root_category->getName();
+                }
             }
 
             if ($product->getManufacturer()) {
@@ -666,16 +674,17 @@ class Helper
             ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
+        $remoteIp = $this->getOrder()->getRemoteIp();
 
         if (empty($forwardedIp)) {
-            return null;
+            return $remoteIp;
         }
 
         $forwardeds = preg_split("/,/", $forwardedIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($forwardeds)) {
             return trim($forwardeds[0]);
         }
-        $remoteIp = $this->getOrder()->getRemoteIp();
+
         $remotes = preg_split("/,/", $remoteIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($remotes)) {
             if (is_array($remotes) && count($remotes) > 1) {
