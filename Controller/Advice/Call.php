@@ -17,7 +17,7 @@ class Call extends \Riskified\Decider\Controller\AdviceAbstract
     public function execute()
     {
         if ($this->isEnabled() === false) {
-            return $this->resultJsonFactory->create()->setData(['status' => 1]);
+            //return $this->resultJsonFactory->create()->setData(['status' => 1]);
         }
 
         $payload = $this->request->getContent();
@@ -29,6 +29,9 @@ class Call extends \Riskified\Decider\Controller\AdviceAbstract
 
         if (!$quote || !$quote->getId()) {
             return $this->resultJsonFactory->create()->setData(['status' => 9999, 'message' => "Quote does not exists"]);
+        }
+        if (!$quote->getCustomerEmail()) {
+            $quote->setCustomerEmail($params['email']);
         }
 
         $this->api->initSdk($quote);
@@ -55,7 +58,9 @@ class Call extends \Riskified\Decider\Controller\AdviceAbstract
 
         if (!isset($callResponse->checkout->advice)) {
             if ($callResponse->checkout->action == "proceed") {
-                $adviceCallStatus = 1;
+                $adviceCallStatus = 2;
+            } else if ($callResponse->checkout->action == "decline") {
+                $adviceCallStatus = 3;
             } else {
                 $adviceCallStatus = 9999;
             }
@@ -66,17 +71,17 @@ class Call extends \Riskified\Decider\Controller\AdviceAbstract
             $this->session->setAdviceCallStatus($status);
 
             if ($status != "captured") {
-                $adviceCallStatus = 3;
+                $adviceCallStatus = 1;
                 $logMessage = 'Advice call denied - ' . $quoteId;
 
                 $this->sendDeniedOrderToRiskified($quote);
 
                 $this->logger->log($logMessage);
             } elseif ($status == "fraud") {
-                $adviceCallStatus = 3;
+                $adviceCallStatus = 1;
             } else {
                 if ($callResponse->checkout->action == 'decline') {
-                    $adviceCallStatus = 3;
+                    $adviceCallStatus = 1;
                     $message = __('declined');
                 } else {
                     if ($authType == "sca") {

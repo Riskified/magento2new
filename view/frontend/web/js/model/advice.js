@@ -15,6 +15,7 @@ define([
     return {
         payload : {},
         additionalPayload : {},
+        valid : true,
         setGateway: function(gateway) {
           this.gateway = gateway;
 
@@ -65,43 +66,53 @@ define([
         validate : function() {
             this.preparePayload();
 
-            return this.doCall("/decider/advice/call", this.payload).success((response) => {
-                let apiResponseStatus = response.status;
-                if (apiResponseStatus === 0){
-                    if (this.successCallback) {
-                        this.successCallback();
-                    }
-                } else {
-                    if (apiResponseStatus === 3){
-                        if (this.denyCallback) {
-                            this.denyCallback();
-                        }
-                    } else if (apiResponseStatus === 9999){
-                        if (this.disableCallback) {
-                            this.disableCallback();
-                        }
-                    } else if (apiResponseStatus === 1){
-                        if (this.failedCallback) {
-                            this.failedCallback();
-                        }
-                    } else {
-                        if (this.successCallback) {
-                            this.successCallback();
-                        }
-                    }
-                }
-            });
+            return this.doCall("decider/advice/call", this.payload);
         },
         deny : function() {
             return this.doCall("decider/advice/deny", this.payload);
         },
         doCall : function(url, payload) {
+            const self = this;
             return $.ajax({
                 url: urlBuilder.build(url),
                 type: 'POST',
                 data: payload,
                 async: false,
-                contentType: "application/json; charset=utf-8"
+                contentType: "application/json; charset=utf-8",
+                fail: function () {
+                    this.valid = false;
+                },
+                success: function (response) {
+                    let apiResponseStatus = response.status;
+                    if (apiResponseStatus === 0) {
+                        if (self.successCallback) {
+                            self.successCallback();
+                        }
+                        self.valid = true;
+                    } else {
+                        if (apiResponseStatus === 3) {
+                            if (self.denyCallback) {
+                                self.denyCallback();
+                            }
+                            self.valid = false;
+                        } else if (apiResponseStatus === 9999) {
+                            if (self.disableCallback) {
+                                self.disableCallback();
+                            }
+                            self.valid = false;
+                        } else if (apiResponseStatus === 1) {
+                            if (self.failedCallback) {
+                                self.failedCallback();
+                            }
+                            self.valid = false;
+                        } else {
+                            if (self.successCallback) {
+                                self.successCallback();
+                            }
+                            self.valid = true;
+                        }
+                    }
+                }
             });
         }
     };
