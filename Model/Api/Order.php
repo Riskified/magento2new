@@ -409,11 +409,11 @@ class Order
      */
     public function update($order, $status, $oldStatus, $description)
     {
-        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
+        if (!$order) {
             return;
         }
-
-        if (!$order) {
+        
+        if (!$this->_apiConfig->isEnabled($order->getStoreId())) {
             return;
         }
 
