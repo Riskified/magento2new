@@ -356,6 +356,7 @@ class Order
         $order_array = [
             'id' => $this->_orderHelper->getOrderOrigId(),
             'name' => $model->getIncrementId(),
+            'checkout_id' => $model->getQuoteId(),
             'email' => $model->getCustomerEmail(),
             'created_at' => $this->_orderHelper->formatDateAsIso8601($model->getCreatedAt()),
             'currency' => $model->getOrderCurrencyCode(),
