@@ -2,6 +2,7 @@
 namespace Riskified\Decider\Model\Api\Builder;
 
 use Magento\Checkout\Model\Session;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Riskified\Decider\Model\Api\Log;
@@ -34,6 +35,7 @@ class Advice
     protected $cartRepository;
     protected $logger;
     protected $helper;
+    protected $remoteAddress;
     /**
      * Advice constructor.
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
@@ -47,7 +49,8 @@ class Advice
         Helper $helper,
         Log $logger,
         AdviceRequest $requestAdvice,
-        Session $checkoutSession
+        Session $checkoutSession,
+        RemoteAddress $remoteAddress
     ) {
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->adviceRequestModel = $requestAdvice;
@@ -55,6 +58,7 @@ class Advice
         $this->cartRepository = $cartRepository;
         $this->logger = $logger;
         $this->helper = $helper;
+        $this->remoteAddress = $remoteAddress;
     }
 
     /**
@@ -92,6 +96,8 @@ class Advice
             'currency' => $currencyObject,
             'updated_at' => $this->helper->formatDateAsIso8601($cart->getUpdatedAt()),
             'gateway' => $gateway,
+            'source' => 'desktop_web',
+            'browser_ip' => $this->remoteAddress->getRemoteAddress(),
             'note' => $cart->getCustomerNote(),
             'total_price' => $cart->getGrandTotal(),
             'subtotal_price' => $cart->getSubtotal(),
@@ -105,10 +111,7 @@ class Advice
         $payload = array_filter($order_array, fn ($val) => $val !== null || $val !== false);
         $checkoutData = new Checkout($payload);
 
-        if (!$cart->getCustomerIsGuest()) {
-            $checkoutData->customer = $this->helper->getCustomer();
-        }
-
+        $checkoutData->customer = $this->helper->getCustomer();
         $checkoutData->shipping_address = $this->helper->getShippingAddress();
         $checkoutData->billing_address = $this->helper->getBillingAddress();
         $checkoutData->payment_details = $this->helper->getPaymentDetails();
@@ -130,7 +133,7 @@ class Advice
      * @throws \Riskified\OrderWebhook\Exception\CurlException
      * @throws \Riskified\OrderWebhook\Exception\UnsuccessfulActionException
      */
-    public function request()
+    public function request(): mixed
     {
         $this->logger->log("Calling advice endpoint: " . $this->json->toJson());
         return $this->adviceRequestModel->call($this->json->toJson());
