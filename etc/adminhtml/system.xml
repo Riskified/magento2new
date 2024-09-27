@@ -168,6 +168,29 @@
                     </depends>
                 </field>
             </group>
+            <group id="exclude_rules" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Order exclude settings</label>
+                <field id="payment_methods" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Payment methods</label>
+                    <source_model>Riskified\Decider\Model\Config\Source\PaymentMethods</source_model>
+                </field>
+                <field id="category" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Categories</label>
+                    <source_model>Riskified\Decider\Model\Config\Source\Categories</source_model>
+                </field>
+                <field id="product_type" translate="label" type="multiselect" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Product Types</label>
+                    <source_model>Magento\Catalog\Model\Product\Type</source_model>
+                </field>
+                <field id="customer_email" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Customer Email</label>
+                </field>
+            </group>
             <group id="decline_notification" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                    showInStore="1">
                 <label>Decline notification settings</label>
