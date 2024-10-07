@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Riskified\Decider\Model\Cron;
 
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\Search\SearchCriteriaBuilder;
-use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Registry;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -14,8 +14,6 @@ use Riskified\Decider\Model\Api\Config;
 use Riskified\Decider\Model\Api\Log;
 use Riskified\Decider\Model\Observer\AutoInvoice;
 use Riskified\Decider\Model\Observer\UpdateOrderState;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class ReleasePendingPaymentOrders
 {
@@ -44,10 +42,6 @@ class ReleasePendingPaymentOrders
      */
     private UpdateOrderState $updateOrderStateObserver;
     /**
-     * @var CacheInterface
-     */
-    private CacheInterface $cache;
-    /**
      * @var Log
      */
     private Log $log;
@@ -55,15 +49,10 @@ class ReleasePendingPaymentOrders
      * @var Registry
      */
     private Registry $registry;
-
-    /**
-     *
-     */
-    const CACHE_KEY = "prevent_overlapping_cron";
+    private AutoInvoice $autoInvoiceObserver;
 
 
     public function __construct(
-        CacheInterface $cache,
         Config $config,
         DecisionRepositoryInterface $decisionRepository,
         FilterBuilder $filterBuilder,
@@ -79,7 +68,6 @@ class ReleasePendingPaymentOrders
         $this->decisionRepository = $decisionRepository;
         $this->updateOrderStateObserver = $updateOrderStateObserver;
         $this->config = $config;
-        $this->cache = $cache;
         $this->registry = $registry;
         $this->autoInvoiceObserver = $autoInvoiceObserver;
     }
