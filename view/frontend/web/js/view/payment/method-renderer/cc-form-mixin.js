@@ -39,6 +39,10 @@ define([
                     .registerDisabledCallback(disabledCallback)
                     .registerFailedCallback(disabledCallback)
                     .validate();
+
+                if (!advice.valid){
+                    return false;
+                }
             } catch (e) {
                 return false;
             }

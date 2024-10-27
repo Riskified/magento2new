@@ -49,6 +49,7 @@ define(
              */
 
             validate: function() {
+                let state = $.Deferred();
                 let form = 'form[data-role=adyen-cc-form]';
 
                 let validate = $(form).validation() &&
@@ -80,6 +81,7 @@ define(
                         .validate();
 
                     if (!advice.valid){
+                        state.reject($t('Please try again with another form of payment.'));
                         return false;
                     }
                 } catch(e) {
