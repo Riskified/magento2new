@@ -77,6 +77,13 @@ class OrderSaveAfter implements ObserverInterface
                 }
             }
 
+            if ($newState == Order::STATE_PROCESSING && $order->getPayment()->getMethod() == "adyen_paypal") {
+                $this->_logger->log(
+                    "Order #{$order->getIncrementId()} changed status to processing but it was paid with paypal. Preventing second call to Riskified api"
+                );
+                return;
+            }
+
             if ($newState != "adyen_authorized") {
                 if ($oldState != Order::STATE_PAYMENT_REVIEW || $newState != Order::STATE_PROCESSING) {
                     return;
