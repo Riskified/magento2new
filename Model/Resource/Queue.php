@@ -8,6 +8,6 @@ class Queue extends AbstractDb
 {
     protected function _construct()
     {
-        $this->_init('riskified_queue', 'id');
+        $this->_init('riskified_queue', 'retry_id');
     }
 }
