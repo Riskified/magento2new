@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="riskified_queue" resource="default" engine="innodb" comment="Riskified Order Export Queue">
+        <column xsi:type="int" name="retry_id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="true" comment="Order ID"/>
+        <column xsi:type="text" name="action" nullable="false" comment="ACTION"/>
+        <column xsi:type="text" name="last_error" nullable="false" comment="Last Error"/>
+        <column xsi:type="smallint" name="attempts" nullable="false" comment="Number of retry attempts"/>
+        <column xsi:type="text" name="url" nullable="false" comment="Url"/>
+        <column xsi:type="datetime" name="updated_at" nullable="false" comment="Date last updated"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="retry_id"/>
+        </constraint>
+    </table>
+
+    <table name="sales_order" resource="default" engine="innodb">
+        <column xsi:type="varchar" name="riskified_cart_token"
+                length="255"
+                nullable="true"
+                comment="Cart token that is sent to riskified"/>
+        <column xsi:type="varchar" name="riskified_admin_notified"
+                length="255"
+                nullable="true"
+                comment="Riskified admin notified"/>
+    </table>
+</schema>
