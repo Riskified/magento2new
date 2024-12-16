@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Model\Observer;
 
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Registry;
 use Riskified\Decider\Model\Logger\Order as OrderLogger;
 use Riskified\Decider\Model\Api\Order as OrderApi;
 
@@ -19,16 +20,23 @@ class ProcessSuccessfulPost implements ObserverInterface
     private $orderApi;
 
     /**
+     * @var Registry
+     */
+    private $registry;
+
+    /**
      * ProcessSuccessfulPost constructor.
      * @param OrderLogger $logger
      * @param OrderApi $orderApi
      */
     public function __construct(
         OrderLogger $logger,
-        OrderApi $orderApi
+        OrderApi $orderApi,
+        Registry $registry
     ) {
         $this->logger = $logger;
         $this->orderApi = $orderApi;
+        $this->registry = $registry;
     }
 
     /**
@@ -36,13 +44,17 @@ class ProcessSuccessfulPost implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
+        if ($this->registry->registry("post-fullfillment")) {
+            return $this;
+        }
+        
         $order = $observer->getOrder();
         $response = $observer->getResponse();
         if (isset($response->order)) {
             $orderId = $response->order->id;
             $status = $response->order->status;
-            $oldStatus = isset($response->order->old_status) ? $response->order->old_status : null;
-            $description = isset($response->order->description) ? $response->order->description : null;
+            $oldStatus = $response->order->old_status ?? null;
+            $description = $response->order->description ?? null;
 
             if (!$description) {
                 $description = "Riskified Status: $status";

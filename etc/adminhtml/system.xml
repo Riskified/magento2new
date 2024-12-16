@@ -151,10 +151,10 @@
                         <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="delay" translate="label" type="text" sortOrder="140" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Decision delay</label>
-                    <comment><![CDATA[Value in seconds. <br> Add delay to processing decision endpoint to overcome issues with overlapping databasa transactions. DEV ONLY.]]></comment>
+                <field id="cron_max_attempts" translate="label" type="text" sortOrder="140" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Max Attempts Count</label>
+                    <comment><![CDATA[Define how many times cron will try to update order when it's on hold.]]></comment>
                     <depends>
                         <field id="*/riskified_general/enabled">1</field>
                     </depends>
@@ -162,7 +162,6 @@
                 <field id="debug_logs" translate="label" type="select" sortOrder="150" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
-                    <comment><![CDATA[Should this invoice be captured online or offline?]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="*/riskified_general/enabled">1</field>

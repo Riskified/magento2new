@@ -2,13 +2,12 @@
 namespace Riskified\Decider\Model\Api;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use \Magento\Store\Model\ScopeInterface as ScopeInterface;
+use Magento\Store\Model\ScopeInterface as ScopeInterface;
 
 class Config
 {
     private $version;
     private $_scopeConfig;
-    private $cookieManager;
     private $fullModuleList;
     private $checkoutSession;
     private $store;
@@ -17,19 +16,21 @@ class Config
 
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
         \Magento\Framework\Module\FullModuleList $fullModuleList,
         \Magento\Checkout\Model\Session $checkoutSession
     ) {
         $this->_scopeConfig     = $scopeConfig;
-        $this->cookieManager    = $cookieManager;
         $this->fullModuleList   = $fullModuleList;
         $this->checkoutSession  = $checkoutSession;
     }
 
-    public function isEnabled()
+    public function isEnabled($storeId = null)
     {
-        return $this->_scopeConfig->getValue('riskified/riskified_general/enabled');
+        return $this->_scopeConfig->getValue(
+            'riskified/riskified_general/enabled',
+            ScopeInterface::SCOPE_STORES,
+            $storeId ? $storeId : $this->getStore()
+        );
     }
 
     public function getHeaders()
@@ -62,10 +63,10 @@ class Config
     public function getConfigEnv()
     {
         return '\Riskified\Common\Env::' . $this->_scopeConfig->getValue(
-                'riskified/riskified/env',
-                ScopeInterface::SCOPE_STORES,
-                $this->getStore()
-            );
+            'riskified/riskified/env',
+            ScopeInterface::SCOPE_STORES,
+            $this->getStore()
+        );
     }
 
     public function getSessionId()
@@ -195,30 +196,16 @@ class Config
             $this->getStore()
         );
 
-        $avialableStatuses =  [
+        $availableStatuses =  [
             \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE,
             \Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE
         ];
 
-        if (!in_array($captureCase, $avialableStatuses)) {
+        if (!in_array($captureCase, $availableStatuses)) {
             $captureCase = \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE;
         }
 
         return $captureCase;
-    }
-
-    /**
-     * Return delay neeeded for decision endpoint.
-     * 
-     * @return bool
-     */
-    public function getDecisionEndpointDelay($scopeId = 0)
-    {
-        return (int)$this->_scopeConfig->getValue(
-            'riskified/riskified/delay',
-            ScopeInterface::SCOPE_STORES,
-            $scopeId
-        );
     }
 
     /**
@@ -305,5 +292,13 @@ class Config
     public function getStore()
     {
         return (!is_null($this->store)) ? $this->store : null;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCronMaxAttemptsCount() : int
+    {
+        return (int) $this->_scopeConfig->getValue('riskified/riskified/cron_max_attempts');
     }
 }

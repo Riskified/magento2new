@@ -4,16 +4,16 @@ namespace Riskified\Decider\Controller\Response;
 
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Request\Http as HttpRequest;
-use \Riskified\DecisionNotification;
+use Magento\Framework\Controller\ResultFactory;
+use Riskified\Decider\Api\DecisionRepositoryInterface;
 use Riskified\Decider\Model\Api\Api;
 use Riskified\Decider\Model\Api\Config;
-use Riskified\Decider\Model\Api\Order as OrderApi;
+use Riskified\Decider\Model\Api\DecisionFactory;
 use Riskified\Decider\Model\Api\Log as LogApi;
-use Magento\Framework\Controller\ResultFactory;
+use Riskified\Decider\Model\Api\Order as OrderApi;
 
 class Get extends \Magento\Framework\App\Action\Action
 {
-
     const STATUS_OK = 200;
     const STATUS_BAD = 400;
     const STATUS_UNAUTHORIZED = 401;
@@ -38,6 +38,15 @@ class Get extends \Magento\Framework\App\Action\Action
      * @var Config
      */
     private $config;
+    /**
+     * @var DecisionRepositoryInterface
+     */
+    private $decisionRepository;
+
+    /**
+     * @var DecisionFactory
+     */
+    private DecisionFactory $decisionFactory;
 
     /**
      * Get constructor.
@@ -52,13 +61,17 @@ class Get extends \Magento\Framework\App\Action\Action
         Api $api,
         OrderApi $apiOrder,
         LogApi $apiLogger,
-        Config $config
+        Config $config,
+        DecisionFactory $decisionFactory,
+        DecisionRepositoryInterface $decisionRepository
     ) {
         parent::__construct($context);
         $this->api = $api;
         $this->apiLogger = $apiLogger;
         $this->apiOrderLayer = $apiOrder;
         $this->config = $config;
+        $this->decisionFactory = $decisionFactory;
+        $this->decisionRepository = $decisionRepository;
 
         // CsrfAwareAction Magento2.3 compatibility
         if (interface_exists("\Magento\Framework\App\CsrfAwareActionInterface")) {
@@ -91,15 +104,6 @@ class Get extends \Magento\Framework\App\Action\Action
         try {
             $this->api->initSdk();
             $notification = $this->api->parseRequest($request);
-            $endpointDelay = $this->config->getDecisionEndpointDelay();
-
-            if ($endpointDelay > 0) {
-                $logger->log("Extension has set delay $endpointDelay sec.");
-
-                sleep($endpointDelay);
-
-                $logger->log("Continuing.");
-            }
 
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
@@ -109,14 +113,14 @@ class Get extends \Magento\Framework\App\Action\Action
                 $logger->log(
                     sprintf(
                         __("Test Notification received: %s"),
-                        serialize($notification)
+                        json_encode($notification)
                     )
                 );
             } else {
                 $logger->log(
                     sprintf(
                         __("Notification received: %s"),
-                        serialize($notification)
+                        json_encode($notification)
                     )
                 );
 
@@ -125,14 +129,19 @@ class Get extends \Magento\Framework\App\Action\Action
 
                 if (!$order || !$order->getId()) {
                     $logger->log(
-                        sprintf(
-                            "ERROR: Unable to load order (%s)",
-                            $id
-                        )
+                        sprintf("ERROR: Unable to load order (%s)", $id)
                     );
                     $statusCode = self::STATUS_BAD;
                     $msg = 'Could not find order to update.';
                 } else {
+                    $decision = $this->decisionFactory->create();
+                    $decision->setOrderId($order->getId());
+                    $decision->setDecision($notification->status);
+                    $decision->setDescription($notification->description);
+                    $decision->setCreatedAt(date("Y-m-d H:i:s"));
+
+                    $this->decisionRepository->save($decision);
+
                     $this->apiOrderLayer->update(
                         $order,
                         $notification->status,
