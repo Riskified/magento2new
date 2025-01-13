@@ -28,5 +28,13 @@
                 length="255"
                 nullable="true"
                 comment="Riskified admin notified"/>
+        <column xsi:type="varchar" name="accept_language"
+                length="15"
+                nullable="true"
+                comment="Accepted language"/>
+        <column xsi:type="varchar" name="user_agent"
+                length="255"
+                nullable="true"
+                comment="Customer user-agent"/>
     </table>
 </schema>

@@ -2,35 +2,22 @@
 
 namespace Riskified\Decider\Model\Observer;
 
+use Magento\Framework\App\Area;
+use Magento\Framework\App\State;
 use Magento\Framework\Event\ObserverInterface;
-use Riskified\Decider\Model\Logger\Order as OrderLogger;
-use Riskified\Decider\Model\Api\Order as ApiOrder;
+use Magento\Framework\HTTP\Header;
+use Magento\Framework\Locale\Resolver;
 
 class CollectPaymentInfo implements ObserverInterface
 {
     /**
-     * @var OrderLogger
-     */
-    private $_logger;
-
-    /**
-     * @var ApiOrder
-     */
-    private $_orderApi;
-
-    /**
      * CollectPaymentInfo constructor.
-     *
-     * @param OrderLogger $logger
-     * @param ApiOrder $orderApi
      */
     public function __construct(
-        OrderLogger $logger,
-        ApiOrder $orderApi
-    ) {
-        $this->_logger = $logger;
-        $this->_orderApi = $orderApi;
-    }
+        private Resolver $localeResolver,
+        private Header $httpHeader,
+        private State $state
+    ) {}
 
     /**
      * @param \Magento\Framework\Event\Observer $observer
@@ -38,6 +25,17 @@ class CollectPaymentInfo implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $payment = $observer->getQuote()->getPayment();
+        $order = $observer->getOrder();
+
+        if ($this->state->getAreaCode() != Area::AREA_ADMINHTML) {
+            if (!$order->getAcceptLanguage()) {
+                $order->setAcceptLanguage($this->localeResolver->getLocale());
+            }
+
+            if (!$order->getUserAgent()) {
+                $order->setUserAgent($this->httpHeader->getHttpUserAgent());
+            }
+        }
 
         if (empty($payment->getCcNumber())) {
             return;
