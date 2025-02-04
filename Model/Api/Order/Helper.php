@@ -393,7 +393,7 @@ class Helper
             'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
-            'product_id' => $item->getItemId(),
+            'product_id' => $item->getProductId(),
             'grams' => $item->getWeight(),
             'product_type' => $prod_type,
             'brand' => $brand,
@@ -402,9 +402,7 @@ class Helper
             'requires_shipping' => (bool)!$item->getIsVirtual()
         ];
 
-        $line_item = new Model\LineItem($lineItem, fn ($val) => $val !== null || $val !== false);
-
-        return $line_item;
+        return new Model\LineItem($lineItem, fn ($val) => $val !== null || $val !== false);
     }
 
     /**
@@ -673,7 +671,7 @@ class Helper
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $remoteIp = $this->getOrder()->getRemoteIp();
-        
+
         if (empty($forwardedIp)) {
             return $remoteIp;
         }
@@ -682,7 +680,7 @@ class Helper
         if (!empty($forwardeds)) {
             return trim($forwardeds[0]);
         }
-        
+
         $remotes = preg_split("/,/", $remoteIp, -1, PREG_SPLIT_NO_EMPTY);
         if (!empty($remotes)) {
             if (is_array($remotes) && count($remotes) > 1) {
