@@ -229,8 +229,8 @@ class Helper
     public function getClientDetails()
     {
         return new Model\ClientDetails(array_filter([
-            'accept_language' => $this->localeResolver->getLocale(),
-            'user_agent' => $this->httpHeader->getHttpUserAgent()
+            'accept_language' => $this->getOrder()->getAcceptLanguage() ?? $this->localeResolver->getLocale(),
+            'user_agent' => $this->getOrder()->getUserAgent() ?? $this->httpHeader->getHttpUserAgent()
         ], fn ($val) => $val !== null || $val !== false));
     }
 
