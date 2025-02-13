@@ -393,7 +393,7 @@ class Helper
             'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
             'title' => $item->getName(),
             'sku' => $item->getSku(),
-            'product_id' => $item->getItemId(),
+            'product_id' => $item->getProductId(),
             'grams' => $item->getWeight(),
             'product_type' => $prod_type,
             'brand' => $brand,
@@ -402,9 +402,7 @@ class Helper
             'requires_shipping' => (bool)!$item->getIsVirtual()
         ];
 
-        $line_item = new Model\LineItem($lineItem, fn ($val) => $val !== null || $val !== false);
-
-        return $line_item;
+        return new Model\LineItem($lineItem, fn ($val) => $val !== null || $val !== false);
     }
 
     /**
