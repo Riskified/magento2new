@@ -116,7 +116,7 @@ class Submission
             try {
                 $this->api->post($order, $mapperOrder[$order->getId()]->getAction());
             } catch (\Exception $e) {
-                $this->logger->addCritical($e->getMessage());
+                $this->logger->critical($e->getMessage());
 
                 $mapperOrder[$order->getId()]
                     ->setLastError("Exception Message: " . $e->getMessage())
