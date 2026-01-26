@@ -361,7 +361,7 @@ class Order
             'currency' => $model->getOrderCurrencyCode(),
             'updated_at' => $this->_orderHelper->formatDateAsIso8601($model->getUpdatedAt()),
             'gateway' => $gateway,
-            'browser_ip' => $this->_orderHelper->getRemoteIp(),
+            // 'browser_ip' => $this->_orderHelper->getRemoteIp(),
             'note' => $model->getCustomerNote(),
             'total_price' => floatval($model->getGrandTotal()),
             'total_discounts' => $model->getDiscountAmount(),

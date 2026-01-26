@@ -532,7 +532,9 @@ class Helper
             'cvv_result_code' => $paymentData['cvv_result_code'],
             'credit_card_number' => $paymentData['credit_card_number'],
             'credit_card_company' => $paymentData['credit_card_company'],
-            'credit_card_bin' => $paymentData['credit_card_bin']
+            'credit_card_bin' => $paymentData['credit_card_bin'],
+            'authentication_result' => $paymentData['authentication_result'] ?? null,
+            'authorization_error' => $paymentData['authorization_error'] ?? null,
         ], fn ($val) => $val !== null || $val !== false));
     }
 
@@ -605,12 +607,12 @@ class Helper
         if ($commentCollection) {
             foreach ($commentCollection as $comment) {
                 if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                    return 'now';
+                    return $comment->getCreatedAt();
                 }
             }
         }
 
-        return null;
+        return 'now';
     }
 
     /**
