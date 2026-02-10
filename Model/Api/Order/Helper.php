@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api\Order;
 
+use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\ResourceModel\GroupRepository;
@@ -189,7 +190,7 @@ class Helper
 
     /**
      * @return null|Model\DiscountCode
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDiscountCodes()
     {
@@ -236,7 +237,7 @@ class Helper
 
     /**
      * @return Model\Customer
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCustomer()
     {
@@ -267,7 +268,7 @@ class Helper
                         ->fetchItem()->getSumTotal();
                     $customer_props['total_spent'] = $total_spent;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->_logger->critical($e);
                 $this->_messageManager->addError('Riskified extension: ' . $e->getMessage());
             }
@@ -408,7 +409,7 @@ class Helper
     /**
      * @param $address
      * @return null|Model\Address
-     * @throws \Exception
+     * @throws Exception
      */
     public function getAddress($address)
     {
@@ -447,7 +448,7 @@ class Helper
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getRefundDetails()
     {
@@ -471,7 +472,7 @@ class Helper
 
     /**
      * @return null|Model\PaymentDetails
-     * @throws \Exception
+     * @throws Exception
      */
     public function getPaymentDetails()
     {
@@ -487,7 +488,7 @@ class Helper
         try {
             $paymentProcessor = $this->getPaymentProcessor($this->getOrder());
             $paymentData = $paymentProcessor->getDetails();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_apiLogger->log(__(
                 'Riskified: %1',
                 $e->getMessage()
@@ -530,7 +531,9 @@ class Helper
             'cvv_result_code' => $paymentData['cvv_result_code'],
             'credit_card_number' => $paymentData['credit_card_number'],
             'credit_card_company' => $paymentData['credit_card_company'],
-            'credit_card_bin' => $paymentData['credit_card_bin']
+            'credit_card_bin' => $paymentData['credit_card_bin'],
+            'authentication_result' => $paymentData['authentication_result'] ?? null,
+            'authorization_error' => $paymentData['authorization_error'] ?? null,
         ], fn ($val) => $val !== null || $val !== false));
     }
 
@@ -552,21 +555,11 @@ class Helper
      */
     public function preparePaymentData($payment, &$paymentData)
     {
-        if (!isset($paymentData['transaction_id'])) {
-            $paymentData['transaction_id'] = $payment->getTransactionId();
-        }
-        if (!isset($paymentData['cvv_result_code'])) {
-            $paymentData['cvv_result_code'] = $payment->getCcCidStatus();
-        }
-        if (!isset($paymentData['credit_card_number'])) {
-            $paymentData['credit_card_number'] = $payment->getCcLast4();
-        }
-        if (!isset($paymentData['credit_card_company'])) {
-            $paymentData['credit_card_company'] = $payment->getCcType();
-        }
-        if (!isset($paymentData['avs_result_code'])) {
-            $paymentData['avs_result_code'] = $payment->getCcAvsStatus();
-        }
+        $paymentData['transaction_id'] = $payment->getTransactionId() ?? null;
+        $paymentData['cvv_result_code'] = $payment->getCcCidStatus() ?? null;
+        $paymentData['credit_card_number'] = $payment->getCcLast4() ?? null;
+        $paymentData['credit_card_company'] = $payment->getCcType() ?? null;
+        $paymentData['avs_result_code'] = $payment->getCcAvsStatus() ?? null;
 
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
             $paymentData['credit_card_bin'] = $this->checkoutSession->getRiskifiedBin();
@@ -579,7 +572,7 @@ class Helper
 
     /**
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function getShippingLines()
     {
@@ -594,7 +587,7 @@ class Helper
     }
 
     /**
-     * @return null|string
+     * @return string
      */
     public function getCancelledAt()
     {
@@ -603,17 +596,17 @@ class Helper
         if ($commentCollection) {
             foreach ($commentCollection as $comment) {
                 if ($comment->getStatus() == \Magento\Sales\Model\Order::STATE_CANCELED) {
-                    return 'now';
+                    return $comment->getCreatedAt();
                 }
             }
         }
 
-        return null;
+        return 'now';
     }
 
     /**
      * @return Model\OrderCancellation
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrderCancellation()
     {
@@ -627,7 +620,7 @@ class Helper
 
     /**
      * @return Model\Fulfillment
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrderFulfillments($createdShipment = null)
     {
