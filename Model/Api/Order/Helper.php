@@ -463,7 +463,7 @@ class Helper
                     'currency' => $memo['base_currency_code'],
                     'refunded_at' => $memo['created_at'],
                     'reason' => $memo['customer_note']
-                ], fn ($val) => $val !== null || $val !== false));
+                ], fn ($val) => $val !== null && $val !== false && (!is_array($val) || !empty($val))));
             }
         }
 
@@ -508,7 +508,7 @@ class Helper
                 'protection_eligibility' => $paymentData['protection_eligibility'],
                 'payment_status' => $paymentData['payment_status'],
                 'pending_reason' => $paymentData['pending_reason']
-            ], fn ($val) => $val !== null || $val !== false));
+            ], fn ($val) => $val !== null && $val !== false && (!is_array($val) || !empty($val))));
         }
 
         if (isset($paymentProcessor)
@@ -522,7 +522,7 @@ class Helper
                 'protection_eligibility' => $paymentData['protection_eligibility'],
                 'payment_status' => $paymentData['payment_status'],
                 'pending_reason' => $paymentData['pending_reason']
-            ], fn ($val) => $val !== null || $val !== false));
+            ], fn ($val) => $val !== null && $val !== false && (!is_array($val) || !empty($val))));
         }
 
         return new Model\PaymentDetails(array_filter([
@@ -534,7 +534,7 @@ class Helper
             'credit_card_bin' => $paymentData['credit_card_bin'],
             'authentication_result' => $paymentData['authentication_result'] ?? null,
             'authorization_error' => $paymentData['authorization_error'] ?? null,
-        ], fn ($val) => $val !== null || $val !== false));
+        ], fn ($val) => $val !== null && $val !== false && (!is_array($val) || !empty($val))));
     }
 
     /**
