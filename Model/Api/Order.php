@@ -2,6 +2,7 @@
 
 namespace Riskified\Decider\Model\Api;
 
+use Riskified\Decider\Model\Api\Order\Validator;
 use Riskified\OrderWebhook\Model;
 use Magento\Framework\Registry;
 
@@ -76,6 +77,7 @@ class Order
      * @var Config
      */
     private Config $_apiConfig;
+    private Validator $validator;
 
     /**
      * Order constructor.
@@ -106,6 +108,7 @@ class Order
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Session\SessionManager $sessionManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
+        Validator $validator,
         Registry $registry
     ) {
         $this->_api = $api;
@@ -122,6 +125,7 @@ class Order
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->registry = $registry;
+        $this->validator = $validator;
 
         $this->_orderHelper->setCheckoutSession($checkoutSession);
 
@@ -132,7 +136,7 @@ class Order
      * @param $order
      * @param $action
      *
-     * @return $this|object
+     * @return void
      *
      * @throws \Exception
      * @throws \Riskified\OrderWebhook\Exception\CurlException
@@ -153,6 +157,10 @@ class Order
 
         $this->_orderHelper->setOrder($order);
         $this->registry->register("riskified-order", $order, true);
+
+        if ($action != Api::ACTION_CHECKOUT_DENIED && !$this->validator->validate($order)) {
+            return;
+        }
 
         $eventData = [
             'order' => $order,
@@ -233,6 +241,17 @@ class Order
             throw $e;
         }
         return $response;
+    }
+
+    private function validate($order): bool
+    {
+        try {
+
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
