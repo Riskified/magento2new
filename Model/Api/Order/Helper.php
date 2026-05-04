@@ -355,6 +355,18 @@ class Helper
         $category = null;
         $sub_categories = null;
         $brand = null;
+        $quantity = !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered());
+        $priceInclTax = $item->getPriceInclTax();
+
+        if ($priceInclTax === null || $priceInclTax === '' || $priceInclTax == 0.0) {
+            $taxAmount = (float)($item->getTaxAmount() ?? 0);
+            $priceInclTax = (float)$item->getPrice();
+
+            if ($quantity > 0 && $taxAmount > 0) {
+                $priceInclTax += ($taxAmount / $quantity);
+            }
+        }
+
         $product = $item->getProduct();
 
         if ($product) {
@@ -390,8 +402,8 @@ class Helper
         }
 
         $lineItem = [
-            'price' => floatval($item->getPrice()),
-            'quantity' => !$item->getQtyOrdered() ? intval($item->getQty()) : intval($item->getQtyOrdered()),
+            'price' => floatval($priceInclTax),
+            'quantity' => $quantity,
             'title' => $item->getName(),
             'sku' => $item->getSku(),
             'product_id' => $item->getProductId(),
