@@ -544,9 +544,35 @@ class Helper
             'credit_card_number' => $paymentData['credit_card_number'],
             'credit_card_company' => $paymentData['credit_card_company'],
             'credit_card_bin' => $paymentData['credit_card_bin'],
-            'authentication_result' => $paymentData['authentication_result'] ?? null,
+            'authentication_result' => $this->sanitizeAuthenticationResult($paymentData['authentication_result'] ?? null),
             'authorization_error' => $paymentData['authorization_error'] ?? null,
         ], fn ($val) => $val !== null && $val !== false && (!is_array($val) || !empty($val))));
+    }
+
+    /**
+     * Normalize authentication_result so it matches the Riskified SDK schema.
+     * Returns null when the value is not a usable 3DS object — Riskified rejects
+     * the payload otherwise (e.g. a raw PayPal status string like "CREATED").
+     */
+    private function sanitizeAuthenticationResult($value)
+    {
+        if (!is_array($value)) {
+            return null;
+        }
+        $clean = array_filter($value, function ($v) {
+            if ($v === null) {
+                return false;
+            }
+
+            if (is_string($v)) {
+                return trim($v) !== '';
+            }
+            return true;
+        });
+        if (empty($clean['eci']) || (is_string($clean['eci']) && trim($clean['eci']) === '')) {
+            return null;
+        }
+        return $clean;
     }
 
     /**

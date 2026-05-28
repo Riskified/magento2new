@@ -15,10 +15,14 @@ class Braintree extends AbstractPayment
         $details['cvv_result_code'] = $this->payment->getAdditionalInformation('cvvResponseCode');
         $details['credit_card_bin'] = $this->payment->getAdditionalInformation('bin');
 
-        if ($this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::ECI)) {
-            $details['eci'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::ECI);
-            $details['trans_status'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::TRANS_STATUS);
-            $details['liability_shift'] = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::LIABILITY_SHIFTED);
+        $eci = $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::ECI);
+        if ($eci) {
+            $details['authentication_result'] = array_filter([
+                'eci' => $eci,
+                'liability_shift' => (bool) $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::LIABILITY_SHIFTED),
+                'trans_status' => $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::TRANS_STATUS) ?: null,
+                'cavv' => $this->payment->getAdditionalInformation(DeciderThreeDSecureDetails::CAVV) ?: null,
+            ], fn ($v) => $v !== null);
         }
 
         $houseVerification = $this->payment->getAdditionalInformation('avsStreetAddressResponseCode');
