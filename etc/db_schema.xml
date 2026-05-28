@@ -19,6 +19,19 @@
         </constraint>
     </table>
 
+    <table name="riskified_decision_queue" resource="default" engine="innodb" comment="Riskified Decision Queue">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="varchar" name="decision" length="255" nullable="false" comment="Decision"/>
+        <column xsi:type="text" name="description" nullable="false" comment="Description"/>
+        <column xsi:type="datetime" name="created_at" nullable="false" comment="Created At"/>
+        <column xsi:type="smallint" name="attempts_count" unsigned="true" nullable="false" default="0"
+                comment="Number of attempts allowed to be processed"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+    </table>
+
     <table name="sales_order" resource="default" engine="innodb">
         <column xsi:type="varchar" name="riskified_cart_token"
                 length="255"
