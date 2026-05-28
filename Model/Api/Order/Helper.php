@@ -547,8 +547,17 @@ class Helper
         if (!is_array($value)) {
             return null;
         }
-        $clean = array_filter($value, fn ($v) => $v !== null && $v !== '');
-        if (empty($clean['eci'])) {
+        $clean = array_filter($value, function ($v) {
+            if ($v === null) {
+                return false;
+            }
+
+            if (is_string($v)) {
+                return trim($v) !== '';
+            }
+            return true;
+        });
+        if (empty($clean['eci']) || (is_string($clean['eci']) && trim($clean['eci']) === '')) {
             return null;
         }
         return $clean;
