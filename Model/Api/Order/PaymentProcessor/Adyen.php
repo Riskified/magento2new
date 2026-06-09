@@ -43,11 +43,15 @@ class Adyen extends AbstractPayment
             ];
         }
 
-        $details['authorization_error'] = [
-            'error_code' => $authResult['refusalReasonCode'] ?? null,
-            'message' => $authResult['refusalReason'] ?? null,
-        ];
-        
+        $refusalReasonCode = $authResult['refusalReasonCode'] ?? null;
+        $refusalReason = $authResult['refusalReason'] ?? null;
+        if ($refusalReasonCode !== null || $refusalReason !== null) {
+            $details['authorization_error'] = [
+                'error_code' => $refusalReasonCode,
+                'message' => $refusalReason,
+            ];
+        }
+
         return $details;
     }
 }
