@@ -17,15 +17,15 @@ If you don't have an existing account, please start by signing up to Riskified [
 
 https://www.riskified.com/magento/
 
-
 ## Installation
 
-You may install the extension by cloning the repository, downloading the ZIP file, or by using Composer. 
+You may install the extension by cloning the repository, downloading the ZIP file, or by using Composer.
 
 To use Composer, follow these steps in the command line:
+
 ```
-1. composer config repositories.riskified-decider git git@github.com:Riskified/magento2new.git
-2. composer require Riskified/magento2new dev-master
-3. php bin/magento module:enable Riskified_Decider
-4. php bin/magento setup:upgrade
+composer config repositories.riskified-decider git git@github.com:Riskified/magento2new.git
+composer require Riskified/magento2new dev-master
+php bin/magento module:enable Riskified_Decider
+php bin/magento setup:upgrade
 ```
