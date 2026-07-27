@@ -225,7 +225,7 @@ class UploadHistoricalOrders extends Command
             'browser_ip' => $this->_orderHelper->getRemoteIp(),
             'note' => $model->getCustomerNote(),
             'total_price' => $model->getGrandTotal(),
-            'total_discounts' => $model->getDiscountAmount(),
+            'total_discounts' => abs((float) $model->getDiscountAmount()),
             'subtotal_price' => $model->getBaseSubtotalInclTax(),
             'discount_codes' => $this->_orderHelper->getDiscountCodes(),
             'taxes_included' => true,
