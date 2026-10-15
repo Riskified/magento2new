@@ -615,11 +615,11 @@ class Helper
      */
     public function preparePaymentData($payment, &$paymentData)
     {
-        $paymentData['transaction_id'] = $payment->getTransactionId() ?? null;
-        $paymentData['cvv_result_code'] = $payment->getCcCidStatus() ?? null;
-        $paymentData['credit_card_number'] = $payment->getCcLast4() ?? null;
-        $paymentData['credit_card_company'] = $payment->getCcType() ?? null;
-        $paymentData['avs_result_code'] = $payment->getCcAvsStatus() ?? null;
+        $paymentData['transaction_id'] ??= $payment->getTransactionId();
+        $paymentData['cvv_result_code'] ??= $payment->getCcCidStatus();
+        $paymentData['credit_card_number'] ??= $payment->getCcLast4();
+        $paymentData['credit_card_company'] ??= $payment->getCcType();
+        $paymentData['avs_result_code'] ??= $payment->getCcAvsStatus();
 
         if (!isset($paymentData['credit_card_bin']) || !$paymentData['credit_card_bin']) {
             $paymentData['credit_card_bin'] = $this->checkoutSession->getRiskifiedBin();
