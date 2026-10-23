@@ -207,12 +207,8 @@ class UploadHistoricalOrders extends Command
      */
     protected function prepareOrder($model)
     {
-        $gateway = 'unavailable';
-        if ($model->getPayment()) {
-            $gateway = $model->getPayment()->getMethod();
-        }
-
         $this->_orderHelper->setOrder($model);
+        $gateway = $this->_orderHelper->getGateway();
 
         $order_array = array(
             'id' => $this->_orderHelper->getOrderOrigId(),

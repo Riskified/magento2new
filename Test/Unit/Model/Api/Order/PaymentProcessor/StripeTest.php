@@ -38,6 +38,29 @@ class StripeTest extends TestCase
         $this->assertNull(Stripe::mapThreeDSecure(['result' => 'authenticated']));
     }
 
+    public function testGetPaymentMethodType()
+    {
+        $charges = new \ReflectionProperty(Stripe::class, 'charges');
+        $charges->setAccessible(true);
+        $charges->setValue(null, ['pi_123' => (object) [
+            'payment_method_details' => (object) ['type' => 'klarna'],
+        ]]);
+
+        $payment = $this->getMockBuilder(\stdClass::class)
+            ->addMethods(['getAdditionalInformation', 'getLastTransId'])
+            ->getMock();
+        $payment->method('getAdditionalInformation')->willReturn(null);
+        $payment->method('getLastTransId')->willReturn('pi_123-capture');
+
+        $stripe = new Stripe(
+            $this->createMock(\Magento\Framework\ObjectManagerInterface::class),
+            $this->createMock(\Psr\Log\LoggerInterface::class)
+        );
+        $stripe->setPayment($payment);
+
+        $this->assertSame('klarna', $stripe->getPaymentMethodType());
+    }
+
     public function testMapChecks()
     {
         $this->assertSame(['cvv_result_code' => 'M', 'avs_result_code' => 'Y'], Stripe::mapChecks([

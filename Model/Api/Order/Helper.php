@@ -482,8 +482,40 @@ class Helper
         return $refundObjectCollection;
     }
 
+    /**
+     * Payment method code, split per Stripe payment method type (stripe_card, stripe_paypal, stripe_klarna).
+     */
+    public function getGateway(): string
+    {
+        $payment = $this->getOrder()->getPayment();
+        if (!$payment) {
+            return 'unavailable';
+        }
+        $stripeType = $this->getStripePaymentMethodType();
+
+        return $stripeType ? 'stripe_' . $stripeType : (string) $payment->getMethod();
+    }
+
+    private function getStripePaymentMethodType(): ?string
+    {
+        $payment = $this->getOrder()->getPayment();
+        if (!$payment || $payment->getMethod() !== 'stripe_payments') {
+            return null;
+        }
+        try {
+            return $this->getPaymentProcessor($this->getOrder())->getPaymentMethodType();
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
     public function getPaymentType(): string
     {
+        $stripeType = $this->getStripePaymentMethodType();
+        if ($stripeType) {
+            return $stripeType;
+        }
+
         $method = strtolower((string) ($this->getOrder()->getPayment()
             ? $this->getOrder()->getPayment()->getMethod()
             : ''));
