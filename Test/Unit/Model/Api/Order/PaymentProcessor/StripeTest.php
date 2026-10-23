@@ -61,6 +61,30 @@ class StripeTest extends TestCase
         $this->assertSame('klarna', $stripe->getPaymentMethodType());
     }
 
+    public function testGetPaymentMethodTypeFallsBackToQuotePaymentMethod()
+    {
+        if (!class_exists('StripeIntegration\Payments\Model\Config')) {
+            $this->markTestSkipped('Stripe extension not installed');
+        }
+
+        $paymentMethods = $this->getMockBuilder(\stdClass::class)->addMethods(['retrieve'])->getMock();
+        $paymentMethods->method('retrieve')->with('pm_abc')->willReturn((object) ['type' => 'paypal']);
+        $config = $this->getMockBuilder(\stdClass::class)->addMethods(['initStripe', 'getStripeClient'])->getMock();
+        $config->method('getStripeClient')->willReturn((object) ['paymentMethods' => $paymentMethods]);
+        $objectManager = $this->createMock(\Magento\Framework\ObjectManagerInterface::class);
+        $objectManager->method('get')->willReturn($config);
+
+        $payment = $this->getMockBuilder(\stdClass::class)
+            ->addMethods(['getAdditionalInformation', 'getLastTransId'])
+            ->getMock();
+        $payment->method('getAdditionalInformation')->willReturnMap([['token', 'pm_abc']]);
+
+        $stripe = new Stripe($objectManager, $this->createMock(\Psr\Log\LoggerInterface::class));
+        $stripe->setPayment($payment);
+
+        $this->assertSame('paypal', $stripe->getPaymentMethodType());
+    }
+
     public function testMapChecks()
     {
         $this->assertSame(['cvv_result_code' => 'M', 'avs_result_code' => 'Y'], Stripe::mapChecks([

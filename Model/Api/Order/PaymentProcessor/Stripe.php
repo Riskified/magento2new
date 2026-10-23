@@ -83,7 +83,36 @@ class Stripe extends AbstractPayment
      */
     public function getPaymentMethodType() : ?string
     {
-        return $this->getCharge()->payment_method_details->type ?? null;
+        return $this->getCharge()->payment_method_details->type
+            ?? $this->getPaymentMethod()->type
+            ?? null;
+    }
+
+    /**
+     * Payment method the customer selected; available on the quote before any charge exists (checkout denied).
+     */
+    private function getPaymentMethod()
+    {
+        $token = (string) $this->payment->getAdditionalInformation('token');
+        $paymentMethodId = preg_match('/\bpm_[A-Za-z0-9]+/', $token, $m) ? $m[0] : null;
+        if (!$paymentMethodId || !class_exists(self::STRIPE_CONFIG)) {
+            return null;
+        }
+
+        try {
+            return $this->getStripeClient()->paymentMethods->retrieve($paymentMethodId);
+        } catch (\Throwable $e) {
+            $this->logger->warning('Riskified: Stripe payment method lookup failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function getStripeClient()
+    {
+        $config = $this->objectManager->get(self::STRIPE_CONFIG);
+        $config->initStripe(null, $this->order ? $this->order->getStoreId() : null);
+
+        return $config->getStripeClient();
     }
 
     private function getCard()
@@ -110,9 +139,7 @@ class Stripe extends AbstractPayment
         }
 
         try {
-            $config = $this->objectManager->get(self::STRIPE_CONFIG);
-            $config->initStripe(null, $this->order ? $this->order->getStoreId() : null);
-            $paymentIntent = $config->getStripeClient()->paymentIntents->retrieve(
+            $paymentIntent = $this->getStripeClient()->paymentIntents->retrieve(
                 $paymentIntentId,
                 ['expand' => ['latest_charge']]
             );
