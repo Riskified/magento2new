@@ -7,5 +7,15 @@
                 <value id="riskified_beacon" type="host">https://*.riskified.com</value>
             </values>
         </policy>
+        <policy id="img-src">
+            <values>
+                <value id="riskified_img" type="host">https://img.riskified.com</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="riskified_connect" type="host">https://c.riskified.com</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>
