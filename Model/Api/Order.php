@@ -282,10 +282,7 @@ class Order
 
     private function loadQuote($model)
     {
-        $gateway = 'unavailable';
-        if ($model->getPayment()) {
-            $gateway = $model->getPayment()->getMethod();
-        }
+        $gateway = $this->_orderHelper->getGateway();
 
         $order_array = [
             'id' => (int) $model->getId(),
@@ -347,11 +344,7 @@ class Order
     private function load($model)
     {
         /** @var \Magento\Sales\Api\Data\OrderInterface $model */
-        $gateway = 'unavailable';
-
-        if ($model->getPayment()) {
-            $gateway = $model->getPayment()->getMethod();
-        }
+        $gateway = $this->_orderHelper->getGateway();
 
         $order_array = [
             'id' => $this->_orderHelper->getOrderOrigId(),

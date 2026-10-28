@@ -27,6 +27,9 @@ class Stripe extends AbstractPayment
         'exempted' => 'I',
     ];
 
+    // ponytail: per-process cache so gateway + payment details share one Stripe call; unbounded, fine for cron batch sizes
+    private static $charges = [];
+
     private $objectManager;
     private $logger;
 
@@ -75,7 +78,49 @@ class Stripe extends AbstractPayment
         return $details;
     }
 
+    /**
+     * Stripe payment method type of the charge (card, paypal, klarna, ...).
+     */
+    public function getPaymentMethodType() : ?string
+    {
+        return $this->getCharge()->payment_method_details->type
+            ?? $this->getPaymentMethod()->type
+            ?? null;
+    }
+
+    /**
+     * Payment method the customer selected; available on the quote before any charge exists (checkout denied).
+     */
+    private function getPaymentMethod()
+    {
+        $token = (string) $this->payment->getAdditionalInformation('token');
+        $paymentMethodId = preg_match('/\bpm_[A-Za-z0-9]+/', $token, $m) ? $m[0] : null;
+        if (!$paymentMethodId || !class_exists(self::STRIPE_CONFIG)) {
+            return null;
+        }
+
+        try {
+            return $this->getStripeClient()->paymentMethods->retrieve($paymentMethodId);
+        } catch (\Throwable $e) {
+            $this->logger->warning('Riskified: Stripe payment method lookup failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function getStripeClient()
+    {
+        $config = $this->objectManager->get(self::STRIPE_CONFIG);
+        $config->initStripe(null, $this->order ? $this->order->getStoreId() : null);
+
+        return $config->getStripeClient();
+    }
+
     private function getCard()
+    {
+        return $this->getCharge()->payment_method_details->card ?? null;
+    }
+
+    private function getCharge()
     {
         $candidates = implode(' ', [
             $this->payment->getAdditionalInformation('payment_intent_id'),
@@ -83,20 +128,24 @@ class Stripe extends AbstractPayment
             $this->payment->getLastTransId(),
         ]);
         $paymentIntentId = preg_match('/\bpi_[A-Za-z0-9]+/', $candidates, $m) ? $m[0] : null;
-        if (!$paymentIntentId || !class_exists(self::STRIPE_CONFIG)) {
+        if (!$paymentIntentId) {
+            return null;
+        }
+        if (isset(self::$charges[$paymentIntentId])) {
+            return self::$charges[$paymentIntentId];
+        }
+        if (!class_exists(self::STRIPE_CONFIG)) {
             return null;
         }
 
         try {
-            $config = $this->objectManager->get(self::STRIPE_CONFIG);
-            $config->initStripe(null, $this->order ? $this->order->getStoreId() : null);
-            $paymentIntent = $config->getStripeClient()->paymentIntents->retrieve(
+            $paymentIntent = $this->getStripeClient()->paymentIntents->retrieve(
                 $paymentIntentId,
                 ['expand' => ['latest_charge']]
             );
-            return $paymentIntent->latest_charge->payment_method_details->card ?? null;
+            return self::$charges[$paymentIntentId] = $paymentIntent->latest_charge ?? null;
         } catch (\Throwable $e) {
-            $this->logger->warning('Riskified: Stripe card lookup failed: ' . $e->getMessage());
+            $this->logger->warning('Riskified: Stripe charge lookup failed: ' . $e->getMessage());
             return null;
         }
     }
