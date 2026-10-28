@@ -215,21 +215,21 @@ class Helper
     }
 
     /**
-     * @return null|Model\Address
+     * @return null|Model\Address[]
      */
     public function getShippingAddress()
     {
-        $mageAddr = $this->getOrder()->getShippingAddress();
-        return $this->getAddress($mageAddr);
+        $address = $this->getAddress($this->getOrder()->getShippingAddress());
+        return $address ? [$address] : null;
     }
 
     /**
-     * @return null|Model\Address
+     * @return null|Model\Address[]
      */
     public function getBillingAddress()
     {
-        $mageAddr = $this->getOrder()->getBillingAddress();
-        return $this->getAddress($mageAddr);
+        $address = $this->getAddress($this->getOrder()->getBillingAddress());
+        return $address ? [$address] : null;
     }
 
     /**
@@ -528,10 +528,20 @@ class Helper
     }
 
     /**
-     * @return null|Model\PaymentDetails
+     * @return null|Model\PaymentDetails[]
      * @throws Exception
      */
     public function getPaymentDetails()
+    {
+        $paymentDetails = $this->buildPaymentDetails();
+        return $paymentDetails ? [$paymentDetails] : null;
+    }
+
+    /**
+     * @return null|Model\PaymentDetails
+     * @throws Exception
+     */
+    private function buildPaymentDetails()
     {
         $payment = $this->getOrder()->getPayment();
         if (!$payment) {
