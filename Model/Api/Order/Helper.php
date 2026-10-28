@@ -102,6 +102,11 @@ class Helper
     private $_groupRepository;
 
     /**
+     * @var StripeHelper
+     */
+    private $stripeHelper;
+
+    /**
      * Helper constructor.
      *
      * @param Monolog $logger
@@ -117,6 +122,7 @@ class Helper
      * @param ResolverInterface $localeResolver
      * @param Header $httpHeader
      * @param Registry $registry
+     * @param StripeHelper $stripeHelper
      */
     public function __construct(
         GroupRepository $groupRepository,
@@ -133,7 +139,8 @@ class Helper
         State $state,
         ResolverInterface $localeResolver,
         Header $httpHeader,
-        Registry $registry
+        Registry $registry,
+        StripeHelper $stripeHelper
     ) {
         $this->_customerFactory = $customerFactory;
         $this->_groupRepository = $groupRepository;
@@ -150,6 +157,7 @@ class Helper
         $this->localeResolver = $localeResolver;
         $this->httpHeader = $httpHeader;
         $this->registry = $registry;
+        $this->stripeHelper = $stripeHelper;
     }
 
     /**
@@ -491,27 +499,13 @@ class Helper
         if (!$payment) {
             return 'unavailable';
         }
-        $stripeType = $this->getStripePaymentMethodType();
 
-        return $stripeType ? 'stripe_' . $stripeType : (string) $payment->getMethod();
-    }
-
-    private function getStripePaymentMethodType(): ?string
-    {
-        $payment = $this->getOrder()->getPayment();
-        if (!$payment || $payment->getMethod() !== 'stripe_payments') {
-            return null;
-        }
-        try {
-            return $this->getPaymentProcessor($this->getOrder())->getPaymentMethodType();
-        } catch (Exception $e) {
-            return null;
-        }
+        return $this->stripeHelper->getGateway($this->getOrder()) ?? (string) $payment->getMethod();
     }
 
     public function getPaymentType(): string
     {
-        $stripeType = $this->getStripePaymentMethodType();
+        $stripeType = $this->stripeHelper->getPaymentMethodType($this->getOrder());
         if ($stripeType) {
             return $stripeType;
         }
