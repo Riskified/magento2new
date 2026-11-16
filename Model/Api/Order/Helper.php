@@ -755,8 +755,10 @@ class Helper
      */
     public function getRemoteIp()
     {
-        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
-            ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        if ($this->_apiConfig->isLoggingEnabled()) {
+            $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
+                ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        }
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $remoteIp = $this->getOrder()->getRemoteIp();
