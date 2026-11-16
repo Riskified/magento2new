@@ -3,6 +3,7 @@
 namespace Riskified\Decider\Plugin\Widget;
 
 use Magento\Framework\App\Action\Context as ActionContext;
+use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Registry;
 use Riskified\Decider\Model\Api\Config;
 
@@ -24,20 +25,28 @@ class Context
     private $config;
 
     /**
+     * @var AuthorizationInterface
+     */
+    private $authorization;
+
+    /**
      * Context constructor.
      *
      * @param ActionContext $context
      * @param Registry $registry
      * @param Config $scopeConfig
+     * @param AuthorizationInterface $authorization
      */
     public function __construct(
         ActionContext $context,
         Registry $registry,
-        Config $config
+        Config $config,
+        AuthorizationInterface $authorization
     ) {
         $this->context = $context;
         $this->registry = $registry;
         $this->config = $config;
+        $this->authorization = $authorization;
     }
 
     /**
@@ -51,7 +60,10 @@ class Context
         $buttonList
     ) {
         $request = $this->context->getRequest();
-        if ($request->getFullActionName() == 'sales_order_view' && $this->config->isEnabled()) {
+        if ($request->getFullActionName() == 'sales_order_view'
+            && $this->config->isEnabled()
+            && $this->authorization->isAllowed('Riskified_Decider::submit')
+        ) {
             $order = $this->registry->registry('current_order');
             $submitToRiskifiedStatuses = ['canceled', 'holded'];
             if (!in_array($order->getState(), $submitToRiskifiedStatuses)) {

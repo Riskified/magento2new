@@ -10,6 +10,8 @@ use Riskified\Decider\Model\Observer\UpdateOrderState;
 
 class Decision extends \Magento\Backend\App\Action
 {
+    const ADMIN_RESOURCE = 'Riskified_Decider::submit';
+
     /**
      * @var OrderApi
      */

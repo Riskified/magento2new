@@ -6,6 +6,8 @@ use Riskified\Decider\Model\Api\Order as OrderApi;
 
 class Send extends \Magento\Backend\App\Action
 {
+    const ADMIN_RESOURCE = 'Riskified_Decider::submit';
+
     /**
      * @var OrderApi
      */
