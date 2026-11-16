@@ -64,15 +64,16 @@ class ReleasePendingPaymentOrders
             return;
         }
 
-        // Only orders that already have a Riskified decision: pending-payment orders without one
-        // (e.g. abandoned 3DS) would otherwise fill every batch and never leave it.
+        // Only orders with a Riskified decision that hasn't failed too often: pending-payment orders
+        // without one (e.g. abandoned 3DS) or that keep failing would otherwise fill every batch.
         $orders = $this->orderCollectionFactory->create();
         $orders->addFieldToFilter('main_table.state', 'pending_payment')
             ->addFieldToFilter('main_table.store_id', ['in' => $storeIds]);
         $orders->getSelect()
             ->where(
                 'EXISTS (SELECT 1 FROM ' . $orders->getTable('riskified_decision_queue')
-                . ' AS d WHERE d.order_id = main_table.entity_id)'
+                . ' AS d WHERE d.order_id = main_table.entity_id AND d.attempts_count < ?)',
+                $this->config->getCronMaxAttemptsCount()
             )
             ->order('main_table.entity_id ASC')
             ->limit(self::BATCH_SIZE);
@@ -81,10 +82,13 @@ class ReleasePendingPaymentOrders
             return;
         }
 
-        $this->registry->register("riskified-order", $orders->getFirstItem(), true);
         $toRemove = [];
 
         foreach ($orders as $order) {
+            $decision = null;
+            // Batch spans stores: point store-scoped config and registry at this order.
+            $this->config->setStore($order->getStoreId());
+            $this->registry->register("riskified-order", $order, true);
             try {
                 $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
@@ -102,7 +106,13 @@ class ReleasePendingPaymentOrders
                     $toRemove[] = $decision;
                 }
             } catch (\Exception $e) {
-                $this->log->log("Pending payment release failed for order #{$order->getIncrementId()}: " . $e->getMessage());
+                if ($decision && $decision->getId()) {
+                    $decision->setAttemptsCount($decision->getAttemptsCount() + 1);
+                    $this->decisionRepository->save($decision);
+                }
+                if ($this->config->isLoggingEnabled()) {
+                    $this->log->log("Pending payment release failed for order #{$order->getIncrementId()}: " . $e->getMessage());
+                }
             }
         }
 
