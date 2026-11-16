@@ -39,6 +39,7 @@ class HelperTest extends TestCase
             'stripe other type unchanged' => ['stripe_payments', 'klarna', 'klarna'],
             'free' => ['free', null, 'store_credit'],
             'stripe bank transfers' => ['stripe_payments_bank_transfers', null, 'bank_transfer'],
+            'magento offline bank transfer' => ['banktransfer', null, 'bank_transfer'],
             'paypal' => ['paypal_express', null, 'paypal'],
             'default card' => ['braintree', null, 'card'],
         ];

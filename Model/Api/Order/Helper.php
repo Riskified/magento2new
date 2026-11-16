@@ -534,7 +534,7 @@ class Helper
         if ($method === 'free') {
             return 'store_credit';
         }
-        if (str_contains($method, 'bank_transfer')) {
+        if (str_contains($method, 'bank_transfer') || str_contains($method, 'banktransfer')) {
             return 'bank_transfer';
         }
 
