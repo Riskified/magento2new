@@ -150,12 +150,12 @@ class Config
         );
     }
 
-    public function isLoggingEnabled()
+    public function isLoggingEnabled($storeId = null)
     {
         return (bool)$this->_scopeConfig->getValue(
             'riskified/riskified/debug_logs',
             ScopeInterface::SCOPE_STORES,
-            $this->getStore()
+            $storeId ?: $this->getStore()
         );
     }
 

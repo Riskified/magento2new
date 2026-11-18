@@ -166,17 +166,17 @@ class Order
                     break;
                 case Api::ACTION_UPDATE:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log($orderForTransport->toJson());
+                    $this->logPayload($action, $order, $orderForTransport);
                     $response = $transport->updateOrder($orderForTransport);
                     break;
                 case Api::ACTION_SUBMIT:
                     $orderForTransport = $this->load($order);
-                    $this->logger->log($orderForTransport->toJson());
+                    $this->logPayload($action, $order, $orderForTransport);
                     $response = $transport->submitOrder($orderForTransport);
                     break;
                 case Api::ACTION_CANCEL:
                     $orderForTransport = $this->_orderHelper->getOrderCancellation();
-                    $this->logger->log($orderForTransport->toJson());
+                    $this->logPayload($action, $order, $orderForTransport);
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case Api::ACTION_FULFILL:
@@ -186,17 +186,17 @@ class Order
                     $order = $order->getOrder();
                     $eventData['order'] = $order->getOrder();
 
-                    $this->logger->log($orderForTransport->toJson());
+                    $this->logPayload($action, $order, $orderForTransport);
                     $response = $transport->fulfillOrder($orderForTransport);
                     break;
                 case Api::ACTION_REFUND:
                     $orderForTransport = $this->loadRefund();
-                    $this->logger->log($orderForTransport->toJson());
+                    $this->logPayload($action, $order, $orderForTransport);
                     $response = $transport->refundOrder($orderForTransport);
                     break;
                 case Api::ACTION_CHECKOUT_DENIED:
                     $checkoutForTransport = $this->loadQuote($order);
-                    $this->logger->log($checkoutForTransport->toJson());
+                    $this->logPayload($action, $order, $checkoutForTransport);
                     $response = $transport->deniedCheckout($checkoutForTransport);
                     break;
             }
@@ -579,5 +579,17 @@ class Order
         }
 
         return $i;
+    }
+
+    /**
+     * Full payloads contain customer PII, so they're only logged with debug logs enabled.
+     */
+    private function logPayload($action, $order, $payload)
+    {
+        if ($this->_apiConfig->isLoggingEnabled($order->getStoreId())) {
+            $this->logger->log($payload->toJson());
+            return;
+        }
+        $this->logger->log(sprintf('Sending %s for order %s', $action, $order->getIncrementId() ?: $order->getId()));
     }
 }

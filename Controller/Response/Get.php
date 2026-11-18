@@ -110,19 +110,9 @@ class Get extends \Magento\Framework\App\Action\Action
                 $statusCode = 200;
                 $msg = __('Test notification received successfully');
 
-                $logger->log(
-                    sprintf(
-                        __("Test Notification received: %s"),
-                        json_encode($notification)
-                    )
-                );
+                $logger->log(sprintf(__("Test Notification received: id %s, status %s"), $id, $notification->status));
             } else {
-                $logger->log(
-                    sprintf(
-                        __("Notification received: %s"),
-                        json_encode($notification)
-                    )
-                );
+                $logger->log(sprintf(__("Notification received: id %s, status %s"), $id, $notification->status));
 
                 /** @var \Magento\Sales\Api\Data\OrderInterface $order */
                 $order = $this->apiOrderLayer->loadOrderByOrigId($id);
@@ -134,6 +124,11 @@ class Get extends \Magento\Framework\App\Action\Action
                     $statusCode = self::STATUS_BAD;
                     $msg = 'Could not find order to update.';
                 } else {
+                    // Full payload has customer PII; only log it when debug logs are on for the order's store.
+                    if ($this->config->isLoggingEnabled($order->getStoreId())) {
+                        $logger->log(sprintf("Notification payload: %s", json_encode($notification)));
+                    }
+
                     $decision = $this->decisionFactory->create();
                     $decision->setOrderId($order->getId());
                     $decision->setDecision($notification->status);
