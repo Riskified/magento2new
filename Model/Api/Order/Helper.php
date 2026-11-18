@@ -503,11 +503,19 @@ class Helper
         return $this->stripeHelper->getGateway($this->getOrder()) ?? (string) $payment->getMethod();
     }
 
+    /**
+     * Stripe payment method types that Riskified expects under a generic payment_type.
+     */
+    private const STRIPE_PAYMENT_TYPES = [
+        'bancontact' => 'bank_transfer',
+        'alma' => 'bnpl',
+    ];
+
     public function getPaymentType(): string
     {
         $stripeType = $this->stripeHelper->getPaymentMethodType($this->getOrder());
         if ($stripeType) {
-            return $stripeType;
+            return self::STRIPE_PAYMENT_TYPES[$stripeType] ?? $stripeType;
         }
 
         $method = strtolower((string) ($this->getOrder()->getPayment()
@@ -522,6 +530,12 @@ class Helper
         }
         if (str_contains($method, 'paypal')) {
             return 'paypal';
+        }
+        if ($method === 'free') {
+            return 'store_credit';
+        }
+        if (str_contains($method, 'bank_transfer') || str_contains($method, 'banktransfer')) {
+            return 'bank_transfer';
         }
 
         return 'card';
@@ -755,8 +769,10 @@ class Helper
      */
     public function getRemoteIp()
     {
-        $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
-            ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        if ($this->_apiConfig->isLoggingEnabled()) {
+            $this->_apiLogger->log("remote ip: " . $this->getOrder()->getRemoteIp() .
+                ", x-forwarded-ip: " . $this->getOrder()->getXForwardedFor());
+        }
 
         $forwardedIp = $this->getOrder()->getXForwardedFor();
         $remoteIp = $this->getOrder()->getRemoteIp();

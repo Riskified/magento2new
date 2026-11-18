@@ -162,6 +162,7 @@
                 <field id="debug_logs" translate="label" type="select" sortOrder="150" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
+                    <comment><![CDATA[Writes full request/notification payloads (including customer personal data) to var/log/riskified_decider.log. Disable to log only order IDs and statuses.]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="*/riskified_general/enabled">1</field>

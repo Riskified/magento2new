@@ -5,6 +5,7 @@
             <riskified>
                 <env>DEV</env>
                 <cron_max_attempts>5</cron_max_attempts>
+                <debug_logs>1</debug_logs>
             </riskified>
 
             <decline_notification>
