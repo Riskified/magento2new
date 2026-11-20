@@ -16,9 +16,6 @@ use Riskified\Decider\Model\Observer\UpdateOrderState;
 
 class ReleasePendingPaymentOrders
 {
-    // ponytail: fixed batch per 5-min run; make it a config field if a merchant needs to tune it
-    const BATCH_SIZE = 100;
-
     private OrderCollectionFactory $orderCollectionFactory;
     private StoreManagerInterface $storeManager;
     private DecisionRepositoryInterface $decisionRepository;
@@ -76,7 +73,7 @@ class ReleasePendingPaymentOrders
                 $this->config->getCronMaxAttemptsCount()
             )
             ->order('main_table.entity_id ASC')
-            ->limit(self::BATCH_SIZE);
+            ->limit($this->config->getPendingPaymentBatchSize());
 
         if (!$orders->count()) {
             return;

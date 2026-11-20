@@ -5,6 +5,7 @@
             <riskified>
                 <env>DEV</env>
                 <cron_max_attempts>5</cron_max_attempts>
+                <pending_payment_batch_size>100</pending_payment_batch_size>
                 <debug_logs>1</debug_logs>
             </riskified>
 

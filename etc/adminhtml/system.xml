@@ -159,6 +159,15 @@
                         <field id="*/riskified_general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="pending_payment_batch_size" translate="label" type="text" sortOrder="145" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Pending Payment Batch Size</label>
+                    <comment><![CDATA[How many pending-payment orders the release cron processes per run (every 5 minutes).]]></comment>
+                    <validate>required-entry validate-digits validate-greater-than-zero</validate>
+                    <depends>
+                        <field id="*/riskified_general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="debug_logs" translate="label" type="select" sortOrder="150" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Debug logs</label>
