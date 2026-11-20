@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Riskified\Decider\Model\Cron;
 
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\Search\SearchCriteriaBuilder;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Registry;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Store\Model\StoreManagerInterface;
 use Riskified\Decider\Api\DecisionRepositoryInterface;
 use Riskified\Decider\Model\Api\Config;
 use Riskified\Decider\Model\Api\Log;
@@ -17,59 +16,33 @@ use Riskified\Decider\Model\Observer\UpdateOrderState;
 
 class ReleasePendingPaymentOrders
 {
-    /**
-     * @var OrderRepositoryInterface
-     */
-    private OrderRepositoryInterface $orderRepository;
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private SearchCriteriaBuilder $searchCriteria;
-    /**
-     * @var DecisionRepositoryInterface
-     */
+    private OrderCollectionFactory $orderCollectionFactory;
+    private StoreManagerInterface $storeManager;
     private DecisionRepositoryInterface $decisionRepository;
-    /**
-     * @var FilterBuilder
-     */
-    private FilterBuilder $filterBuilder;
-    /**
-     * @var Config
-     */
     private Config $config;
-    /**
-     * @var UpdateOrderState
-     */
     private UpdateOrderState $updateOrderStateObserver;
-    /**
-     * @var Log
-     */
-    private Log $log;
-    /**
-     * @var Registry
-     */
-    private Registry $registry;
     private AutoInvoice $autoInvoiceObserver;
-
+    private Registry $registry;
+    private Log $log;
 
     public function __construct(
         Config $config,
         DecisionRepositoryInterface $decisionRepository,
-        FilterBuilder $filterBuilder,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $searchCriteria,
+        OrderCollectionFactory $orderCollectionFactory,
+        StoreManagerInterface $storeManager,
         UpdateOrderState $updateOrderStateObserver,
         AutoInvoice $autoInvoiceObserver,
-        Registry $registry
+        Registry $registry,
+        Log $log
     ) {
-        $this->orderRepository = $orderRepository;
-        $this->searchCriteria = $searchCriteria;
-        $this->filterBuilder = $filterBuilder;
-        $this->decisionRepository = $decisionRepository;
-        $this->updateOrderStateObserver = $updateOrderStateObserver;
         $this->config = $config;
-        $this->registry = $registry;
+        $this->decisionRepository = $decisionRepository;
+        $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->storeManager = $storeManager;
+        $this->updateOrderStateObserver = $updateOrderStateObserver;
         $this->autoInvoiceObserver = $autoInvoiceObserver;
+        $this->registry = $registry;
+        $this->log = $log;
     }
 
     /**
@@ -77,24 +50,42 @@ class ReleasePendingPaymentOrders
      */
     public function execute()
     {
-        $orderStatusFilter = $this->filterBuilder
-            ->setField('state')
-            ->setValue('pending_payment')
-            ->setConditionType('eq')
-            ->create();
+        $storeIds = [];
+        foreach ($this->storeManager->getStores() as $store) {
+            if ($this->config->isEnabled($store->getId())) {
+                $storeIds[] = $store->getId();
+            }
+        }
 
-        $searchCriteria = $this->searchCriteria->addFilter($orderStatusFilter)->create();
-        $orderList = $this->orderRepository->getList($searchCriteria);
-
-        if ($orderList->getTotalCount() == 0) {
+        if (!$storeIds) {
             return;
         }
 
-        $orders = $orderList->getItems();
-        $this->registry->register("riskified-order", array_values($orders)[0], true);
+        // Only orders with a Riskified decision that hasn't failed too often: pending-payment orders
+        // without one (e.g. abandoned 3DS) or that keep failing would otherwise fill every batch.
+        $orders = $this->orderCollectionFactory->create();
+        $orders->addFieldToFilter('main_table.state', 'pending_payment')
+            ->addFieldToFilter('main_table.store_id', ['in' => $storeIds]);
+        $orders->getSelect()
+            ->where(
+                'EXISTS (SELECT 1 FROM ' . $orders->getTable('riskified_decision_queue')
+                . ' AS d WHERE d.order_id = main_table.entity_id AND d.attempts_count < ?)',
+                $this->config->getCronMaxAttemptsCount()
+            )
+            ->order('main_table.entity_id ASC')
+            ->limit($this->config->getPendingPaymentBatchSize());
+
+        if (!$orders->count()) {
+            return;
+        }
+
         $toRemove = [];
 
         foreach ($orders as $order) {
+            $decision = null;
+            // Batch spans stores: point store-scoped config and registry at this order.
+            $this->config->setStore($order->getStoreId());
+            $this->registry->register("riskified-order", $order, true);
             try {
                 $decision = $this->decisionRepository->getByOrderId((int)$order->getId());
 
@@ -112,6 +103,13 @@ class ReleasePendingPaymentOrders
                     $toRemove[] = $decision;
                 }
             } catch (\Exception $e) {
+                if ($decision && $decision->getId()) {
+                    $decision->setAttemptsCount($decision->getAttemptsCount() + 1);
+                    $this->decisionRepository->save($decision);
+                }
+                if ($this->config->isLoggingEnabled()) {
+                    $this->log->log("Pending payment release failed for order #{$order->getIncrementId()}: " . $e->getMessage());
+                }
             }
         }
 
@@ -120,5 +118,4 @@ class ReleasePendingPaymentOrders
             $this->decisionRepository->deleteById((int)$decisionEntry->getId());
         }
     }
-
 }

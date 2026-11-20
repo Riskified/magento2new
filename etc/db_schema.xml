@@ -30,6 +30,9 @@
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>
+        <index referenceId="RISKIFIED_DECISION_QUEUE_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
     </table>
 
     <table name="sales_order" resource="default" engine="innodb">

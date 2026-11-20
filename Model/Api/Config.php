@@ -301,4 +301,13 @@ class Config
     {
         return (int) $this->_scopeConfig->getValue('riskified/riskified/cron_max_attempts');
     }
+
+    /**
+     * @return int
+     */
+    public function getPendingPaymentBatchSize() : int
+    {
+        $size = (int) $this->_scopeConfig->getValue('riskified/riskified/pending_payment_batch_size');
+        return $size > 0 ? $size : 100;
+    }
 }
